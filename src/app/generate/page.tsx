@@ -4,14 +4,16 @@ import DefaultFormItem from "../_components/DefaultFormItem";
 import DefaultLabelText from "../_components/DefaultLabelText";
 import DefaultFormGroupTitle from "../_components/DefaultFormGroupTitle";
 import DefaultFormGroup from "../_components/DefaultFormGroup";
+import DefaultSectionHeader from "../_components/DefaultSectionHeader";
+import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 
 export default function Generate() {
     return (
         <main className="container">
             <DefaultSection>
-                <header className="section-header py-4">
-                    <h1 className="text-3xl font-black">Generate Timesheet</h1>
-                </header>
+                <DefaultSectionHeader>
+                    <DefaultSectionTitle>Generate Timesheet</DefaultSectionTitle>
+                </DefaultSectionHeader>
                 <div className="section-body">
                     <form action="">
                         <div className="form-group">

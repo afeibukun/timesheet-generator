@@ -1,14 +1,15 @@
 import Link from "next/link";
 import DefaultSection from "./_components/DefaultSection";
+import DefaultSectionHeader from "./_components/DefaultSectionHeader";
 
 export default function Home() {
   let isTimesheetEmpty: boolean = true;
   return (
     <main className="container">
       <DefaultSection>
-        <header className="section-header py-4">
+        <DefaultSectionHeader>
           <h1 className="text-5xl font-black">Timesheet Generator</h1>
-        </header>
+        </DefaultSectionHeader>
         <div className="section-body general-label">
           <div className="py-8 px-8 border">
             <p>Welcome to my simple customer timesheet generator. Hope it works for you. </p>

@@ -1,37 +1,52 @@
 import Link from "next/link";
+import DefaultSection from "../_components/DefaultSection";
+import DefaultSectionHeader from "../_components/DefaultSectionHeader";
+import DefaultSectionTitle from "../_components/DefaultSectionTitle";
+import DefaultFormItem from "../_components/DefaultFormItem";
+import DefaultLabelText from "../_components/DefaultLabelText";
 
 export default function DefaultData() {
     return (
         <main>
-            <section>
-                <header>
-                    <h1>Default Data</h1>
-                </header>
+            <DefaultSection>
+                <DefaultSectionHeader>
+                    <DefaultSectionTitle>Default Data</DefaultSectionTitle>
+                </DefaultSectionHeader>
                 <div className="section-body">
                     <form action="">
-                        <div className="form-item">
-                            <label htmlFor="defaultStartTime">Start Time</label>
-                            <input type="time" name="defaultStartTime" id="defaultStartTime" />
-                        </div>
-                        <div className="form-item">
-                            <label htmlFor="defaultFinishTime">Finish Time</label>
-                            <input type="time" name="defaultFinishTime" id="defaultFinishTime" />
-                        </div>
-                        <div className="form-item">
-                            <label htmlFor="defaultLocationType">Location Type</label>
-                            <select name="defaultLocationType" id="defaultLocationType">
+                        <DefaultFormItem>
+                            <label htmlFor="defaultStartTime">
+                                <DefaultLabelText>Start Time</DefaultLabelText>
+                            </label>
+                            <input type="time" name="defaultStartTime" id="defaultStartTime" className="inline-block border rounded" />
+                        </DefaultFormItem>
+                        <DefaultFormItem>
+                            <label htmlFor="defaultFinishTime">
+                                <DefaultLabelText>Finish Time</DefaultLabelText>
+                            </label>
+                            <input type="time" name="defaultFinishTime" id="defaultFinishTime" className="inline-block border rounded" />
+                        </DefaultFormItem>
+                        <DefaultFormItem>
+                            <label htmlFor="defaultLocationType">
+                                <DefaultLabelText>Location Type</DefaultLabelText>
+                            </label>
+                            <select name="defaultLocationType" id="defaultLocationType" className="inline-block border rounded">
                                 <option value="onshore">Onshore</option>
                                 <option value="offshore">Offshore</option>
                             </select>
-                        </div>
-                        <div className="form-item">
-                            <label htmlFor="defaultComment">Comment</label>
-                            <textarea name="defaultComment" id="defaultComment" cols={30} rows={10}></textarea>
-                        </div>
+                        </DefaultFormItem>
+                        <DefaultFormItem>
+                            <label htmlFor="defaultComment">
+                                <DefaultLabelText>Comment</DefaultLabelText>
+                            </label>
+                            <textarea name="defaultComment" id="defaultComment" cols={30} rows={3} className="inline-block border rounded p-2"></textarea>
+                        </DefaultFormItem>
 
-                        <div className="form-item">
-                            <label htmlFor="weekStartDay">Week Start Day</label>
-                            <select name="weekStartDay" id="weekStartDay">
+                        <DefaultFormItem>
+                            <label htmlFor="weekStartDay">
+                                <DefaultLabelText>Week Start Day</DefaultLabelText>
+                            </label>
+                            <select name="weekStartDay" id="weekStartDay" className="inline-block border rounded">
                                 <option value="monday">Monday</option>
                                 <option value="tuesday">Tuesday</option>
                                 <option value="wednesday">Wednesday</option>
@@ -40,17 +55,20 @@ export default function DefaultData() {
                                 <option value="saturday">Saturday</option>
                                 <option value="sunday">Sunday</option>
                             </select>
-                        </div>
+                        </DefaultFormItem>
 
-                        <div className="form-item">
-                            <button type="button">Save Default Data</button>
-                        </div>
+                        <DefaultFormItem>
+                            <div className="flex gap-x-4">
+                                <button type="button" className="px-8 py-2 rounded uppercase text-sm font-semibold bg-purple-700 text-white">Save Default Data</button>
+                                <Link href="/" className="px-8 py-2 rounded uppercase text-sm font-semibold border ">Go Back</Link>
+                            </div>
+                        </DefaultFormItem>
                     </form>
                 </div>
                 <footer>
-                    <Link href="/">Go Back</Link>
+
                 </footer>
-            </section>
+            </DefaultSection>
         </main>
     );
 }
