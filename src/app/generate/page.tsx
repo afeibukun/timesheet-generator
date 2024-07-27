@@ -1,70 +1,100 @@
 import Link from "next/link";
+import DefaultSection from "../_components/DefaultSection";
+import DefaultFormItem from "../_components/DefaultFormItem";
+import DefaultLabelText from "../_components/DefaultLabelText";
+import DefaultFormGroupTitle from "../_components/DefaultFormGroupTitle";
+import DefaultFormGroup from "../_components/DefaultFormGroup";
 
 export default function Generate() {
     return (
-        <main>
-            <section>
-                <header>
-                    <h1>Generate Timesheet</h1>
+        <main className="container">
+            <DefaultSection>
+                <header className="section-header py-4">
+                    <h1 className="text-3xl font-black">Generate Timesheet</h1>
                 </header>
                 <div className="section-body">
                     <form action="">
                         <div className="form-group">
-                            <div className="form-item">
-                                <label htmlFor="fsrName">FSR Name</label>
-                                <input type="text" name="fsrName" id="fsrName" />
-                            </div>
+                            <DefaultFormItem>
+                                <label htmlFor="fsrName" >
+                                    <DefaultLabelText>FSR Name</DefaultLabelText>
+                                </label>
+                                <input type="text" name="fsrName" id="fsrName" className="inline-block border rounded" />
+                            </DefaultFormItem>
                         </div>
-                        <div className="form-group">
-                            <h4>Mobilization Date</h4>
-                            <div className="form-item">
-                                <label htmlFor="workStartDate">Date of Work Start</label>
-                                <input type="date" name="workStartDate" id="workStartDate" />
-                            </div>
-                            <div className="form-item">
-                                <label htmlFor="workFinishDate">Date of Work Finish</label>
-                                <input type="date" name="workFinishDate" id="workFinishDate" />
-                            </div>
-                        </div>
-                        <div className="form-group">
-                            <h4>Customer Information</h4>
-                            <div className="form-item">
-                                <label htmlFor="customerName">Customer Name</label>
-                                <input type="text" name="customerName" id="customerName" />
-                            </div>
-                            <div className="form-item">
-                                <label htmlFor="siteName">Site Name</label>
-                                <input type="text" name="siteName" id="siteName" />
-                            </div>
-                            <div className="form-item">
-                                <label htmlFor="siteCountry">Site Country</label>
-                                <input type="text" name="siteCountry" id="siteCountry" />
-                            </div>
-                        </div>
+                        <DefaultFormGroup>
+                            <DefaultFormGroupTitle>Mobilization Date</DefaultFormGroupTitle>
+                            <DefaultFormItem>
+                                <label htmlFor="workStartDate">
+                                    <DefaultLabelText>Date of Work Start</DefaultLabelText>
+                                </label>
+                                <input type="date" name="workStartDate" id="workStartDate" className="border rounded" />
+                            </DefaultFormItem>
+                            <DefaultFormItem>
+                                <label htmlFor="workFinishDate">
+                                    <DefaultLabelText>Date of Work Finish</DefaultLabelText>
+                                </label>
+                                <input type="date" name="workFinishDate" id="workFinishDate" className="border rounded" />
+                            </DefaultFormItem>
+                        </DefaultFormGroup>
+                        <DefaultFormGroup>
+                            <DefaultFormGroupTitle>Customer Information</DefaultFormGroupTitle>
+                            <DefaultFormItem>
+                                <label htmlFor="customerName">
+                                    <DefaultLabelText>Customer Name
+                                    </DefaultLabelText>
+                                </label>
+                                <input type="text" name="customerName" id="customerName" className="border rounded" />
+                            </DefaultFormItem>
+                            <DefaultFormItem>
+                                <label htmlFor="siteName">
+                                    <DefaultLabelText>Site Name</DefaultLabelText>
 
-                        <div className="form-group">
-                            <h4>Project Information</h4>
-                            <div className="form-item">
-                                <label htmlFor="purchaseOrderNumber">Purchase Order (PO) Number</label>
-                                <input type="text" name="purchaseOrderNumber" id="purchaseOrderNumber" />
-                            </div>
-                            <div className="form-item">
-                                <label htmlFor="orderNumber">Order Number</label>
-                                <input type="text" name="orderNumber" id="orderNumber" />
-                            </div>
-                        </div>
+                                </label>
+                                <input type="text" name="siteName" id="siteName" className="border rounded" />
+                            </DefaultFormItem>
+                            <DefaultFormItem>
+                                <label htmlFor="siteCountry">
+                                    <DefaultLabelText>Site Country</DefaultLabelText>
+                                </label>
+                                <input type="text" name="siteCountry" id="siteCountry" className="border rounded" />
+                            </DefaultFormItem>
+                        </DefaultFormGroup>
 
-                        <div className="form-group">
+                        <DefaultFormGroup>
+                            <DefaultFormGroupTitle>Project Information</DefaultFormGroupTitle>
+                            <DefaultFormItem>
+                                <label htmlFor="purchaseOrderNumber">
+                                    <DefaultLabelText>Purchase Order (PO) Number</DefaultLabelText>
+                                </label>
+                                <input type="text" name="purchaseOrderNumber" id="purchaseOrderNumber" className="border rounded" />
+                            </DefaultFormItem>
+                            <DefaultFormItem>
+                                <label htmlFor="orderNumber">
+                                    <DefaultLabelText>Order Number</DefaultLabelText>
+                                </label>
+                                <input type="text" name="orderNumber" id="orderNumber" className="border rounded" />
+                            </DefaultFormItem>
+                        </DefaultFormGroup>
+
+                        <div className="form-group flex gap-x-4">
                             <div className="form-item">
-                                <button type="submit">Continue</button>
+                                <button type="submit" className="px-8 py-2 rounded text-sm uppercase font-semibold bg-purple-700 text-white">Continue</button>
+                            </div>
+                            <div className="">
+                                <Link href="/" className="inline-block py-2 px-8 rounded text-sm uppercase font-semibold border ">Go Back</Link>
+                            </div>
+                            {/* FOR DEVELOPMENT SAKE*/}
+                            <div className="">
+                                <Link href="/preview" className="inline-block py-2 px-8 rounded text-sm uppercase font-semibold bg-slate-500 ">Go To Preview Page</Link>
                             </div>
                         </div>
                     </form>
                 </div>
-                <footer>
-                    <Link href="/">Go Back</Link>
+                <footer className="pt-4 pb-8">
+
                 </footer>
-            </section>
+            </DefaultSection>
         </main>
     )
 }

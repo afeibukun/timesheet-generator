@@ -1,10 +1,11 @@
 import Link from "next/link";
+import DefaultSection from "./_components/DefaultSection";
 
 export default function Home() {
   let isTimesheetEmpty: boolean = true;
   return (
     <main className="container">
-      <section className="max-w-5xl mx-auto px-4">
+      <DefaultSection>
         <header className="section-header py-4">
           <h1 className="text-5xl font-black">Timesheet Generator</h1>
         </header>
@@ -19,11 +20,11 @@ export default function Home() {
             <Link href="/default-data" className="py-3 px-6 rounded border">Update Default Data</Link>
           </div>
         </footer>
-      </section>
+      </DefaultSection>
 
       <div className="spacer h-8"></div>
 
-      <section className="max-w-5xl mx-auto px-4">
+      <DefaultSection>
         <header className="section-header py-4">
           <h2 className="text-2xl font-semibold">Previous Timesheet</h2>
         </header>
@@ -95,7 +96,7 @@ export default function Home() {
             </div>
           )}
         </div>
-      </section>
+      </DefaultSection>
       <Link href="/preview">Preview</Link>
     </main>
   );
