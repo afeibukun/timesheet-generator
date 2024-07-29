@@ -8,11 +8,13 @@ import DefaultFormGroup from "../_components/DefaultFormGroup";
 import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import { useEffect, useState } from "react";
-import { TimesheetMetaData } from "@/lib/types/timesheetType";
-import { currentTimesheetMetaLabel, statusConstants } from "@/lib/constants";
+import { currentTimesheetLabel, currentTimesheetMetaLabel, statusConstants } from "@/lib/constants";
+import { TimesheetEntry } from "@/lib/services/timesheetEntry";
+import { TimesheetMeta, TimesheetMetaFormData } from "@/lib/services/timesheetMeta";
+import { useRouter } from "next/router";
 
 export default function Generate() {
-    const _initialTimesheetMeta: TimesheetMetaData = {
+    const _initialTimesheetMetaFormData: TimesheetMetaFormData = {
         fsrName: "",
         mobilizationDate: "",
         demobilizationDate: "",
@@ -20,29 +22,40 @@ export default function Generate() {
         siteName: "",
         siteCountry: "",
         purchaseOrderNumber: "",
-        orderNumber: null,
+        orderNumber: "",
     }
-    const [timesheetMeta, setTimesheetMeta] = useState(_initialTimesheetMeta);
+    const [timesheetMetaFormData, setTimesheetMetaFormData] = useState(_initialTimesheetMetaFormData);
 
     const [status, setStatus] = useState(statusConstants.enteringData);
+    const router = useRouter();
 
     useEffect(() => {
         const rawCurrentTimesheetMeta = localStorage.getItem(currentTimesheetMetaLabel);
         if (rawCurrentTimesheetMeta != null && rawCurrentTimesheetMeta != undefined) {
-            setTimesheetMeta(JSON.parse(rawCurrentTimesheetMeta));
+            let parsedTimesheetMetaObject = JSON.parse(rawCurrentTimesheetMeta);
+            let parsedTimesheetMeta: TimesheetMeta = TimesheetMeta.refreshTimesheetMeta(parsedTimesheetMetaObject);
+            setTimesheetMetaFormData(parsedTimesheetMeta.convertToTimesheetMetaFormData());
         }
     }, []);
 
-    function handleInputChange(e: any, metaDataKey: string) {
-        setTimesheetMeta({ ...timesheetMeta, [metaDataKey]: e.target.value });
+    function handleInputChange(e: any, metaKey: string) {
+        let metaValue = e.target.value;
+        setTimesheetMetaFormData({ ...timesheetMetaFormData, [metaKey]: metaValue });
     }
 
     function handleSubmitTimesheetMeta(e: any) {
         e.preventDefault();
         e.stopPropagation();
         setStatus(statusConstants.submitting);
-        localStorage.setItem(currentTimesheetMetaLabel, JSON.stringify(timesheetMeta));
+
+        localStorage.setItem(currentTimesheetMetaLabel, JSON.stringify(timesheetMetaFormData));
+
         setStatus(statusConstants.submitted);
+
+        const timesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaFormData(timesheetMetaFormData);
+        let timesheet = TimesheetEntry.createTimesheet(timesheetMeta.mobilizationDate, timesheetMeta.demobilizationDate);
+        localStorage.setItem(currentTimesheetLabel, JSON.stringify(timesheet));
+        router.push('/preview');
     }
     return (
         <main className="container">
@@ -58,7 +71,7 @@ export default function Generate() {
                                     <DefaultLabelText>FSR Name</DefaultLabelText>
                                 </label>
                                 <input type="text"
-                                    value={timesheetMeta.fsrName}
+                                    value={timesheetMetaFormData.fsrName}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'fsrName');
@@ -76,7 +89,7 @@ export default function Generate() {
                                     <DefaultLabelText>Personnel Mobilization Date</DefaultLabelText>
                                 </label>
                                 <input type="date"
-                                    value={timesheetMeta.mobilizationDate}
+                                    value={timesheetMetaFormData.mobilizationDate}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'mobilizationDate');
@@ -91,7 +104,7 @@ export default function Generate() {
                                 <input type="date"
                                     name="demobilizationDate"
                                     id="demobilizationDate"
-                                    value={timesheetMeta.demobilizationDate}
+                                    value={timesheetMetaFormData.demobilizationDate}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'demobilizationDate');
@@ -110,7 +123,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="customerName"
                                     id="customerName"
-                                    value={timesheetMeta.customerName}
+                                    value={timesheetMetaFormData.customerName}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'customerName');
@@ -126,7 +139,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="siteName"
                                     id="siteName"
-                                    value={timesheetMeta.siteName}
+                                    value={timesheetMetaFormData.siteName}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'siteName');
@@ -141,7 +154,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="siteCountry"
                                     id="siteCountry"
-                                    value={timesheetMeta.siteCountry}
+                                    value={timesheetMetaFormData.siteCountry}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'siteCountry');
@@ -160,7 +173,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="purchaseOrderNumber"
                                     id="purchaseOrderNumber"
-                                    value={timesheetMeta.purchaseOrderNumber}
+                                    value={timesheetMetaFormData.purchaseOrderNumber}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'purchaseOrderNumber');
@@ -175,7 +188,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="orderNumber"
                                     id="orderNumber"
-                                    value={timesheetMeta.orderNumber?.toString()}
+                                    value={timesheetMetaFormData.orderNumber?.toString()}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'orderNumber');

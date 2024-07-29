@@ -1,6 +1,7 @@
 export const defaultTimesheetInformationLabel = "DEFAULT_TIMESHEET_INFORMATION"
 
 export const currentTimesheetMetaLabel = "CURRENT_TIMESHEET_META"
+export const currentTimesheetLabel = "CURRENT_TIMESHEET"
 
 export const statusConstants = {
     enteringData: "ENTERING_DATA",
