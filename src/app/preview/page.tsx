@@ -3,6 +3,8 @@ import DefaultSection from "../_components/DefaultSection";
 import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import InfoLabel from "./_components/InfoLabel";
+import { TimesheetEntry } from "@/lib/types/timesheetType";
+import TimesheetTable from "./_components/TimesheetTable";
 
 export default function Preview() {
     let timesheetGroup: TimesheetEntry[] = [
@@ -55,46 +57,28 @@ export default function Preview() {
             totalHours: 12,
             locationType: "onshore",
             comment: "Technical Support"
+        },
+        {
+            id: 6,
+            day: "Saturday",
+            date: "04 May 2024",
+            startTime: "06:00",
+            finishTime: "18:00",
+            totalHours: 12,
+            locationType: "onshore",
+            comment: "Technical Support"
+        },
+        {
+            id: 7,
+            day: "Sunday",
+            date: "05 May 2024",
+            startTime: "06:00",
+            finishTime: "18:00",
+            totalHours: 12,
+            locationType: "onshore",
+            comment: "Technical Support"
         }
     ]
-
-    let timesheetTableMarkup = timesheetGroup.map((timesheetEntry) =>
-        <tr key={timesheetEntry.id} className="py-3">
-            <td>
-                <span className="flex flex-col pr-2">
-                    <span className="text-sm font-normal">{timesheetEntry.day}</span>
-                    <span className="text-[10px]">{timesheetEntry.date}</span>
-                </span>
-            </td>
-            <td>
-                <span className="flex flex-col gap-y-1 pr-2">
-                    <span className="flex gap-x-1 items-center">
-                        <span className="inline-block min-w-10 text-sm">Start</span>
-                        <span className="inline-block min-w-16 px-2 py-1 border text-sm text-center">{timesheetEntry.startTime}</span>
-                    </span>
-                    <span className="flex gap-x-1 items-center">
-                        <span className="inline-block min-w-10 text-sm">Finish</span>
-                        <span className="inline-block min-w-16 px-2 py-1 border text-sm text-center">{timesheetEntry.finishTime}</span>
-                    </span>
-                </span>
-            </td>
-            <td>
-                <span className="inline-block pr-2">
-                    <span className="font-semibold mr-1">{timesheetEntry.totalHours.toString()}</span>
-                    <span className="text-xs">hrs</span>
-                </span>
-            </td>
-            <td>
-                <span className="inline-block pr-2 text-sm capitalize">{timesheetEntry.locationType}</span>
-            </td>
-            <td>
-                <span className="inline-block pr-2">
-                    <span className="inline-block border p-1 text-sm">{timesheetEntry.comment}</span>
-                </span>
-            </td>
-            <td><button type="button" className="px-3 py-1 rounded text-sm text-white bg-blue-600">Edit</button></td>
-        </tr>
-    )
     return (
         <main>
             <DefaultSection>
@@ -171,27 +155,46 @@ export default function Preview() {
                 </DefaultSectionHeader>
                 <div className="section-body">
                     <div className="week-wrapper border p-4">
-                        <div className="wrapper-header">
-                            <h4 className="text-lg font-semibold">Week {5}</h4>
+                        <div className="wrapper-header mb-4">
+                            <h4 className="rounded text-base font-black text-purple-700">
+                                <span>Week </span>
+                                <span>{5}</span></h4>
                         </div>
                         <div className="timesheet-table text-left">
-                            <table>
-                                <thead>
-                                    <tr className="text-sm">
-                                        <th>Date</th>
-                                        <th><span className="inline-block pr-2">Period</span></th>
-                                        <th><span className="inline-block pr-2">Total hours</span></th>
-                                        <th><span className="inline-block pr-2">Location</span></th>
-                                        <th><span className="inline-block pr-2">Comment</span></th>
-                                        <th>{' '}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {timesheetTableMarkup}
-                                </tbody>
-                            </table>
+                            <TimesheetTable timesheetGroupData={timesheetGroup} />
                         </div>
                     </div>
+                    <div className="week-wrapper border p-4">
+                        <div className="wrapper-header mb-4">
+                            <h4 className="rounded text-base font-black text-purple-700">
+                                <span>Week </span>
+                                <span>{6}</span></h4>
+                        </div>
+                        <div className="timesheet-table text-left">
+                            <TimesheetTable timesheetGroupData={timesheetGroup} />
+                        </div>
+                    </div>
+                    <div className="week-wrapper border p-4">
+                        <div className="wrapper-header mb-4">
+                            <h4 className="rounded text-base font-black text-purple-700">
+                                <span>Week </span>
+                                <span>{7}</span></h4>
+                        </div>
+                        <div className="timesheet-table text-left">
+                            <TimesheetTable timesheetGroupData={timesheetGroup} />
+                        </div>
+                    </div>
+                    <div className="week-wrapper border p-4">
+                        <div className="wrapper-header mb-4">
+                            <h4 className="rounded text-base font-black text-purple-700">
+                                <span>Week </span>
+                                <span>{8}</span></h4>
+                        </div>
+                        <div className="timesheet-table text-left">
+                            <TimesheetTable timesheetGroupData={timesheetGroup} />
+                        </div>
+                    </div>
+
                 </div>
                 <footer className="py-8">
                     <div className="flex gap-x-4">
@@ -204,18 +207,6 @@ export default function Preview() {
                     </div>
                 </footer>
             </DefaultSection>
-
         </main>
     );
-}
-
-type TimesheetEntry = {
-    id: number,
-    day: string,
-    date: string,
-    startTime: string,
-    finishTime: string,
-    totalHours: number,
-    locationType: string,
-    comment: string
 }

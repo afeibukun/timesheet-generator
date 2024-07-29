@@ -2,6 +2,7 @@ import Link from "next/link";
 import DefaultSection from "./_components/DefaultSection";
 import DefaultSectionHeader from "./_components/DefaultSectionHeader";
 
+
 export default function Home() {
   let isTimesheetEmpty: boolean = true;
   return (
@@ -18,7 +19,7 @@ export default function Home() {
         <footer className="section-footer section-action">
           <div className="button-group py-4 flex gap-x-4">
             <Link href="/generate" className="py-3 px-6 rounded bg-slate-400">Generate Timesheet</Link>
-            <Link href="/default-data" className="py-3 px-6 rounded border">Update Default Data</Link>
+            <Link href="/default-information" className="py-3 px-6 rounded border">Update Default Info</Link>
           </div>
         </footer>
       </DefaultSection>
