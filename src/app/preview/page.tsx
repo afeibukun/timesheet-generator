@@ -1,199 +1,163 @@
+'use client'
 import Link from "next/link";
 import DefaultSection from "../_components/DefaultSection";
 import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import InfoLabel from "./_components/InfoLabel";
-import { TimesheetEntry } from "@/lib/types/timesheetType";
 import TimesheetTable from "./_components/TimesheetTable";
+import { Timesheet, TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
+import { useEffect, useState } from "react";
+import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
+import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 
 export default function Preview() {
-    let timesheetGroup: TimesheetEntry[] = [
-        {
-            id: 1,
-            day: "Monday",
-            date: "29 Apr 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        },
-        {
-            id: 2,
-            day: "Tuesday",
-            date: "30 Apr 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        },
-        {
-            id: 3,
-            day: "Wednesday",
-            date: "01 May 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        },
-        {
-            id: 4,
-            day: "Thursday",
-            date: "02 May 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        },
-        {
-            id: 5,
-            day: "Friday",
-            date: "03 May 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        },
-        {
-            id: 6,
-            day: "Saturday",
-            date: "04 May 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        },
-        {
-            id: 7,
-            day: "Sunday",
-            date: "05 May 2024",
-            startTime: "06:00",
-            finishTime: "18:00",
-            totalHours: 12,
-            locationType: "onshore",
-            comment: "Technical Support"
-        }
-    ]
+
+    const [timesheet, setTimesheet] = useState({} as Timesheet);
+    const [groupedTimesheet, setGroupedTimesheet] = useState({} as Partial<Record<number | string, TimesheetEntry[]>>);
+    const [weeksInGroupedTimesheet, setWeeksInGroupedTimesheet] = useState([] as string[]);
+
+    useEffect(() => {
+        const retrievedTimesheet = TimesheetLocalStorage.getTimesheetFromLocalStorage();
+        setTimesheet(retrievedTimesheet);
+        let _groupedTimesheet = retrievedTimesheet.timesheetEntryCollectionByWeek
+        let _weeksInGroupedTimesheet = Object.keys(_groupedTimesheet)
+        setGroupedTimesheet(_groupedTimesheet);
+        setWeeksInGroupedTimesheet(_weeksInGroupedTimesheet)
+    }, []);
+
     return (
         <main>
             <DefaultSection>
                 <DefaultSectionHeader>
                     <div className="preview-header-group main-title group-1 mb-4">
                         <DefaultSectionTitle>Timesheet Preview</DefaultSectionTitle>
-                        <div className="timesheet-period">
-                            <p className="text-base font-medium italic">
-                                <span>{'03/19/2021'}</span>
-                                <span className="px-3">-</span>
-                                <span>{'05/03/2021'}</span>
-                            </p>
-                        </div>
+                        {timesheet.meta != undefined ?
+                            <div className="timesheet-period">
+                                <p className="text-base font-medium italic">
+                                    {timesheet.meta.mobilizationDate != undefined && timesheet?.meta.mobilizationDate != null ?
+                                        <span>{new TimesheetDate(timesheet?.meta.mobilizationDate).simpleFormat()}</span>
+                                        : ''}
+                                    <span className="px-3">-</span>
+                                    {timesheet?.meta.demobilizationDate != undefined && timesheet?.meta.demobilizationDate != null ?
+                                        <span>{new TimesheetDate(timesheet?.meta.demobilizationDate!).simpleFormat()}</span> : ''}
+                                </p>
+                            </div> : ''}
+
                     </div>
                     <div className="preview-header-group group-2 flex justify-between">
-                        <div className="timesheet-owner-group  ">
-                            <h5 className="text-3xl font-medium rounded  p-2 bg-slate-100">{'John Lagbaja'}</h5>
-                        </div>
+                        {timesheet.meta != undefined ?
+                            <div className="timesheet-owner-group  ">
+                                <h5 className="text-3xl font-medium rounded  p-2 bg-slate-100">{timesheet?.meta.fsrName}</h5>
+                            </div> : ''}
                         <div className="timesheet-owner-hours border p-2 rounded-md">
-                            <p>Total hours</p>
+                            <p className="text-center">Total hours</p>
                             <h3>
                                 <span className="text-3xl font-semibold">
-                                    <span>{37}</span>
-                                    <span>h</span>
+                                    <span>{timesheet.totalHours}</span>
+                                    <span className="text-lg font-medium">hrs</span>
                                 </span>
-                                <span className="text-base font-light">
+                                {/* <span className="text-base font-light">
                                     <span>{30}</span>
                                     <span>m</span>
-                                </span>
+                                </span> */}
                             </h3>
                             <h5 className="text-sm text-center">
-                                <span>{6}</span>
+                                <span>{timesheet.totalDays}</span>
                                 <span>days</span>
                             </h5>
                         </div>
                     </div>
                     <div className="preview-header-group group-3 flex gap-x-8">
-                        <div className="customer-and-site-info">
-                            <div className="customer-info-group mb-4">
-                                <p>
-                                    <InfoLabel>Customer</InfoLabel>
-                                    <span className="info-value">{'Exxon Mobil'}</span>
-                                </p>
+                        {timesheet.meta != undefined ?
+                            <div className="customer-and-site-info">
+                                <div className="customer-info-group mb-4">
+                                    <p>
+                                        <InfoLabel>Customer</InfoLabel>
+                                        <span className="info-value">{timesheet?.meta.customerName}</span>
+                                    </p>
+                                </div>
+                                <div className="site-info-group mb-4 ">
+                                    <p>
+                                        <span className="site-info">
+                                            <InfoLabel>Site Name</InfoLabel>
+                                            <span className="info-value">{timesheet?.meta.siteName}</span>
+                                        </span>
+                                        <span className="country-info">
+                                            <span className="mr-4">,</span>
+                                            <InfoLabel>Country</InfoLabel>
+                                            <span className="info-value">{timesheet?.meta.siteCountry}</span>
+                                        </span>
+                                    </p>
+                                </div>
                             </div>
-                            <div className="site-info-group mb-4 ">
-                                <p>
-                                    <span className="site-info">
-                                        <InfoLabel>Site Name</InfoLabel>
-                                        <span className="info-value">{'QIT'}</span>
-                                    </span>
-                                    <span className="country-info">
-                                        <span className="mr-4">,</span>
-                                        <InfoLabel>Country</InfoLabel>
-                                        <span className="info-value">{'Nigeria'}</span>
-                                    </span>
-                                </p>
-                            </div>
-                        </div>
-                        <div className="project-info-group">
-                            <div className="purchase-order-number-group mb-4">
-                                <p className="purchase-order-number-info">
-                                    <InfoLabel>PO Number</InfoLabel>
-                                    <span className="info-value">{'345678675432333'}</span>
-                                </p>
-                            </div>
-                            <div className="order-number-group mb-4">
-                                <p className="order-number-info">
-                                    <InfoLabel>Order Number</InfoLabel>
-                                    <span className="info-value">{'34564342te'}</span>
-                                </p>
-                            </div>
-                        </div>
+                            : ''}
+                        {timesheet.meta != undefined ?
+                            <div className="project-info-group">
+                                <div className="purchase-order-number-group mb-4">
+                                    <p className="purchase-order-number-info">
+                                        <InfoLabel>PO Number</InfoLabel>
+                                        <span className="info-value">{timesheet?.meta.purchaseOrderNumber}</span>
+                                    </p>
+                                </div>
+                                {timesheet?.meta.orderNumber != null && timesheet?.meta.orderNumber != undefined ?
+                                    <div className="order-number-group mb-4">
+                                        <p className="order-number-info">
+                                            <InfoLabel>Order Number</InfoLabel>
+                                            <span className="info-value">{timesheet?.meta.orderNumber}</span>
+                                        </p>
+                                    </div>
+                                    : ''}
+                            </div> : ''}
                     </div>
                 </DefaultSectionHeader>
                 <div className="section-body">
-                    <div className="week-wrapper border p-4">
-                        <div className="wrapper-header mb-4">
-                            <h4 className="rounded text-base font-black text-purple-700">
-                                <span>Week </span>
-                                <span>{5}</span></h4>
+                    {timesheet != null ? (
+                        <div>
+                            {weeksInGroupedTimesheet.map((currentWeek: string) =>
+                                <div key={currentWeek} className="week-wrapper border p-4">
+                                    <div className="wrapper-header mb-4">
+                                        <h4 className="rounded text-base font-black text-purple-700">
+                                            <span>Week </span>
+                                            <span>{currentWeek}</span></h4>
+                                    </div>
+                                    <div className="timesheet-table text-left">
+                                        <TimesheetTable timesheetEntryCollectionData={groupedTimesheet[currentWeek]} />
+                                    </div>
+                                </div>
+
+                            )}
+                            {/* <div className="week-wrapper border p-4">
+                                <div className="wrapper-header mb-4">
+                                    <h4 className="rounded text-base font-black text-purple-700">
+                                        <span>Week </span>
+                                        <span>{6}</span></h4>
+                                </div>
+                                <div className="timesheet-table text-left">
+                                    <TimesheetTable timesheetEntryCollectionData={timesheet!.entryCollection} />
+                                </div>
+                            </div>
+                            <div className="week-wrapper border p-4">
+                                <div className="wrapper-header mb-4">
+                                    <h4 className="rounded text-base font-black text-purple-700">
+                                        <span>Week </span>
+                                        <span>{7}</span></h4>
+                                </div>
+                                <div className="timesheet-table text-left">
+                                    <TimesheetTable timesheetEntryCollectionData={timesheet!.entryCollection} />
+                                </div>
+                            </div>
+                            <div className="week-wrapper border p-4">
+                                <div className="wrapper-header mb-4">
+                                    <h4 className="rounded text-base font-black text-purple-700">
+                                        <span>Week </span>
+                                        <span>{8}</span></h4>
+                                </div>
+                                <div className="timesheet-table text-left">
+                                    <TimesheetTable timesheetEntryCollectionData={timesheet!.entryCollection} />
+                                </div>
+                            </div> */}
                         </div>
-                        <div className="timesheet-table text-left">
-                            <TimesheetTable timesheetGroupData={timesheetGroup} />
-                        </div>
-                    </div>
-                    <div className="week-wrapper border p-4">
-                        <div className="wrapper-header mb-4">
-                            <h4 className="rounded text-base font-black text-purple-700">
-                                <span>Week </span>
-                                <span>{6}</span></h4>
-                        </div>
-                        <div className="timesheet-table text-left">
-                            <TimesheetTable timesheetGroupData={timesheetGroup} />
-                        </div>
-                    </div>
-                    <div className="week-wrapper border p-4">
-                        <div className="wrapper-header mb-4">
-                            <h4 className="rounded text-base font-black text-purple-700">
-                                <span>Week </span>
-                                <span>{7}</span></h4>
-                        </div>
-                        <div className="timesheet-table text-left">
-                            <TimesheetTable timesheetGroupData={timesheetGroup} />
-                        </div>
-                    </div>
-                    <div className="week-wrapper border p-4">
-                        <div className="wrapper-header mb-4">
-                            <h4 className="rounded text-base font-black text-purple-700">
-                                <span>Week </span>
-                                <span>{8}</span></h4>
-                        </div>
-                        <div className="timesheet-table text-left">
-                            <TimesheetTable timesheetGroupData={timesheetGroup} />
-                        </div>
-                    </div>
+                    ) : ''}
 
                 </div>
                 <footer className="py-8">

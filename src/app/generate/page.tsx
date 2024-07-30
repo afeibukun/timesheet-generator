@@ -8,13 +8,15 @@ import DefaultFormGroup from "../_components/DefaultFormGroup";
 import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import { useEffect, useState } from "react";
-import { currentTimesheetLabel, currentTimesheetMetaLabel, statusConstants } from "@/lib/constants";
-import { TimesheetEntry } from "@/lib/services/timesheetEntry";
-import { TimesheetMeta, TimesheetMetaFormData } from "@/lib/services/timesheetMeta";
-import { useRouter } from "next/router";
+import { currentTimesheetMetaLabel, statusConstants } from "@/lib/constants";
+import { Timesheet, TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
+import { TimesheetMeta, TimesheetMetaPrimitive } from "@/lib/services/timesheet/timesheetMeta";
+import { useRouter } from "next/navigation";
+import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 
 export default function Generate() {
-    const _initialTimesheetMetaFormData: TimesheetMetaFormData = {
+    const router = useRouter();
+    const _initialTimesheetMeta: TimesheetMetaPrimitive = {
         fsrName: "",
         mobilizationDate: "",
         demobilizationDate: "",
@@ -24,10 +26,10 @@ export default function Generate() {
         purchaseOrderNumber: "",
         orderNumber: "",
     }
-    const [timesheetMetaFormData, setTimesheetMetaFormData] = useState(_initialTimesheetMetaFormData);
+    const [timesheetMetaFormData, setTimesheetMetaFormData] = useState(_initialTimesheetMeta);
 
     const [status, setStatus] = useState(statusConstants.enteringData);
-    const router = useRouter();
+
 
     useEffect(() => {
         const rawCurrentTimesheetMeta = localStorage.getItem(currentTimesheetMetaLabel);
@@ -53,8 +55,9 @@ export default function Generate() {
         setStatus(statusConstants.submitted);
 
         const timesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaFormData(timesheetMetaFormData);
-        let timesheet = TimesheetEntry.createTimesheet(timesheetMeta.mobilizationDate, timesheetMeta.demobilizationDate);
-        localStorage.setItem(currentTimesheetLabel, JSON.stringify(timesheet));
+        let timesheetEntryCollection = TimesheetEntry.createTimesheet(timesheetMeta.mobilizationDate, timesheetMeta.demobilizationDate);
+        let timesheet = new Timesheet({ meta: timesheetMeta, entryCollection: timesheetEntryCollection });
+        TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(timesheet);
         router.push('/preview');
     }
     return (

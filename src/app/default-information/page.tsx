@@ -7,44 +7,40 @@ import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import DefaultFormItem from "../_components/DefaultFormItem";
 import DefaultLabelText from "../_components/DefaultLabelText";
 import { useEffect, useState } from "react";
-import { DefaultTimesheetInformation } from "@/lib/types/timesheetType";
-import { defaultTimesheetInformationLabel, statusConstants } from "@/lib/constants";
-import moment from "moment";
+import { statusConstants, timesheetDefaultInformationConstant, timesheetDefaultInformationLabel } from "@/lib/constants";
 import SubmitButton02 from "../_components/SubmitButton02";
+import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
+import { TimesheetDefaultInformation } from "@/lib/services/timesheet/timesheetEntry";
+import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 
 export default function DefaultTimesheetInformationView() {
-    let _initialTimesheetDefaultInformation: DefaultTimesheetInformation = {
-        startTime: '06:00',
-        finishTime: '18:00',
-        locationType: 'onshore',
-        comment: 'Technical support',
-        weekStartDay: "monday",
-        updatedAt: ''
-    }
-    const [timesheetDefaultInformation, setTimesheetDefaultInformation] = useState(_initialTimesheetDefaultInformation);
+
+    let _initialDefaultInfo: TimesheetDefaultInformation = timesheetDefaultInformationConstant
+
+    const [timesheetDefaultInformationFormData, setTimesheetDefaultInformationFormData] = useState(_initialDefaultInfo);
 
     const [status, setStatus] = useState(statusConstants.enteringData);
 
     useEffect(() => {
-        const rawDefaultTimesheetInformation = localStorage.getItem(defaultTimesheetInformationLabel);
-        if (rawDefaultTimesheetInformation != null) {
-            setTimesheetDefaultInformation(JSON.parse(rawDefaultTimesheetInformation));
+        let retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
+        if (retrievedDefaultInfo != null) {
+            setTimesheetDefaultInformationFormData(retrievedDefaultInfo);
         }
     }, []);
 
-    let daysOfTheWeek: string[] = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-
     function handleInputChange(e: any, informationKey: string) {
-        setTimesheetDefaultInformation({ ...timesheetDefaultInformation, [informationKey]: e.target.value });
+        setTimesheetDefaultInformationFormData({ ...timesheetDefaultInformationFormData, [informationKey]: e.target.value });
     }
 
     function handleSubmitDefaultInformation(e: any) {
         e.preventDefault();
         e.stopPropagation();
         setStatus(statusConstants.submitting);
-        const updatedAtDate = moment().format("MMMM DD YYYY HH:mm:ss");
-        setTimesheetDefaultInformation({ ...timesheetDefaultInformation, updatedAt: updatedAtDate });
-        localStorage.setItem(defaultTimesheetInformationLabel, JSON.stringify(timesheetDefaultInformation));
+
+        const updatedAtDate = TimesheetDate.simpleNowDateTimeFormat();
+        setTimesheetDefaultInformationFormData({ ...timesheetDefaultInformationFormData, updatedAt: updatedAtDate });
+
+        TimesheetLocalStorage.setDefaultInformationInLocalStorage(timesheetDefaultInformationFormData);
         setStatus(statusConstants.submitted);
     }
 
@@ -61,7 +57,7 @@ export default function DefaultTimesheetInformationView() {
                                 <DefaultLabelText>Start Time</DefaultLabelText>
                             </label>
                             <input type="time"
-                                value={timesheetDefaultInformation.startTime}
+                                value={timesheetDefaultInformationFormData.startTime}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'startTime');
@@ -76,7 +72,7 @@ export default function DefaultTimesheetInformationView() {
                                 <DefaultLabelText>Finish Time</DefaultLabelText>
                             </label>
                             <input type="time"
-                                value={timesheetDefaultInformation.finishTime}
+                                value={timesheetDefaultInformationFormData.finishTime}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'finishTime')
@@ -93,7 +89,7 @@ export default function DefaultTimesheetInformationView() {
                             <select
                                 name="defaultLocationType"
                                 id="defaultLocationType"
-                                value={timesheetDefaultInformation.locationType}
+                                value={timesheetDefaultInformationFormData.locationType}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'locationType')
@@ -110,7 +106,7 @@ export default function DefaultTimesheetInformationView() {
                             </label>
                             <textarea
                                 name="defaultComment"
-                                value={timesheetDefaultInformation.comment}
+                                value={timesheetDefaultInformationFormData.comment}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'comment')
@@ -126,7 +122,7 @@ export default function DefaultTimesheetInformationView() {
                             </label>
                             <select
                                 name="weekStartDay"
-                                value={timesheetDefaultInformation.weekStartDay}
+                                value={timesheetDefaultInformationFormData.weekStartDay}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'weekStartDay')
@@ -134,7 +130,7 @@ export default function DefaultTimesheetInformationView() {
                                 }
                                 id="weekStartDay"
                                 className="inline-block border rounded capitalize">
-                                {daysOfTheWeek.map((day) => <option key={day} value={day} className="capitalize">{day}</option>)}
+                                {TimesheetDate.daysOfTheWeek.map((day) => <option key={day} value={day} className="capitalize">{day}</option>)}
                             </select>
                         </DefaultFormItem>
 
@@ -144,7 +140,7 @@ export default function DefaultTimesheetInformationView() {
                                     <div className="py-2">
                                         <p className="text-sm text-blue-700">
                                             <span className="font-semibold">Last Saved: </span>
-                                            <span className="font-medium italic">{timesheetDefaultInformation.updatedAt}</span></p>
+                                            <span className="font-medium italic">{timesheetDefaultInformationFormData.updatedAt}</span></p>
                                     </div>
                                 </div>
                                 <div>

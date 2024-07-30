@@ -16,12 +16,3 @@ export type MobilizationDateInformation = {
     mobilizationDate: string,
     demobilizationDate: string
 }
-
-export type DefaultTimesheetInformation = {
-    startTime: string,
-    finishTime: string,
-    locationType: string,
-    comment: string,
-    weekStartDay: string,
-    updatedAt: string,
-}

@@ -1,6 +1,6 @@
 import { TimesheetDate } from "./timesheetDate";
 
-export type TimesheetMetaFormData = {
+export type TimesheetMetaPrimitive = {
     fsrName: string,
     mobilizationDate: string,
     demobilizationDate: string,
@@ -10,7 +10,6 @@ export type TimesheetMetaFormData = {
     purchaseOrderNumber: string,
     orderNumber: string | null
 }
-
 
 interface TimesheetMetaInterface {
     id: number | null,
@@ -35,16 +34,16 @@ export class TimesheetMeta implements TimesheetMetaInterface {
     purchaseOrderNumber: string;
     orderNumber: string | null;
 
-    constructor({ id, fsrName, mobilizationDate, demobilizationDate, customerName, siteName, siteCountry, purchaseOrderNumber, orderNumber }: any) {
-        this.id = id;
-        this.fsrName = fsrName;
-        this.mobilizationDate = mobilizationDate;
-        this.demobilizationDate = demobilizationDate;
-        this.customerName = customerName;
-        this.siteName = siteName;
-        this.siteCountry = siteCountry;
-        this.purchaseOrderNumber = purchaseOrderNumber;
-        this.orderNumber = orderNumber;
+    constructor(metaInput: TimesheetMetaInterface | TimesheetMeta) {
+        this.id = metaInput.id;
+        this.fsrName = metaInput.fsrName;
+        this.mobilizationDate = metaInput.mobilizationDate;
+        this.demobilizationDate = metaInput.demobilizationDate;
+        this.customerName = metaInput.customerName;
+        this.siteName = metaInput.siteName;
+        this.siteCountry = metaInput.siteCountry;
+        this.purchaseOrderNumber = metaInput.purchaseOrderNumber;
+        this.orderNumber = metaInput.orderNumber;
     }
 
     static refreshTimesheetMeta(parsedTimesheetMetaObject: any) {
@@ -53,8 +52,8 @@ export class TimesheetMeta implements TimesheetMetaInterface {
         return parsedTimesheetMeta;
     }
 
-    convertToTimesheetMetaFormData(): TimesheetMetaFormData {
-        const timesheetMetaFormData: TimesheetMetaFormData = {
+    convertToTimesheetMetaFormData(): TimesheetMetaPrimitive {
+        const timesheetMetaFormData: TimesheetMetaPrimitive = {
             ...this,
             mobilizationDate: this.mobilizationDate.dateInputNaturalFormat(),
             demobilizationDate: this.demobilizationDate.dateInputNaturalFormat(),
@@ -62,13 +61,12 @@ export class TimesheetMeta implements TimesheetMetaInterface {
         return timesheetMetaFormData;
     }
 
-    static createTimesheetMetaFromTimesheetMetaFormData(timesheetMetaFormData: TimesheetMetaFormData): TimesheetMeta {
+    static createTimesheetMetaFromTimesheetMetaFormData(timesheetMetaFormData: TimesheetMetaPrimitive): TimesheetMeta {
         const timesheetMeta: TimesheetMeta = new TimesheetMeta({
             ...timesheetMetaFormData,
-            mobilizationDate: new TimesheetDate(timesheetMetaFormData.mobilizationDate),
-            demobilizationDate: new TimesheetDate(timesheetMetaFormData.demobilizationDate),
-        });
+            mobilizationDate: new TimesheetDate({ dateInput: timesheetMetaFormData.mobilizationDate }),
+            demobilizationDate: new TimesheetDate({ dateInput: timesheetMetaFormData.demobilizationDate }),
+        } as TimesheetMetaInterface);
         return timesheetMeta;
     }
-
 }
