@@ -7,7 +7,7 @@ import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import DefaultFormItem from "../_components/DefaultFormItem";
 import DefaultLabelText from "../_components/DefaultLabelText";
 import { useEffect, useState } from "react";
-import { statusConstants, timesheetDefaultInformationConstant, timesheetDefaultInformationLabel } from "@/lib/constants";
+import { StatusConstants, timesheetDefaultInformationConstant } from "@/lib/constants";
 import SubmitButton02 from "../_components/SubmitButton02";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetDefaultInformation } from "@/lib/services/timesheet/timesheetEntry";
@@ -19,7 +19,7 @@ export default function DefaultTimesheetInformationView() {
 
     const [timesheetDefaultInformationFormData, setTimesheetDefaultInformationFormData] = useState(_initialDefaultInfo);
 
-    const [status, setStatus] = useState(statusConstants.enteringData);
+    const [status, setStatus] = useState(StatusConstants.enteringData);
 
     useEffect(() => {
         let retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
@@ -35,13 +35,13 @@ export default function DefaultTimesheetInformationView() {
     function handleSubmitDefaultInformation(e: any) {
         e.preventDefault();
         e.stopPropagation();
-        setStatus(statusConstants.submitting);
+        setStatus(StatusConstants.submitting);
 
         const updatedAtDate = TimesheetDate.simpleNowDateTimeFormat();
         setTimesheetDefaultInformationFormData({ ...timesheetDefaultInformationFormData, updatedAt: updatedAtDate });
 
         TimesheetLocalStorage.setDefaultInformationInLocalStorage(timesheetDefaultInformationFormData);
-        setStatus(statusConstants.submitted);
+        setStatus(StatusConstants.submitted);
     }
 
     return (
@@ -145,7 +145,7 @@ export default function DefaultTimesheetInformationView() {
                                 </div>
                                 <div>
                                     {
-                                        status == statusConstants.submitted ? (
+                                        status == StatusConstants.submitted ? (
                                             <div className="p-4 mb-2 rounded bg-green-200">
                                                 <p className="text-sm text-green-900"><span>🎉</span><span>The Default Timesheet Information has been successfully saved</span></p>
                                             </div>
@@ -154,7 +154,7 @@ export default function DefaultTimesheetInformationView() {
                                 </div>
                             </div>
                             <div className="flex gap-x-4">
-                                <SubmitButton02 handleButtonClick={handleSubmitDefaultInformation} showLoading={status == statusConstants.submitting} loadingText="Saving">Save Default Info</SubmitButton02>
+                                <SubmitButton02 handleButtonClick={handleSubmitDefaultInformation} showLoading={status == StatusConstants.submitting} loadingText="Saving">Save Default Info</SubmitButton02>
 
                                 <Link href="/" className="px-8 py-2 rounded uppercase text-sm font-semibold border ">Go Back</Link>
                             </div>

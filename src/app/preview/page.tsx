@@ -5,10 +5,12 @@ import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import InfoLabel from "./_components/InfoLabel";
 import TimesheetTable from "./_components/TimesheetTable";
-import { Timesheet, TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
+import { TimesheetEntry, TimesheetEntryEditFormData } from "@/lib/services/timesheet/timesheetEntry";
 import { useEffect, useState } from "react";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
+import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
+import { Timesheet } from "@/lib/services/timesheet/timesheet";
 
 export default function Preview() {
 
@@ -19,11 +21,40 @@ export default function Preview() {
     useEffect(() => {
         const retrievedTimesheet = TimesheetLocalStorage.getTimesheetFromLocalStorage();
         setTimesheet(retrievedTimesheet);
-        let _groupedTimesheet = retrievedTimesheet.timesheetEntryCollectionByWeek
-        let _weeksInGroupedTimesheet = Object.keys(_groupedTimesheet)
-        setGroupedTimesheet(_groupedTimesheet);
+        let _groupedTimesheetEntry = retrievedTimesheet.timesheetEntryCollectionByWeek
+        let _weeksInGroupedTimesheet: string[] = Object.keys(_groupedTimesheetEntry)
+        setGroupedTimesheet(_groupedTimesheetEntry);
         setWeeksInGroupedTimesheet(_weeksInGroupedTimesheet)
     }, []);
+
+    function updateTimesheetEntryCollection(weekNumber: number, updatedTimesheetEntryFormData: TimesheetEntryEditFormData) {
+        try {
+            let updatedTimesheetEntryCollection: TimesheetEntry[] = timesheet.entryCollection.map((timesheetEntry: TimesheetEntry) => {
+                if (timesheetEntry.id == updatedTimesheetEntryFormData.id) {
+                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType, comment: updatedTimesheetEntryFormData.comment })
+                }
+                return timesheetEntry;
+            });
+            let updatedTimesheet = new Timesheet({ meta: timesheet.meta, entryCollection: updatedTimesheetEntryCollection })
+            setTimesheet(updatedTimesheet);
+            /* let updatedGroupedTimesheet = groupedTimesheet[weekNumber]?.map((timesheetEntry: TimesheetEntry) => {
+                if (timesheetEntry.id == updatedTimesheetEntryFormData.id) {
+                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType, comment: updatedTimesheetEntryFormData.comment })
+                }
+                return timesheetEntry;
+            }); 
+            setGroupedTimesheet({ ...groupedTimesheet, [weekNumber]: updatedGroupedTimesheet }); */
+            setGroupedTimesheet(updatedTimesheet.timesheetEntryCollectionByWeek);
+            return true;
+        } catch (e) { }
+        throw Error;
+    }
+
+    useEffect(() => {
+        if ('meta' in timesheet && 'entryCollection' in timesheet) {
+            TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(timesheet);
+        }
+    }, [timesheet])
 
     return (
         <main>
@@ -121,7 +152,7 @@ export default function Preview() {
                                             <span>{currentWeek}</span></h4>
                                     </div>
                                     <div className="timesheet-table text-left">
-                                        <TimesheetTable timesheetEntryCollectionData={groupedTimesheet[currentWeek]} />
+                                        <TimesheetTable timesheetEntryCollectionData={groupedTimesheet[currentWeek]} handleTimesheetEntryCollectionUpdate={(e: any) => updateTimesheetEntryCollection(Number(currentWeek), e)} />
                                     </div>
                                 </div>
                             )

@@ -8,11 +8,12 @@ import DefaultFormGroup from "../_components/DefaultFormGroup";
 import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import { useEffect, useState } from "react";
-import { currentTimesheetMetaLabel, statusConstants } from "@/lib/constants";
-import { Timesheet, TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
+import { StatusConstants } from "@/lib/constants";
+import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetMeta, TimesheetMetaPrimitive } from "@/lib/services/timesheet/timesheetMeta";
 import { useRouter } from "next/navigation";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
+import { Timesheet } from "@/lib/services/timesheet/timesheet";
 
 export default function Generate() {
     const router = useRouter();
@@ -30,7 +31,7 @@ export default function Generate() {
     const [timesheetMetaFormData, setTimesheetMetaFormData] = useState(_initialTimesheetMeta);
     const [timesheetMeta, setTimesheetMeta] = useState({} as TimesheetMeta);
 
-    const [status, setStatus] = useState(statusConstants.enteringData);
+    const [status, setStatus] = useState(StatusConstants.enteringData);
 
 
     useEffect(() => {
@@ -48,11 +49,11 @@ export default function Generate() {
     function handleSubmitTimesheetMeta(e: any) {
         e.preventDefault();
         e.stopPropagation();
-        setStatus(statusConstants.submitting);
+        setStatus(StatusConstants.submitting);
 
         TimesheetLocalStorage.setTimesheetMetaInLocalStorage(timesheetMetaFormData);
 
-        setStatus(statusConstants.submitted);
+        setStatus(StatusConstants.submitted);
 
         const timesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaFormData(timesheetMetaFormData);
         let timesheetEntryCollection = TimesheetEntry.createTimesheet(timesheetMeta.mobilizationDate, timesheetMeta.demobilizationDate);
@@ -71,7 +72,7 @@ export default function Generate() {
                         <div className="form-group">
                             <DefaultFormItem>
                                 <label htmlFor="fsrName" >
-                                    <DefaultLabelText>FSR Name</DefaultLabelText>
+                                    <DefaultLabelText>Employee Name</DefaultLabelText>
                                 </label>
                                 <input type="text"
                                     value={timesheetMetaFormData.fsrName}

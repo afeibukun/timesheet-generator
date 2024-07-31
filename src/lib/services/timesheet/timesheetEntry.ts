@@ -1,4 +1,4 @@
-import { timesheetDefaultInformationConstant } from "@/lib/constants";
+import { EntryStateConstants, timesheetDefaultInformationConstant, } from "@/lib/constants";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { TimesheetLocalStorage } from "./timesheetLocalStorage";
@@ -13,6 +13,22 @@ export type TimesheetDefaultInformation = {
     updatedAt: string,
 }
 
+export type TimesheetEntryEditFormData = {
+    id: number
+    startTime: string,
+    finishTime: string,
+    locationType: string,
+    comment: string,
+    state: EntryStateConstants,
+    updatedAt: TimesheetDate | null
+}
+
+type EntryState = {
+    entryId: number,
+    state: EntryStateConstants
+}
+
+
 interface TimesheetEntryInterface {
     id: number,
     date: TimesheetDate,
@@ -20,6 +36,7 @@ interface TimesheetEntryInterface {
     locationType: string | null,
     comment: string | null,
 }
+
 
 export class TimesheetEntry implements TimesheetEntryInterface {
     id: number;
@@ -79,44 +96,4 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         return false
     }
 }
-
-interface TimesheetInterface {
-    meta: TimesheetMeta;
-    entryCollection: TimesheetEntry[];
-}
-
-export class Timesheet implements TimesheetInterface {
-    meta: TimesheetMeta;
-    entryCollection: TimesheetEntry[];
-    constructor(timesheetInput: TimesheetInterface | Timesheet) {
-        this.meta = timesheetInput.meta;
-        this.entryCollection = timesheetInput.entryCollection;
-    }
-
-    get timesheetEntryCollectionByWeek() {
-        let flatTimesheetCollection = this.entryCollection;
-        const groupedTimesheet = Object.groupBy(flatTimesheetCollection, ({ date }) => {
-            return new TimesheetDate(date).weekNumber;
-        });
-        return groupedTimesheet;
-    }
-
-    get totalHours(): number {
-        let hours = this.entryCollection.reduce((accumulator, timesheetEntry) => {
-            if (timesheetEntry.entryPeriod != undefined) {
-                let totalHourForCurrentEntry = timesheetEntry.entryPeriod.totalHours
-                accumulator += totalHourForCurrentEntry
-            }
-            return accumulator
-        }, 0);
-
-        return hours;
-    }
-
-    get totalDays(): number {
-        let totalDays = TimesheetDate.dayDifference(this.meta.mobilizationDate, this.meta.demobilizationDate) + 1;
-        return totalDays;
-    }
-}
-
 

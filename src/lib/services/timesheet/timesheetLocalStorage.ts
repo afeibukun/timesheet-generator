@@ -1,9 +1,10 @@
-import { currentTimesheetMetaLabel, generatedTimesheetLabel, timesheetDefaultInformationLabel } from "@/lib/constants";
-import { Timesheet, TimesheetDefaultInformation, TimesheetEntry } from "./timesheetEntry"
+import { LocalStorageLabel } from "@/lib/constants";
+import { TimesheetDefaultInformation, TimesheetEntry } from "./timesheetEntry"
 import { CannotParsePrimitiveDataToDefaultTimesheetInformationError, CannotParsePrimitiveDataToTimesheetError } from "./timesheetErrors";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetMeta, TimesheetMetaPrimitive } from "./timesheetMeta";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
+import { Timesheet } from "./timesheet";
 
 interface TimesheetLocalStorageInterface {
 
@@ -11,11 +12,11 @@ interface TimesheetLocalStorageInterface {
 
 export class TimesheetLocalStorage implements TimesheetLocalStorageInterface {
     static setDefaultInformationInLocalStorage(timesheetDefaultInformation: TimesheetDefaultInformation) {
-        localStorage.setItem(timesheetDefaultInformationLabel, JSON.stringify(timesheetDefaultInformation));
+        localStorage.setItem(LocalStorageLabel.timesheetDefaultInformationLabel, JSON.stringify(timesheetDefaultInformation));
     }
 
     static getDefaultInformationFromLocalStorage(): TimesheetDefaultInformation {
-        const rawDefaultTimesheetInformation = localStorage.getItem(timesheetDefaultInformationLabel);
+        const rawDefaultTimesheetInformation = localStorage.getItem(LocalStorageLabel.timesheetDefaultInformationLabel);
         try {
             if (rawDefaultTimesheetInformation != null) {
                 return JSON.parse(rawDefaultTimesheetInformation) as TimesheetDefaultInformation;
@@ -25,7 +26,7 @@ export class TimesheetLocalStorage implements TimesheetLocalStorageInterface {
     }
 
     static getPrimitiveTimesheetMetaFromLocalStorage(): TimesheetMetaPrimitive {
-        const stringifiedTimesheetMeta = localStorage.getItem(currentTimesheetMetaLabel);
+        const stringifiedTimesheetMeta = localStorage.getItem(LocalStorageLabel.currentTimesheetMetaLabel);
         if (stringifiedTimesheetMeta != null && stringifiedTimesheetMeta != undefined && stringifiedTimesheetMeta != '') {
             let primitiveTimesheetMeta = JSON.parse(stringifiedTimesheetMeta);
             return primitiveTimesheetMeta as TimesheetMetaPrimitive;
@@ -34,16 +35,16 @@ export class TimesheetLocalStorage implements TimesheetLocalStorageInterface {
     }
 
     static setTimesheetMetaInLocalStorage(primitiveTimesheetMeta: TimesheetMetaPrimitive) {
-        localStorage.setItem(currentTimesheetMetaLabel, JSON.stringify(primitiveTimesheetMeta));
+        localStorage.setItem(LocalStorageLabel.currentTimesheetMetaLabel, JSON.stringify(primitiveTimesheetMeta));
     }
 
 
     static setGeneratedTimesheetInLocalStorage(timesheetEntryCollection: Timesheet) {
-        localStorage.setItem(generatedTimesheetLabel, JSON.stringify(timesheetEntryCollection));
+        localStorage.setItem(LocalStorageLabel.generatedTimesheetLabel, JSON.stringify(timesheetEntryCollection));
     }
 
     static getTimesheetFromLocalStorage(): Timesheet {
-        const stringifiedTimesheetEntryCollection = localStorage.getItem(generatedTimesheetLabel);
+        const stringifiedTimesheetEntryCollection = localStorage.getItem(LocalStorageLabel.generatedTimesheetLabel);
         try {
             if (stringifiedTimesheetEntryCollection != null) {
                 let primitiveTimesheet = JSON.parse(stringifiedTimesheetEntryCollection)
