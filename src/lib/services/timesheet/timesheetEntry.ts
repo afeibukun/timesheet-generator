@@ -1,5 +1,7 @@
+import { timesheetDefaultInformationConstant } from "@/lib/constants";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
+import { TimesheetLocalStorage } from "./timesheetLocalStorage";
 import { TimesheetMeta } from "./timesheetMeta";
 
 export type TimesheetDefaultInformation = {
@@ -43,11 +45,10 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         let _cursorDate = new TimesheetDate(_firstDayOfTheMobilizationWeek);
         let count = 0;
 
-        const defaultData = {
-            startTime: '06:00',
-            finishTime: '18:00',
-            locationType: 'onshore',
-            comment: 'Technical Support'
+        let defaultData: TimesheetDefaultInformation = timesheetDefaultInformationConstant
+        let retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
+        if (retrievedDefaultInfo != null) {
+            defaultData = retrievedDefaultInfo;
         }
 
         while (_cursorDate.isDateSameOrBefore(_lastDayOfTheDemobilizationWeek)) {
@@ -61,7 +62,7 @@ export class TimesheetEntry implements TimesheetEntryInterface {
                 date: _cursorDate,
                 entryPeriod: new TimesheetEntryPeriod({ startTime: startTime, finishTime: finishTime }),
                 locationType: currentDateIsWithinMobilizationPeriod ? defaultData.locationType : null,
-                comment: currentDateIsWithinMobilizationPeriod ? defaultData.locationType : null,
+                comment: currentDateIsWithinMobilizationPeriod ? defaultData.comment : null,
             });
 
             timesheet.push(timesheetEntry);
@@ -69,6 +70,13 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         }
 
         return timesheet;
+    }
+
+    get isNullEntry(): boolean {
+        if (this.entryPeriod == null || this.locationType == null || this.locationType == '') {
+            return true
+        }
+        return false
     }
 }
 

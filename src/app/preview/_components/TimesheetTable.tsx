@@ -17,11 +17,31 @@ export default function TimesheetTable({ timesheetEntryCollectionData }: any) {
                 <span className="flex flex-col gap-y-1 pr-2 py-2">
                     <span className="flex gap-x-1 items-center">
                         <span className="inline-block min-w-10 text-sm">Start</span>
-                        <span className="inline-block min-w-16 px-2 py-1 border text-sm text-center">{timesheetEntry.entryPeriod!.startTime}</span>
+                        <span className="inline-block min-w-16 border text-sm text-center">
+                            {timesheetEntry.entryPeriod != null && timesheetEntry.entryPeriod.startTime != null ?
+                                <span className="inline-block w-full px-2 py-1 text-sm text-center">
+                                    <span>{timesheetEntry.entryPeriod.startTime}</span>
+                                </span>
+                                :
+                                <span className="inline-block w-full px-2 py-1 text-sm text-center bg-gray-300">
+                                    <span className="invisible">00:00</span>
+                                </span>
+                            }
+                        </span>
                     </span>
                     <span className="flex gap-x-1 items-center">
                         <span className="inline-block min-w-10 text-sm">Finish</span>
-                        <span className="inline-block min-w-16 px-2 py-1 border text-sm text-center">{timesheetEntry.entryPeriod!.finishTime}</span>
+                        <span className="inline-block min-w-16  border text-sm text-center">
+                            {timesheetEntry.entryPeriod != null && timesheetEntry.entryPeriod.finishTime != null ?
+                                <span className="inline-block w-full px-2 py-1 text-sm text-center">
+                                    <span>{timesheetEntry.entryPeriod.finishTime}</span>
+                                </span>
+                                :
+                                <span className="inline-block w-full px-2 py-1 text-sm text-center bg-gray-300">
+                                    <span className="invisible">00:00</span>
+                                </span>
+                            }
+                        </span>
                     </span>
                 </span>
             </td>
@@ -37,12 +57,23 @@ export default function TimesheetTable({ timesheetEntryCollectionData }: any) {
             </td>
             <td>
                 <span className="inline-block pr-2 py-2">
-                    <span className="inline-block border p-1 text-sm">{timesheetEntry.comment}</span>
+                    <span className="inline-block border text-sm">
+                        {timesheetEntry.comment != null && timesheetEntry.comment != '' ?
+                            <span className="p-1">
+                                <span className="">{timesheetEntry.comment}</span>
+                            </span> :
+                            <span className="p-1 bg-gray-200">
+                                <span className="invisible">No Comments As you can see</span>
+                            </span>
+                        }
+                    </span>
                 </span>
             </td>
             <td className="pr-4">
                 <div className="py-2">
-                    <button type="button" className="px-3 py-1 rounded text-sm text-white bg-blue-600">Edit</button>
+                    {!timesheetEntry.isNullEntry ?
+                        <button type="button" className="px-3 py-1 rounded text-sm text-white bg-blue-600">Edit</button>
+                        : ''}
                 </div>
             </td>
         </tr>

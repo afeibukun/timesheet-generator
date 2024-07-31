@@ -124,38 +124,8 @@ export default function Preview() {
                                         <TimesheetTable timesheetEntryCollectionData={groupedTimesheet[currentWeek]} />
                                     </div>
                                 </div>
-
-                            )}
-                            {/* <div className="week-wrapper border p-4">
-                                <div className="wrapper-header mb-4">
-                                    <h4 className="rounded text-base font-black text-purple-700">
-                                        <span>Week </span>
-                                        <span>{6}</span></h4>
-                                </div>
-                                <div className="timesheet-table text-left">
-                                    <TimesheetTable timesheetEntryCollectionData={timesheet!.entryCollection} />
-                                </div>
-                            </div>
-                            <div className="week-wrapper border p-4">
-                                <div className="wrapper-header mb-4">
-                                    <h4 className="rounded text-base font-black text-purple-700">
-                                        <span>Week </span>
-                                        <span>{7}</span></h4>
-                                </div>
-                                <div className="timesheet-table text-left">
-                                    <TimesheetTable timesheetEntryCollectionData={timesheet!.entryCollection} />
-                                </div>
-                            </div>
-                            <div className="week-wrapper border p-4">
-                                <div className="wrapper-header mb-4">
-                                    <h4 className="rounded text-base font-black text-purple-700">
-                                        <span>Week </span>
-                                        <span>{8}</span></h4>
-                                </div>
-                                <div className="timesheet-table text-left">
-                                    <TimesheetTable timesheetEntryCollectionData={timesheet!.entryCollection} />
-                                </div>
-                            </div> */}
+                            )
+                            }
                         </div>
                     ) : ''}
 
@@ -166,7 +136,10 @@ export default function Preview() {
                             <button type="button" className="inline-block px-8 py-2 rounded uppercase text-sm bg-purple-700 text-white">Save Data</button>
                         </div>
                         <div>
-                            <Link href="/" className="inline-block px-8 py-2 rounded border">Go Back</Link>
+                            <Link href="/generate" className="inline-block px-8 py-2 rounded border">Edit Meta Data</Link>
+                        </div>
+                        <div>
+                            <Link href="/" className="inline-block px-8 py-2 rounded border">Go Home</Link>
                         </div>
                     </div>
                 </footer>

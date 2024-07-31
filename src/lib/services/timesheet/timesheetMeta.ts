@@ -1,6 +1,7 @@
 import { TimesheetDate } from "./timesheetDate";
 
 export type TimesheetMetaPrimitive = {
+    id: number | null,
     fsrName: string,
     mobilizationDate: string,
     demobilizationDate: string,
@@ -46,13 +47,13 @@ export class TimesheetMeta implements TimesheetMetaInterface {
         this.orderNumber = metaInput.orderNumber;
     }
 
-    static refreshTimesheetMeta(parsedTimesheetMetaObject: any) {
-        //Timesheet Meta from the local storage does not have access to the functions.
-        let parsedTimesheetMeta: TimesheetMeta = new TimesheetMeta({ ...parsedTimesheetMetaObject, mobilizationDate: new TimesheetDate(parsedTimesheetMetaObject.mobilizationDate), demobilizationDate: new TimesheetDate(parsedTimesheetMetaObject.demobilizationDate) });
-        return parsedTimesheetMeta;
+    static createTimesheetMetaFromPrimitive(primitiveTimesheetMeta: TimesheetMetaPrimitive) {
+        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...primitiveTimesheetMeta, mobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.mobilizationDate }), demobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.demobilizationDate }) });
+        return timesheetMeta;
     }
 
-    convertToTimesheetMetaFormData(): TimesheetMetaPrimitive {
+
+    convertToPrimitiveTimesheetMeta(): TimesheetMetaPrimitive {
         const timesheetMetaFormData: TimesheetMetaPrimitive = {
             ...this,
             mobilizationDate: this.mobilizationDate.dateInputNaturalFormat(),

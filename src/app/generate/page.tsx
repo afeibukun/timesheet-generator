@@ -17,6 +17,7 @@ import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalSt
 export default function Generate() {
     const router = useRouter();
     const _initialTimesheetMeta: TimesheetMetaPrimitive = {
+        id: null,
         fsrName: "",
         mobilizationDate: "",
         demobilizationDate: "",
@@ -27,17 +28,16 @@ export default function Generate() {
         orderNumber: "",
     }
     const [timesheetMetaFormData, setTimesheetMetaFormData] = useState(_initialTimesheetMeta);
+    const [timesheetMeta, setTimesheetMeta] = useState({} as TimesheetMeta);
 
     const [status, setStatus] = useState(statusConstants.enteringData);
 
 
     useEffect(() => {
-        const rawCurrentTimesheetMeta = localStorage.getItem(currentTimesheetMetaLabel);
-        if (rawCurrentTimesheetMeta != null && rawCurrentTimesheetMeta != undefined) {
-            let parsedTimesheetMetaObject = JSON.parse(rawCurrentTimesheetMeta);
-            let parsedTimesheetMeta: TimesheetMeta = TimesheetMeta.refreshTimesheetMeta(parsedTimesheetMetaObject);
-            setTimesheetMetaFormData(parsedTimesheetMeta.convertToTimesheetMetaFormData());
-        }
+        const primitiveCurrentTimesheetMeta = TimesheetLocalStorage.getPrimitiveTimesheetMetaFromLocalStorage();
+        let currentTimesheetMeta: TimesheetMeta = TimesheetMeta.createTimesheetMetaFromPrimitive(primitiveCurrentTimesheetMeta);
+        setTimesheetMetaFormData(primitiveCurrentTimesheetMeta);
+        setTimesheetMeta(currentTimesheetMeta);
     }, []);
 
     function handleInputChange(e: any, metaKey: string) {
@@ -50,7 +50,7 @@ export default function Generate() {
         e.stopPropagation();
         setStatus(statusConstants.submitting);
 
-        localStorage.setItem(currentTimesheetMetaLabel, JSON.stringify(timesheetMetaFormData));
+        TimesheetLocalStorage.setTimesheetMetaInLocalStorage(timesheetMetaFormData);
 
         setStatus(statusConstants.submitted);
 
