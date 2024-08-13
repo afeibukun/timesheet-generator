@@ -87,7 +87,7 @@ export default function Preview() {
                     <div className="preview-header-group group-2 flex justify-between">
                         {timesheet.meta != undefined ?
                             <div className="timesheet-owner-group  ">
-                                <h5 className="text-3xl font-medium rounded  p-2 bg-slate-100">{timesheet?.meta.fsrName}</h5>
+                                <h5 className="text-3xl font-medium rounded  p-2 bg-slate-100">{timesheet?.meta.personnelName}</h5>
                             </div> : ''}
                         <div className="timesheet-owner-hours border p-2 rounded-md">
                             <p className="text-center">Total hours</p>

@@ -19,7 +19,7 @@ export default function Generate() {
     const router = useRouter();
     const _initialTimesheetMeta: TimesheetMetaForForms = {
         id: null,
-        fsrName: "",
+        personnelName: "",
         mobilizationDate: "",
         demobilizationDate: "",
         customerName: "",
@@ -88,18 +88,18 @@ export default function Generate() {
                     <form action="">
                         <div className="form-group">
                             <DefaultFormItem>
-                                <label htmlFor="fsrName" >
-                                    <DefaultLabelText>Employee Name</DefaultLabelText>
+                                <label htmlFor="personnelName" >
+                                    <DefaultLabelText>Personnel Name</DefaultLabelText>
                                 </label>
                                 <input type="text"
-                                    value={timesheetMetaForForm.fsrName}
+                                    value={timesheetMetaForForm.personnelName}
                                     onChange={
                                         e => {
-                                            handleInputChange(e, 'fsrName');
+                                            handleInputChange(e, 'personnelName');
                                         }
                                     }
-                                    name="fsrName"
-                                    id="fsrName"
+                                    name="personnelName"
+                                    id="personnelName"
                                     className="inline-block border rounded" />
                             </DefaultFormItem>
                         </div>

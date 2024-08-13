@@ -2,7 +2,7 @@ import { TimesheetDate } from "./timesheetDate";
 
 export type TimesheetMetaForForms = {
     id: number | null,
-    fsrName: string,
+    personnelName: string,
     mobilizationDate: string,
     demobilizationDate: string,
     customerName: string,
@@ -14,7 +14,7 @@ export type TimesheetMetaForForms = {
 
 interface TimesheetMetaInterface {
     id: number | null,
-    fsrName: string,
+    personnelName: string,
     mobilizationDate: TimesheetDate,
     demobilizationDate: TimesheetDate,
     customerName: string,
@@ -26,7 +26,7 @@ interface TimesheetMetaInterface {
 
 export class TimesheetMeta implements TimesheetMetaInterface {
     id: number | null;
-    fsrName: string;
+    personnelName: string;
     mobilizationDate: TimesheetDate;
     demobilizationDate: TimesheetDate;
     customerName: string;
@@ -37,7 +37,7 @@ export class TimesheetMeta implements TimesheetMetaInterface {
 
     constructor(metaInput: TimesheetMetaInterface | TimesheetMeta) {
         this.id = metaInput.id;
-        this.fsrName = metaInput.fsrName;
+        this.personnelName = metaInput.personnelName;
         this.mobilizationDate = metaInput.mobilizationDate;
         this.demobilizationDate = metaInput.demobilizationDate;
         this.customerName = metaInput.customerName;
@@ -72,7 +72,7 @@ export class TimesheetMeta implements TimesheetMetaInterface {
 
     isMinorDataChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
         const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
-        if (this.fsrName != updatedTimesheetMeta.fsrName || this.customerName != updatedTimesheetMeta.customerName || this.siteName != updatedTimesheetMeta.siteName || this.siteCountry != updatedTimesheetMeta.siteCountry || this.purchaseOrderNumber != updatedTimesheetMeta.purchaseOrderNumber || this.orderNumber != updatedTimesheetMeta.orderNumber) {
+        if (this.personnelName != updatedTimesheetMeta.personnelName || this.customerName != updatedTimesheetMeta.customerName || this.siteName != updatedTimesheetMeta.siteName || this.siteCountry != updatedTimesheetMeta.siteCountry || this.purchaseOrderNumber != updatedTimesheetMeta.purchaseOrderNumber || this.orderNumber != updatedTimesheetMeta.orderNumber) {
             return true;
         }
         return false;
