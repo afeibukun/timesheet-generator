@@ -18,6 +18,7 @@ export enum StatusConstants {
     failed = "FAILED",
     visible = "VISIBLE",
     hidden = "HIDDEN",
+    new = "NEW",
 }
 
 export const timesheetDefaultInformationConstant = {

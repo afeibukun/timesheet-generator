@@ -39,6 +39,7 @@ export default function Generate() {
     const [timesheet, setTimesheet] = useState(null as Timesheet | null);
 
     const [status, setStatus] = useState(StatusConstants.enteringData);
+    const [viewState, setViewState] = useState(StatusConstants.new);
 
 
     useEffect(() => {
@@ -51,6 +52,7 @@ export default function Generate() {
         if (retrievedTimesheet != undefined) {
             const currentTimesheetMetaForForm = retrievedTimesheet.meta.convertToTimesheetMetaForForms();
             setTimesheetMetaForForm(currentTimesheetMetaForForm);
+            setViewState(StatusConstants.updating);
         }
     }, []);
 
@@ -82,7 +84,9 @@ export default function Generate() {
         <main className="container">
             <DefaultSection>
                 <DefaultSectionHeader>
-                    <DefaultSectionTitle>Generate Timesheet</DefaultSectionTitle>
+                    <DefaultSectionTitle><span>{viewState == StatusConstants.new ? 'Generate New ' : 'Edit '} Timesheet</span>
+                        {viewState == StatusConstants.new ? <span>🆕</span> : <span>✍</span>}
+                    </DefaultSectionTitle>
                 </DefaultSectionHeader>
                 <div className="section-body">
                     <form action="">
