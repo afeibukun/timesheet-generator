@@ -44,14 +44,14 @@ export class TimesheetEntry implements TimesheetEntryInterface {
 
     static createTimesheet(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate): TimesheetEntry[] {
         let timesheet = [];
+        let defaultData: TimesheetDefaultInformation = Timesheet.defaultInformation()
+        TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
         const _mobDate = mobilizationDate;
         const _demobDate = demobilizationDate;
         const _firstDayOfTheMobilizationWeek = _mobDate.getFirstDayOfTheWeek;
         const _lastDayOfTheDemobilizationWeek = _demobDate.getLastDayOfTheWeek;
         let _cursorDate = new TimesheetDate(_firstDayOfTheMobilizationWeek);
         let count = 0;
-
-        let defaultData: TimesheetDefaultInformation = Timesheet.defaultInformation()
 
         while (_cursorDate.isDateSameOrBefore(_lastDayOfTheDemobilizationWeek)) {
             count++;

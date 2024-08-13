@@ -5,11 +5,7 @@
 
 + Download Excel and PDF versions of timesheet
 
-+ Ensure timesheet uses the selected week start day at the point of generation.
-
 + Update static content to be used while rendering excel file 
 
 + Hide the Reset Everything button on the Preview View
     - Hide the Go home button on the preview page too
-
-+ Change FSR Name to Personnel Name

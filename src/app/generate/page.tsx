@@ -14,6 +14,8 @@ import { TimesheetMeta, TimesheetMetaForForms } from "@/lib/services/timesheet/t
 import { useRouter } from "next/navigation";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { Timesheet, TimesheetDefaultInformation } from "@/lib/services/timesheet/timesheet";
+import moment from "moment";
+import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 
 export default function Generate() {
     const router = useRouter();
@@ -61,9 +63,7 @@ export default function Generate() {
         e.preventDefault();
         e.stopPropagation();
         setStatus(StatusConstants.submitting);
-        if (!Timesheet.hasUpdatedDefaultInformation()) {
 
-        }
         var localTimesheet
         if (Timesheet.isNull(timesheet) || timesheet?.meta.isMobilizationPeriodChanged(timesheetMetaForForm)) {
             const timesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);

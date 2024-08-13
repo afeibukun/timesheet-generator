@@ -92,6 +92,16 @@ export class TimesheetDate implements TimesheetDateInterface {
         });
     }
 
+    static updateWeekStartDay(selectedWeekStartDay: string) {
+        let weekStartDayNumber = TimesheetDate.convertWeekdayTextToWeekdayNumber(selectedWeekStartDay);
+        if (weekStartDayNumber == 1) {
+            TimesheetDate.setWeekStartDayAsMonday();
+        } else {
+            TimesheetDate.setWeekStartDayAsSunday();
+        }
+        // I don't think it is necessary to give room for other days to be the first day of the week. sorry to whoever will need this feature.
+    }
+
 
     static simpleNowDateTimeFormat(): string {
         const presentDate = moment().format("MMMM DD YYYY HH:mm:ss");
@@ -103,5 +113,35 @@ export class TimesheetDate implements TimesheetDateInterface {
     static dayDifference(earlierDate: TimesheetDate, laterDate: TimesheetDate): number {
         let dayDiff = moment(laterDate.dateInput).diff(moment(earlierDate.dateInput), 'days');
         return dayDiff;
+    }
+
+    static convertWeekdayTextToWeekdayNumber(weekdayText: String): Number {
+        switch (weekdayText.toLowerCase()) {
+            case "sunday":
+            case "sun":
+                return 0;
+            case "monday":
+            case "mon":
+                return 1;
+            case "tuesday":
+            case "tue":
+            case "tues":
+                return 2;
+            case "wednesday":
+            case "wed":
+                return 3;
+            case "thursday":
+            case "thur":
+            case "thurs":
+                return 4;
+            case "friday":
+            case "fri":
+                return 5;
+            case "saturday":
+            case "sat":
+                return 6;
+            default:
+                return -1;
+        }
     }
 }
