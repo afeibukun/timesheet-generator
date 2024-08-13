@@ -1,6 +1,6 @@
 import { TimesheetDate } from "./timesheetDate";
 
-export type TimesheetMetaPrimitive = {
+export type TimesheetMetaForForms = {
     id: number | null,
     fsrName: string,
     mobilizationDate: string,
@@ -47,22 +47,49 @@ export class TimesheetMeta implements TimesheetMetaInterface {
         this.orderNumber = metaInput.orderNumber;
     }
 
-    static createTimesheetMetaFromPrimitive(primitiveTimesheetMeta: TimesheetMetaPrimitive) {
-        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...primitiveTimesheetMeta, mobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.mobilizationDate }), demobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.demobilizationDate }) });
+    static createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForms: TimesheetMetaForForms): TimesheetMeta {
+        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...timesheetMetaForForms, mobilizationDate: new TimesheetDate({ dateInput: timesheetMetaForForms.mobilizationDate }), demobilizationDate: new TimesheetDate({ dateInput: timesheetMetaForForms.demobilizationDate }) });
         return timesheetMeta;
     }
 
-
-    convertToPrimitiveTimesheetMeta(): TimesheetMetaPrimitive {
-        const timesheetMetaFormData: TimesheetMetaPrimitive = {
+    convertToTimesheetMetaForForms(): TimesheetMetaForForms {
+        const timesheetMetaForForms: TimesheetMetaForForms = {
             ...this,
             mobilizationDate: this.mobilizationDate.dateInputNaturalFormat(),
             demobilizationDate: this.demobilizationDate.dateInputNaturalFormat(),
         }
-        return timesheetMetaFormData;
+        return timesheetMetaForForms;
     }
 
-    static createTimesheetMetaFromTimesheetMetaFormData(timesheetMetaFormData: TimesheetMetaPrimitive): TimesheetMeta {
+    isMobilizationPeriodChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
+        const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
+        if (!(this.mobilizationDate.isDateSame(updatedTimesheetMeta.mobilizationDate) && this.demobilizationDate.isDateSame(updatedTimesheetMeta.demobilizationDate))) {
+            return true;
+        }
+        return false;
+
+    }
+
+    isMinorDataChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
+        const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
+        if (this.fsrName != updatedTimesheetMeta.fsrName || this.customerName != updatedTimesheetMeta.customerName || this.siteName != updatedTimesheetMeta.siteName || this.siteCountry != updatedTimesheetMeta.siteCountry || this.purchaseOrderNumber != updatedTimesheetMeta.purchaseOrderNumber || this.orderNumber != updatedTimesheetMeta.orderNumber) {
+            return true;
+        }
+        return false;
+    }
+
+    isMinorDataOnlyChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
+        if (this.isMinorDataChanged(timesheetMetaForForm) && !this.isMobilizationPeriodChanged(timesheetMetaForForm)) return true;
+        return false;
+    }
+
+    isAnyDataChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
+        if (this.isMinorDataChanged(timesheetMetaForForm) || this.isMobilizationPeriodChanged(timesheetMetaForForm)) return true;
+        return false;
+    }
+
+
+    static createTimesheetMetaFromTimesheetMetaForForms_duplicate(timesheetMetaFormData: TimesheetMetaForForms): TimesheetMeta {
         const timesheetMeta: TimesheetMeta = new TimesheetMeta({
             ...timesheetMetaFormData,
             mobilizationDate: new TimesheetDate({ dateInput: timesheetMetaFormData.mobilizationDate }),

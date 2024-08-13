@@ -1,10 +1,10 @@
 import { LocalStorageLabel } from "@/lib/constants";
-import { TimesheetDefaultInformation, TimesheetEntry } from "./timesheetEntry"
+import { TimesheetEntry } from "./timesheetEntry"
 import { CannotParsePrimitiveDataToDefaultTimesheetInformationError, CannotParsePrimitiveDataToTimesheetError } from "./timesheetErrors";
 import { TimesheetDate } from "./timesheetDate";
-import { TimesheetMeta, TimesheetMetaPrimitive } from "./timesheetMeta";
+import { TimesheetMeta, TimesheetMetaForForms } from "./timesheetMeta";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { Timesheet } from "./timesheet";
+import { Timesheet, TimesheetDefaultInformation } from "./timesheet";
 
 interface TimesheetLocalStorageInterface {
 
@@ -22,19 +22,19 @@ export class TimesheetLocalStorage implements TimesheetLocalStorageInterface {
                 return JSON.parse(rawDefaultTimesheetInformation) as TimesheetDefaultInformation;
             }
         } catch (e) { }
-        throw CannotParsePrimitiveDataToDefaultTimesheetInformationError;
+        throw new CannotParsePrimitiveDataToDefaultTimesheetInformationError('');
     }
 
-    static getPrimitiveTimesheetMetaFromLocalStorage(): TimesheetMetaPrimitive {
+    static getPrimitiveTimesheetMetaFromLocalStorage(): TimesheetMetaForForms {
         const stringifiedTimesheetMeta = localStorage.getItem(LocalStorageLabel.currentTimesheetMetaLabel);
         if (stringifiedTimesheetMeta != null && stringifiedTimesheetMeta != undefined && stringifiedTimesheetMeta != '') {
             let primitiveTimesheetMeta = JSON.parse(stringifiedTimesheetMeta);
-            return primitiveTimesheetMeta as TimesheetMetaPrimitive;
+            return primitiveTimesheetMeta as TimesheetMetaForForms;
         }
         throw Error;
     }
 
-    static setTimesheetMetaInLocalStorage(primitiveTimesheetMeta: TimesheetMetaPrimitive) {
+    static setTimesheetMetaInLocalStorage(primitiveTimesheetMeta: TimesheetMetaForForms) {
         localStorage.setItem(LocalStorageLabel.currentTimesheetMetaLabel, JSON.stringify(primitiveTimesheetMeta));
     }
 
@@ -66,5 +66,9 @@ export class TimesheetLocalStorage implements TimesheetLocalStorageInterface {
         throw new CannotParsePrimitiveDataToTimesheetError('cannot convert local storage data to timesheet data');
     }
 
-
+    static clearTimesheetFromLocalStorage() {
+        localStorage.removeItem(LocalStorageLabel.currentTimesheetMetaLabel);
+        localStorage.removeItem(LocalStorageLabel.generatedTimesheetLabel);
+        localStorage.removeItem(LocalStorageLabel.timesheetDefaultInformationLabel);
+    }
 }

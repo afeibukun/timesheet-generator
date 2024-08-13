@@ -1,17 +1,7 @@
-import { EntryStateConstants, timesheetDefaultInformationConstant, } from "@/lib/constants";
+import { EntryStateConstants, } from "@/lib/constants";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { TimesheetLocalStorage } from "./timesheetLocalStorage";
-import { TimesheetMeta } from "./timesheetMeta";
-
-export type TimesheetDefaultInformation = {
-    startTime: string,
-    finishTime: string,
-    locationType: string,
-    comment: string,
-    weekStartDay: string,
-    updatedAt: string,
-}
+import { Timesheet, TimesheetDefaultInformation } from "./timesheet";
 
 export type TimesheetEntryEditFormData = {
     id: number
@@ -20,14 +10,14 @@ export type TimesheetEntryEditFormData = {
     locationType: string,
     comment: string,
     state: EntryStateConstants,
-    updatedAt: TimesheetDate | null
+    updatedAt: TimesheetDate | null,
+    isRecentlySaved: boolean
 }
 
 type EntryState = {
     entryId: number,
     state: EntryStateConstants
 }
-
 
 interface TimesheetEntryInterface {
     id: number,
@@ -36,7 +26,6 @@ interface TimesheetEntryInterface {
     locationType: string | null,
     comment: string | null,
 }
-
 
 export class TimesheetEntry implements TimesheetEntryInterface {
     id: number;
@@ -62,11 +51,7 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         let _cursorDate = new TimesheetDate(_firstDayOfTheMobilizationWeek);
         let count = 0;
 
-        let defaultData: TimesheetDefaultInformation = timesheetDefaultInformationConstant
-        let retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
-        if (retrievedDefaultInfo != null) {
-            defaultData = retrievedDefaultInfo;
-        }
+        let defaultData: TimesheetDefaultInformation = Timesheet.defaultInformation()
 
         while (_cursorDate.isDateSameOrBefore(_lastDayOfTheDemobilizationWeek)) {
             count++;

@@ -2,7 +2,7 @@ import { EntryStateConstants } from "@/lib/constants";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry, TimesheetEntryEditFormData } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 export default function TimesheetTable({ timesheetEntryCollectionData, handleTimesheetEntryCollectionUpdate }: any) {
@@ -10,6 +10,7 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
     const [editableTimesheetCollection, setEditableTimesheetCollection] = useState(timesheetEntryCollectionData.map((entry: any) => {
         return { ...entry, 'startTime': entry.entryPeriod.startTime, 'finishTime': entry.entryPeriod.finishTime, state: EntryStateConstants.default, updatedAt: null } as TimesheetEntryEditFormData
     }) as TimesheetEntryEditFormData[]);
+
 
     const updateEditableTimsheetEntryState = (timesheetEntryId: number, entryState: EntryStateConstants) => {
         setEditableTimesheetCollection(editableTimesheetCollection.map((editableTimesheetEntry: TimesheetEntryEditFormData) => {
@@ -42,7 +43,10 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
         try {
             let entry = selectedEditableTimesheetEntry(timesheetEntryId);
             handleTimesheetEntryCollectionUpdate({ id: entry.id, startTime: entry.startTime, finishTime: entry.finishTime, locationType: entry.locationType, comment: entry.comment });
-
+            updateEditableTimsheetEntryState(timesheetEntryId, EntryStateConstants.recentlyUpdated);
+            setTimeout(() => {
+                updateEditableTimsheetEntryState(timesheetEntryId, EntryStateConstants.default);
+            }, 5000)
         } catch (e) {
 
         }
@@ -54,6 +58,16 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
         let entry = selectedEditableTimesheetEntry(timesheetEntryId);
         if (entry.state == EntryStateConstants.edit) return true
         return false
+    }
+
+    const setRecentlySavedField = (timesheetEntryId: number, isRecentlySaved: boolean) => {
+        let updatedEditableTimesheetCollection = editableTimesheetCollection.map((editableTimesheetEntry: TimesheetEntryEditFormData) => {
+            if (editableTimesheetEntry.id == timesheetEntryId) {
+                return { ...editableTimesheetEntry, isRecentlySaved: !!isRecentlySaved }
+            }
+            return editableTimesheetEntry;
+        });
+        setEditableTimesheetCollection(updatedEditableTimesheetCollection);
     }
 
     let timesheetTableMarkup = timesheetEntryCollectionData.map((timesheetEntry: TimesheetEntry) =>
@@ -147,7 +161,8 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
                                 <span>
                                     <select
                                         value={editableTimesheetCollection.filter((entry) => entry.id == timesheetEntry.id)[0].locationType}
-                                        onChange={(e) => handleInputChange(e, timesheetEntry.id, 'locationType')} name={`location-${timesheetEntry.id}`} id={`location-${timesheetEntry.id}`} title="Location"
+                                        onChange={(e) => handleInputChange(e, timesheetEntry.id, 'locationType')} name={`location-${timesheetEntry.id}`}
+                                        id={`location-${timesheetEntry.id}`} title="Location"
                                         className="text-xs">
                                         <option value="onshore">Onshore</option>
                                         <option value="offshore">Offshore</option>
@@ -172,7 +187,8 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
                                     <span>
                                         <textarea
                                             value={editableTimesheetCollection.filter((entry) => entry.id == timesheetEntry.id)[0].comment}
-                                            onChange={(e) => handleInputChange(e, timesheetEntry.id, 'comment')} name={`comment-${timesheetEntry.id}`} id={`location-${timesheetEntry.id}`} title="Comment" className="border text-sm"></textarea>
+                                            onChange={(e) => handleInputChange(e, timesheetEntry.id, 'comment')} name={`comment-${timesheetEntry.id}`}
+                                            id={`comment-${timesheetEntry.id}`} title="Comment" className="border text-sm"></textarea>
                                     </span>
                                 }
                             </span> :
@@ -188,20 +204,25 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
                     {!timesheetEntry.isNullEntry ?
                         <div className="inline-flex gap-1.5">
                             {!isEntryInEditState(timesheetEntry.id) ?
-                                <div className="inline-flex gap-1.5">
+                                <div className="inline-flex gap-1.5 items-center relative">
                                     <button type="button" onClick={(e) => handleEditButtonClick(e, timesheetEntry.id)} className="px-3 py-1 rounded text-sm text-white bg-blue-600">Edit</button>
-                                    <button type="button" className="invisible px-3 py-1 rounded text-sm text-white bg-slate-600">Edit</button>
+                                    {editableTimesheetCollection.filter((entry) => entry.id == timesheetEntry.id)[0].state == EntryStateConstants.recentlyUpdated ?
+                                        <p className="inline-block absolute -right-8 text-xs text-green-700">
+                                            <span className="inline-block bg-green-200 px-2 py-1 rounded font-semibold">✔</span>
+                                        </p>
+                                        : ''}
+                                    {/* <button type="button" className="invisible px-3 py-1 rounded text-sm text-white bg-slate-600">Edit</button> */}
                                 </div> :
                                 <div className="inline-flex gap-1.5">
                                     <button type="button" onClick={(e) => handleSaveButtonClick(e, timesheetEntry.id)} className="px-3 py-1 rounded text-sm text-white bg-green-600">Save</button>
-                                    <button type="button" onClick={(e) => handleBackButtonClick(e, timesheetEntry.id)} className="px-3 py-1 rounded text-sm text-white bg-slate-600">Back</button>
+                                    {/* <button type="button" onClick={(e) => handleBackButtonClick(e, timesheetEntry.id)} className="px-3 py-1 rounded text-sm text-white bg-slate-600">Back</button> */}
                                 </div>
                             }
                         </div>
                         : ''}
                 </div>
             </td>
-        </tr>
+        </tr >
     )
     return (
         <table className="w-full table-auto">

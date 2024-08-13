@@ -9,7 +9,6 @@ export class TimesheetDate implements TimesheetDateInterface {
     dateInput: string;
     _isValidTimesheetDate: boolean;
 
-
     constructor(timesheetDateInput: TimesheetDate | TimesheetDateInterface) {
         this.dateInput = timesheetDateInput.dateInput;
         let momentTimesheetDate = moment(this.dateInput);
@@ -48,6 +47,10 @@ export class TimesheetDate implements TimesheetDateInterface {
         return moment(this.dateInput).isBetween(moment(startDate.dateInput), moment(finishDate.dateInput), 'day', '[]');
     }
 
+    isDateSame(secondDate: TimesheetDate): boolean {
+        return moment(this.dateInput).isSame(secondDate.dateInput);
+    }
+
     defaultFormat(): string {
         return moment(this.dateInput).format();
         // Sample Outcome - 2017-03-06T00:00:00+01:00
@@ -70,6 +73,25 @@ export class TimesheetDate implements TimesheetDateInterface {
     dateIncrementByDay(numberOfDays: number): TimesheetDate {
         return new TimesheetDate({ dateInput: moment(this.dateInput).add(numberOfDays, 'day').format() });
     }
+
+    static setWeekStartDayAsMonday() {
+        moment.updateLocale("en", {
+            week: {
+                dow: 1, // First day of week is Monday
+                doy: 4  // First week of year must contain 4 January (7 + 1 - 4)
+            }
+        });
+    }
+
+    static setWeekStartDayAsSunday() {
+        moment.updateLocale("en", {
+            week: {
+                dow: 0, // First day of week is Sunday
+                doy: 4  // First week of year must contain 4 January (7 + 1 - 4)
+            }
+        });
+    }
+
 
     static simpleNowDateTimeFormat(): string {
         const presentDate = moment().format("MMMM DD YYYY HH:mm:ss");

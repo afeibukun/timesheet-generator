@@ -12,6 +12,7 @@ import SubmitButton02 from "../_components/SubmitButton02";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetDefaultInformation } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
+import { CannotParsePrimitiveDataToDefaultTimesheetInformationError } from "@/lib/services/timesheet/timesheetErrors";
 
 export default function DefaultTimesheetInformationView() {
 
@@ -22,7 +23,16 @@ export default function DefaultTimesheetInformationView() {
     const [status, setStatus] = useState(StatusConstants.enteringData);
 
     useEffect(() => {
-        let retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
+        var retrievedDefaultInfo
+        try {
+            retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
+        } catch (e) {
+            if (e instanceof CannotParsePrimitiveDataToDefaultTimesheetInformationError) {
+                console.log(e.name);
+            }
+            retrievedDefaultInfo = null
+        }
+
         if (retrievedDefaultInfo != null) {
             setTimesheetDefaultInformationFormData(retrievedDefaultInfo);
         }
@@ -38,9 +48,10 @@ export default function DefaultTimesheetInformationView() {
         setStatus(StatusConstants.submitting);
 
         const updatedAtDate = TimesheetDate.simpleNowDateTimeFormat();
-        setTimesheetDefaultInformationFormData({ ...timesheetDefaultInformationFormData, updatedAt: updatedAtDate });
+        const updatedDefaultTimesheetInfo = { ...timesheetDefaultInformationFormData, updatedAt: updatedAtDate };
+        setTimesheetDefaultInformationFormData(updatedDefaultTimesheetInfo);
 
-        TimesheetLocalStorage.setDefaultInformationInLocalStorage(timesheetDefaultInformationFormData);
+        TimesheetLocalStorage.setDefaultInformationInLocalStorage(updatedDefaultTimesheetInfo);
         setStatus(StatusConstants.submitted);
     }
 

@@ -11,6 +11,7 @@ import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalSt
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
+import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timesheet/timesheetErrors";
 
 export default function Preview() {
 
@@ -19,12 +20,20 @@ export default function Preview() {
     const [weeksInGroupedTimesheet, setWeeksInGroupedTimesheet] = useState([] as string[]);
 
     useEffect(() => {
-        const retrievedTimesheet = TimesheetLocalStorage.getTimesheetFromLocalStorage();
-        setTimesheet(retrievedTimesheet);
-        let _groupedTimesheetEntry = retrievedTimesheet.timesheetEntryCollectionByWeek
-        let _weeksInGroupedTimesheet: string[] = Object.keys(_groupedTimesheetEntry)
-        setGroupedTimesheet(_groupedTimesheetEntry);
-        setWeeksInGroupedTimesheet(_weeksInGroupedTimesheet)
+        var retrievedTimesheet;
+        try {
+            retrievedTimesheet = TimesheetLocalStorage.getTimesheetFromLocalStorage();
+            setTimesheet(retrievedTimesheet);
+            let _groupedTimesheetEntry = retrievedTimesheet.timesheetEntryCollectionByWeek
+            let _weeksInGroupedTimesheet: string[] = Object.keys(_groupedTimesheetEntry)
+            setGroupedTimesheet(_groupedTimesheetEntry);
+            setWeeksInGroupedTimesheet(_weeksInGroupedTimesheet)
+        } catch (e) {
+            if (e instanceof CannotParsePrimitiveDataToTimesheetError) {
+                console.log(e);
+            }
+        }
+
     }, []);
 
     function updateTimesheetEntryCollection(weekNumber: number, updatedTimesheetEntryFormData: TimesheetEntryEditFormData) {
@@ -37,13 +46,6 @@ export default function Preview() {
             });
             let updatedTimesheet = new Timesheet({ meta: timesheet.meta, entryCollection: updatedTimesheetEntryCollection })
             setTimesheet(updatedTimesheet);
-            /* let updatedGroupedTimesheet = groupedTimesheet[weekNumber]?.map((timesheetEntry: TimesheetEntry) => {
-                if (timesheetEntry.id == updatedTimesheetEntryFormData.id) {
-                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType, comment: updatedTimesheetEntryFormData.comment })
-                }
-                return timesheetEntry;
-            }); 
-            setGroupedTimesheet({ ...groupedTimesheet, [weekNumber]: updatedGroupedTimesheet }); */
             setGroupedTimesheet(updatedTimesheet.timesheetEntryCollectionByWeek);
             return true;
         } catch (e) { }
@@ -55,6 +57,13 @@ export default function Preview() {
             TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(timesheet);
         }
     }, [timesheet])
+
+    function handleResetEverythingButton(e: any) {
+        setTimesheet({} as Timesheet);
+        setGroupedTimesheet({});
+        setWeeksInGroupedTimesheet([]);
+        TimesheetLocalStorage.clearTimesheetFromLocalStorage();
+    }
 
     return (
         <main>
@@ -171,6 +180,9 @@ export default function Preview() {
                         </div>
                         <div>
                             <Link href="/" className="inline-block px-8 py-2 rounded border">Go Home</Link>
+                        </div>
+                        <div>
+                            <button type="button" onClick={handleResetEverythingButton} className="inline-block px-8 py-2 rounded uppercase text-sm bg-red-400 text-black">Reset Everything</button>
                         </div>
                     </div>
                 </footer>
