@@ -6,7 +6,7 @@ import { LocationType } from '@/lib/constants'
 import moment from 'moment'
 import { TimesheetMeta } from '../timesheet/timesheetMeta'
 
-import templateConfig from '../../../../data/mainTimesheetTemplate.json'
+import templateConfig from '../../../../main-timesheet-template'
 
 export const createXlsxTimesheet = async (timesheet: Timesheet) => {
     let groupedTimesheetEntry = timesheet.timesheetEntryCollectionByWeek
