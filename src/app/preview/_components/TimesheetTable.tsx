@@ -1,4 +1,4 @@
-import { EntryStateConstants } from "@/lib/constants";
+import { EntryStateConstants, LocationType } from "@/lib/constants";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry, TimesheetEntryEditFormData } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
@@ -164,8 +164,8 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
                                         onChange={(e) => handleInputChange(e, timesheetEntry.id, 'locationType')} name={`location-${timesheetEntry.id}`}
                                         id={`location-${timesheetEntry.id}`} title="Location"
                                         className="text-xs">
-                                        <option value="onshore">Onshore</option>
-                                        <option value="offshore">Offshore</option>
+                                        <option value={LocationType.onshore}>Onshore</option>
+                                        <option value={LocationType.offshore}>Offshore</option>
                                     </select>
                                 </span>
                             }

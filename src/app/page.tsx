@@ -13,7 +13,7 @@ export default function Home() {
         </DefaultSectionHeader>
         <div className="section-body general-label">
           <div className="py-8 px-8 border">
-            <p>Welcome to my simple customer timesheet generator. Hope it works for you. </p>
+            <p>Welcome to my simple personnel timesheet generator. Hope it works for you. </p>
           </div>
         </div>
         <footer className="section-footer section-action">
@@ -73,16 +73,16 @@ export default function Home() {
                       </div>
 
 
-                      <div className="fsr-and-customer-info mx-2">
+                      <div className="personnel-and-customer-info mx-2">
 
                         <div className="user-info">
                           <h3 className="text-lg font-semibold">{'John Lagbaja'}</h3>
                         </div>
                         <div className="customer-info">
                           <p className="text-sm italic">
-                            <span className="site-info">{'QIT'}</span>
+                            <span className="site-info">{'Cute-Site'}</span>
                             <span>,</span>
-                            <span className="site-country-info ml-1">{'Nigeria'}</span>
+                            <span className="site-country-info ml-1">{'Cute-Country'}</span>
                           </p>
                         </div>
                       </div>

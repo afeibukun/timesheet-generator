@@ -1,5 +1,6 @@
 import moment from "moment";
 import { InvalidTimesheetDateError } from "./timesheetErrors";
+import { Timesheet, TimesheetDefaultInformation } from "./timesheet";
 
 interface TimesheetDateInterface {
     dateInput: string,
@@ -13,6 +14,9 @@ export class TimesheetDate implements TimesheetDateInterface {
         this.dateInput = timesheetDateInput.dateInput;
         let momentTimesheetDate = moment(this.dateInput);
         this._isValidTimesheetDate = momentTimesheetDate.isValid();
+
+        let defaultData: TimesheetDefaultInformation = Timesheet.defaultInformation()
+        TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
     }
 
     get getFirstDayOfTheWeek(): TimesheetDate {
@@ -66,12 +70,20 @@ export class TimesheetDate implements TimesheetDateInterface {
         // Sample Outcome - 2017-03-13
     }
 
+    toJavascriptDate(): Date {
+        return moment(this.dateInput).toDate();
+    }
+
     get weekNumber(): number {
         return moment(this.dateInput).week();
     }
 
     dateIncrementByDay(numberOfDays: number): TimesheetDate {
         return new TimesheetDate({ dateInput: moment(this.dateInput).add(numberOfDays, 'day').format() });
+    }
+
+    incrementHoursForDate(hours: number): TimesheetDate {
+        return new TimesheetDate({ dateInput: moment(this.dateInput).add(hours, 'hours').format() });
     }
 
     static setWeekStartDayAsMonday() {
@@ -143,5 +155,13 @@ export class TimesheetDate implements TimesheetDateInterface {
             default:
                 return -1;
         }
+    }
+
+    static addTimezoneOffsetToJavascriptDate(javascriptDate: Date) {
+        return new Date(javascriptDate.getTime() - (javascriptDate.getTimezoneOffset() * 60 * 1000));
+    }
+
+    static removeTimezoneOffsetFromJavascriptDate(javascriptDate: Date) {
+        return new Date(javascriptDate.getTime() + (javascriptDate.getTimezoneOffset() * 60 * 1000));
     }
 }

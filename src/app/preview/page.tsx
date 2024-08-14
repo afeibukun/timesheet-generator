@@ -12,6 +12,7 @@ import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timesheet/timesheetErrors";
+import { createXlsxTimesheet } from "@/lib/services/xlsx/xlsxService";
 
 export default function Preview() {
 
@@ -184,6 +185,9 @@ export default function Preview() {
                         <div>
                             <button type="button" onClick={handleResetEverythingButton} className="inline-block px-8 py-2 rounded uppercase text-sm bg-red-400 text-black">Reset Everything</button>
                         </div>
+                    </div>
+                    <div>
+                        <button type="button" onClick={(e) => createXlsxTimesheet(timesheet)}>Create Excel file</button>
                     </div>
                 </footer>
             </DefaultSection>

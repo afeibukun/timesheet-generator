@@ -1,4 +1,4 @@
-import { EntryStateConstants, } from "@/lib/constants";
+import { EntryStateConstants, LocationType, } from "@/lib/constants";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { Timesheet, TimesheetDefaultInformation } from "./timesheet";
@@ -74,10 +74,58 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         return timesheet;
     }
 
+    get totalEntryPeriodHours(): number {
+        return new TimesheetEntryPeriod(this.entryPeriod!).totalHours
+    }
+
+    get entryDateDayLabel(): string {
+        let label = new TimesheetDate(this.date).dayLabel
+        return label
+    }
+
+    get entryDateInDayMonthFormat(): string {
+        let date = new TimesheetDate(this.date).dateInDayMonthFormat
+        return date
+    }
+
     get isNullEntry(): boolean {
         if (this.entryPeriod == null || this.locationType == null || this.locationType == '') {
             return true
         }
+        return false
+    }
+
+    get isEntryPeriodStartTimeNull(): Boolean {
+        if (this.isNullEntry || this.entryPeriod?.startTime == null) {
+            return true
+        }
+        return false
+    }
+
+    get isEntryPeriodFinishTimeNull(): Boolean {
+        if (this.isNullEntry || this.entryPeriod?.finishTime == null) {
+            return true
+        }
+        return false
+    }
+
+    get isEntryPeriodValid(): Boolean {
+        if (!this.isNullEntry && new TimesheetEntryPeriod(this.entryPeriod!).isValid) return true;
+        return false
+    }
+
+    get isLocationTypeOnshore(): Boolean {
+        if (!this.isNullEntry && this.locationType == LocationType.onshore) return true
+        return false
+    }
+
+    get isLocationTypeOffshore(): Boolean {
+        if (!this.isNullEntry && this.locationType == LocationType.offshore) return true
+        return false
+    }
+
+    get isCommentNull(): Boolean {
+        if (this.isNullEntry || this.comment == null) return true
         return false
     }
 }

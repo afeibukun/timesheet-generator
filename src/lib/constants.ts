@@ -21,10 +21,15 @@ export enum StatusConstants {
     new = "NEW",
 }
 
+export enum LocationType {
+    onshore = "onshore",
+    offshore = "offshore"
+}
+
 export const timesheetDefaultInformationConstant = {
     startTime: '06:00',
     finishTime: '18:00',
-    locationType: 'onshore',
+    locationType: LocationType.onshore,
     comment: 'Productive Work at the Office',
     weekStartDay: "monday",
     updatedAt: ''
