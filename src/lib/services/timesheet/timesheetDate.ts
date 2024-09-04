@@ -41,6 +41,7 @@ export class TimesheetDate implements TimesheetDateInterface {
 
     get dateInDayMonthFormat(): string {
         return moment(this.dateInput).format('Do-MMM');
+        // output sample - 1st-Jul
     }
 
     isDateSameOrBefore(secondDate: TimesheetDate): boolean {

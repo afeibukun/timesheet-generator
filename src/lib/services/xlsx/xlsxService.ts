@@ -8,7 +8,7 @@ import { TimesheetMeta } from '../timesheet/timesheetMeta'
 
 import templateConfig from '../../../../main-timesheet-template'
 
-export const createXlsxTimesheet = async (timesheet: Timesheet) => {
+export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timesheet) => {
     let groupedTimesheetEntry = timesheet.timesheetEntryCollectionByWeek
     let weeksInGroupedTimesheet: string[] = Object.keys(groupedTimesheetEntry)
 
@@ -31,7 +31,6 @@ export const createXlsxTimesheet = async (timesheet: Timesheet) => {
                 // column A
                 value: '[Image]',
                 span: 2,
-                width: 10.4,
                 height: 30
             },
             // column B
@@ -39,86 +38,69 @@ export const createXlsxTimesheet = async (timesheet: Timesheet) => {
             {
                 // column C
                 value: '',
-                width: 7.0
             },
             {
                 // column D
                 value: '',
-                width: 7.0
             }, {
                 // column E
                 value: '',
-                width: 7.0
             },
             {
                 // column F
                 value: '',
-                width: 7.0
             },
             {
                 // column G
                 value: '',
-                width: 7.0
             },
             {
                 // column H
                 value: '',
-                width: 7.0
             }, {
                 // column I
                 value: '',
-                width: 7.0
             },
             {
                 // column J
                 value: '',
-                width: 7.0
             },
             {
                 // column K
                 value: '',
-                width: 6.0
             },
             {
                 // column L
                 value: '',
-                width: 11.4
             }, {
                 // column M
                 value: '',
-                width: 4.0
             },
             {
                 // column N
                 value: '',
-                width: 19.6
             },
             {
                 // column O
                 value: '',
-                width: 7.8
             },
             {
                 // column P
                 value: '',
-                width: 6.4
             },
             {
                 // column Q
-                value: '',
-                width: 8.0
-            },
-            {
-                // column R
                 value: `WEEK ${week}`,
+                span: 2,
                 align: templateConfig.align.rightAlign,
                 alignVertical: templateConfig.align.topAlign,
                 fontSize: templateConfig.font.smallFontSize,
                 fontFamily: templateConfig.font.defaultFontFamily,
                 color: templateConfig.color.blueColor,
                 fontWeight: templateConfig.font.boldFontWeight,
-                width: 11,
             },
+            // column R
+            null,
         ]
         const metaRow6 = [
             {
@@ -425,57 +407,60 @@ export const createXlsxTimesheet = async (timesheet: Timesheet) => {
     const defaultColumns: any[] = [
         {
             // column A
-            width: 10,
+            width: 8,
         },
         {
             // column B
+            width: 8,
         },
         {
             // column C
-            width: 7
+            width: 5
         },
         {
             // column D
-            width: 7
+            width: 5
         },
         {
             // column E
-            width: 7
+            width: 5
         },
         {
             // column F
-            width: 7
+            width: 5
         },
         {
             // column G
-            width: 7
+            width: 5
         },
         {
             // column H
-            width: 7
+            width: 5
         },
         {
             // column I
-            width: 7
+            width: 5
         },
         {
             // column J
-            width: 7
+            width: 5
         },
         {
             // column K
-            width: 6
+            width: 8
         },
         {
             // column L
-            width: 11
+            // width: 9
+            width: 12
         }, {
             // column M
-            width: 4.0
+            width: 4
         },
         {
             // column N
-            width: 20
+            // width: 9
+            width: 12,
         },
         {
             // column O
@@ -483,15 +468,15 @@ export const createXlsxTimesheet = async (timesheet: Timesheet) => {
         },
         {
             // column P            
-            width: 6
+            width: 7
         },
         {
             // column Q            
-            width: 8
+            width: 7,
         },
         {
             // column R            
-            width: 11,
+            width: 8,
         },
     ]
     const timesheetColumnsForExcelMultiSheetData = weeksInGroupedTimesheet.map((week) => {
@@ -503,7 +488,8 @@ export const createXlsxTimesheet = async (timesheet: Timesheet) => {
         columns: timesheetColumnsForExcelMultiSheetData,
         sheets: sheetCollection,
         fileName: 'timesheet.xlsx',
-        orientation: 'landscape'
+        orientation: 'landscape',
+        fontFamily: templateConfig.font.defaultFontFamily
     })
 
 }
@@ -1406,7 +1392,7 @@ const generateExcelRowsForStaticFooterSection = () => {
     return [timesheetFooterRow1, timesheetFooterRow2, timesheetFooterRow3, timesheetFooterRow4, timesheetFooterRow5, timesheetFooterRow6, ...footerAddressList];
 }
 
-export const createXlsxTimesheetB = async () => {
+export const createXlsxTimesheetWithDefaultTemplateB = async () => {
 
     const HEADER_ROW = [
         {
@@ -1467,7 +1453,7 @@ export const createXlsxTimesheetB = async () => {
     })
 }
 
-export const createXlsxTimesheetC = async () => {
+export const createXlsxTimesheetWithDefaultTemplateC = async () => {
 
     const objects = [
         {

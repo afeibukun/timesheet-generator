@@ -87,6 +87,15 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         let date = new TimesheetDate(this.date).dateInDayMonthFormat
         return date
     }
+    get entryPeriodStartTime(): string {
+        let time = this.entryPeriod?.startTime!
+        return time
+    }
+
+    get entryPeriodFinishTime(): string {
+        let time = this.entryPeriod?.finishTime!
+        return time
+    }
 
     get isNullEntry(): boolean {
         if (this.entryPeriod == null || this.locationType == null || this.locationType == '') {

@@ -74,8 +74,8 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
         <tr key={timesheetEntry.id} className="px-2 odd:bg-white even:bg-slate-50">
             <td className="pl-4">
                 <span className="flex flex-col pr-2 py-2">
-                    <span className="text-sm font-normal">{new TimesheetDate(timesheetEntry.date).dayLabel}</span>
-                    <span className="text-[10px]">{new TimesheetDate(timesheetEntry.date).dateInDayMonthFormat}</span>
+                    <span className="text-sm font-normal">{timesheetEntry.entryDateDayLabel}</span>
+                    <span className="text-[10px]">{timesheetEntry.entryDateInDayMonthFormat}</span>
                 </span>
             </td>
             <td>
