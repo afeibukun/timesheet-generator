@@ -12,9 +12,9 @@ import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timesheet/timesheetErrors";
-import { createXlsxTimesheetWithDefaultTemplate } from "@/lib/services/xlsx/xlsxService";
 import { createPdfTimesheet } from "@/lib/services/pdf/pdfService";
 import PrintTimesheetWithDefaultTemplate from "./_components/PrintTimesheetWithDefaultTemplate";
+import { createXlsxTimesheetStandardTemplateWithExcelJs } from "@/lib/services/xlsx/excelJsService";
 
 export default function Preview() {
 
@@ -199,7 +199,7 @@ export default function Preview() {
                                 </div>
                             </div>
                             <div>
-                                <button type="button" onClick={(e) => createXlsxTimesheetWithDefaultTemplate(timesheet)}>Create Excel file</button>
+                                <button type="button" onClick={(e) => createXlsxTimesheetStandardTemplateWithExcelJs(timesheet)}>Create Excel file</button>
 
                                 <button type="button" onClick={(e) => createPdfTimesheet(timesheet)}>Create PDF file</button>
                             </div>

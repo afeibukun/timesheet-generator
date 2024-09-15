@@ -1,24 +1,18 @@
 import writeXlsxFile, { SheetData } from 'write-excel-file'
 import { Timesheet } from '../timesheet/timesheet'
 import { TimesheetDate } from '../timesheet/timesheetDate'
-import { TimesheetEntryPeriod } from '../timesheet/timesheetEntryPeriod'
-import { LocationType } from '@/lib/constants'
-import moment from 'moment'
+import { LocationType, PeriodType } from '@/lib/constants'
 import { TimesheetMeta } from '../timesheet/timesheetMeta'
-
 import templateConfig from '../../../../main-timesheet-template'
 
-export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timesheet) => {
+
+export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (timesheet: Timesheet) => {
     let groupedTimesheetEntry = timesheet.timesheetEntryCollectionByWeek
     let weeksInGroupedTimesheet: string[] = Object.keys(groupedTimesheetEntry)
 
     let timesheetMeta = timesheet.meta;
 
-    let startPoint = "A"
-    let startPointNumber = startPoint.charCodeAt(0);
-    let sheetCollection = weeksInGroupedTimesheet.map((week, index) => {
-        return `Wk-${String.fromCharCode(startPointNumber + index)}(${week})`
-    })
+    let sheetCollection = sheetNameCollection(weeksInGroupedTimesheet);
 
     const timesheetExcelMultiSheetData = weeksInGroupedTimesheet.map((week) => {
         let timesheetEntryCollectionForCurrentWeek = groupedTimesheetEntry[week as any];
@@ -26,6 +20,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
         let javascriptDateForLastDayOfCurrentWeek = timesheetDateForLastDayOfCurrentWeek.toJavascriptDate();
 
         // row has dynamic component
+        // Row 1
         const metaRow1 = [
             {
                 // column A
@@ -102,6 +97,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
             // column R
             null,
         ]
+        // Row 6
         const metaRow6 = [
             {
                 // column A
@@ -179,6 +175,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
             null,
         ]
 
+        // Row 9 - 22
         const timesheetCoreRows = timesheetEntryCollectionForCurrentWeek?.reduce((accumulator, currentTimesheetEntry, currentIndex, timesheetEntry) => {
             const timesheetEntryRowA = [
                 {
@@ -192,7 +189,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
                     fontStyle: templateConfig.font.italicFontStyle
                 }, {
                     // column B
-                    value: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? 'START' : '',
+                    value: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodType.start.toUpperCase() : '',
                     fontSize: templateConfig.font.smallerFontSize,
                     fontFamily: templateConfig.font.defaultFontFamily,
                     borderColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? templateConfig.color.blackColor : null,
@@ -256,7 +253,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
                 },
                 {
                     // column L
-                    value: currentTimesheetEntry.isEntryPeriodValid ? "ONSHORE" : '',
+                    value: currentTimesheetEntry.isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '',
                     fontSize: templateConfig.font.smallFontSize,
                     fontFamily: templateConfig.font.defaultFontFamily,
                     borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.blackColor : null,
@@ -300,7 +297,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
                     align: templateConfig.align.rightAlign,
                 }, {
                     // column B
-                    value: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? 'FINISH' : '',
+                    value: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodType.finish.toUpperCase() : '',
                     fontSize: templateConfig.font.smallerFontSize,
                     fontFamily: templateConfig.font.defaultFontFamily,
                     borderColor: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? templateConfig.color.blackColor : null,
@@ -364,7 +361,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
                 },
                 {
                     // column L
-                    value: !currentTimesheetEntry.isNullEntry ? "OFFSHORE" : "",
+                    value: !currentTimesheetEntry.isNullEntry ? LocationType.offshore.toUpperCase() : "",
                     fontSize: templateConfig.font.smallFontSize,
                     fontFamily: templateConfig.font.defaultFontFamily,
                     borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
@@ -495,7 +492,7 @@ export const createXlsxTimesheetWithDefaultTemplate = async (timesheet: Timeshee
 }
 
 const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta) => {
-    // empty row
+    // Row 2 - empty row
     const metaRow2 = [
         {
             // column A
@@ -568,6 +565,7 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         },
     ]
 
+    // Row 3
     const metaRow3 = [
         {
             // column A
@@ -647,6 +645,7 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
     ]
 
+    // Row 4
     const metaRow4 = [
         {
             // column A
@@ -728,6 +727,7 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
     ]
 
+    // Row 5
     const metaRow5 = [
         {
             // column A
@@ -1024,6 +1024,7 @@ const generateExcelRowsForStaticHeaderSection = () => {
 }
 
 const generateExcelRowsForStaticFooterSection = () => {
+    // Row 1
     const timesheetFooterRow1 = [
         {
             // column A
@@ -1081,6 +1082,7 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
     ]
 
+    // Row 2
     const timesheetFooterRow2 = [
         {
             // column A
@@ -1152,6 +1154,7 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
     ]
 
+    // Row 3
     const timesheetFooterRow3 = [
         {
             // column A
@@ -1250,7 +1253,7 @@ const generateExcelRowsForStaticFooterSection = () => {
         // column R
         null,
     ]
-
+    // Row 27
     const timesheetFooterRow5 = [
         {
             // column A
@@ -1297,7 +1300,7 @@ const generateExcelRowsForStaticFooterSection = () => {
         // column R
         null,
     ]
-    // empty row
+    // empty row - Row 28
     const timesheetFooterRow6 = [
         {
             // column A
@@ -1340,6 +1343,7 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
     ]
 
+    // from Row 29
     const footerAddressList = templateConfig.footerAddress.map((address) => {
         const footerAddressRow = [
             {
@@ -1501,4 +1505,17 @@ export const createXlsxTimesheetWithDefaultTemplateC = async () => {
         fileName: 'file2.xlsx'
     })
 
+}
+
+const sheetNameCollection = (weeksInGroupedTimesheet: any[]) => {
+    let startPoint = "A"
+    let startPointNumber = startPoint.charCodeAt(0);
+    let _sheetNameCollection = weeksInGroupedTimesheet.map((week, index) => {
+        return `${String.fromCharCode(startPointNumber + index)}-Week(${week})`
+    })
+    return _sheetNameCollection
+}
+
+export const createXlsTimesheet = () => {
+    // const xls
 }

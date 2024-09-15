@@ -26,6 +26,11 @@ export enum LocationType {
     offshore = "offshore"
 }
 
+export enum PeriodType {
+    start = "start",
+    finish = "finish"
+}
+
 export const timesheetDefaultInformationConstant = {
     startTime: '06:00',
     finishTime: '18:00',
