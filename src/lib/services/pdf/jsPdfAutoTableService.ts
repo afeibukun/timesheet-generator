@@ -205,8 +205,8 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
             [
                 { content: templateConfig.staticValues.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
                 { content: timesheetMeta.personnelName.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: timesheetMeta.mobilizationDate.simpleFormat(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: timesheetMeta.demobilizationDate.simpleFormat(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+                { content: timesheetMeta.mobilizationDate.longFormat(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+                { content: timesheetMeta.demobilizationDate.longFormat(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
                 { content: timesheetMeta.orderNumber?.toString(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
             ],
             // Excel Row 5
@@ -223,7 +223,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                 { content: timesheetMeta.siteName.toUpperCase(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
                 { content: timesheetMeta.purchaseOrderNumber, colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
                 { content: timesheetMeta.siteCountry.toUpperCase(), colSpan: 2, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: timesheetDateForLastDayOfCurrentWeek.simpleFormat(), colSpan: 4, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } }
+                { content: timesheetDateForLastDayOfCurrentWeek.longFormat(), colSpan: 4, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } }
             ],
             // Excel Row 7
             [

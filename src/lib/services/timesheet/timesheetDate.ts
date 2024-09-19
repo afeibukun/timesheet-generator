@@ -71,6 +71,11 @@ export class TimesheetDate implements TimesheetDateInterface {
         // Sample Outcome - Mon, 06 Mar 2017
     }
 
+    longFormat(): string {
+        return moment(this.dateInput).format('dddd, DD MMMM YYYY');
+        // Sample Outcome - Monday, 06 March 2017
+    }
+
     dateInputNaturalFormat(): string {
         return moment(this.dateInput).format('YYYY-MM-DD');
         // Sample Outcome - 2017-03-13
