@@ -87,12 +87,12 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 // column Q
                 value: `WEEK ${week}`,
                 span: 2,
-                align: templateConfig.align.rightAlign,
-                alignVertical: templateConfig.align.topAlign,
-                fontSize: templateConfig.font.smallFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                color: templateConfig.color.blueColor,
-                fontWeight: templateConfig.font.boldFontWeight,
+                align: templateConfig.align.right,
+                alignVertical: templateConfig.align.top,
+                fontSize: templateConfig.fontSize.small,
+                fontFamily: templateConfig.font.default,
+                color: templateConfig.color.blue,
+                fontWeight: templateConfig.fontStyle.bold,
             },
             // column R
             null,
@@ -103,10 +103,10 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 // column A
                 value: timesheetMeta.customerName.toUpperCase(), // customer name
                 span: 6,
-                fontSize: templateConfig.font.defaultFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                fontWeight: templateConfig.font.boldFontWeight,
-                borderColor: templateConfig.color.blackColor
+                fontSize: templateConfig.fontSize.default,
+                fontFamily: templateConfig.font.default,
+                fontWeight: templateConfig.fontStyle.bold,
+                borderColor: templateConfig.color.black
             },
             // column B
             null,
@@ -122,10 +122,10 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 // column G
                 value: timesheetMeta.siteName.toUpperCase(), // site name
                 span: 3,
-                fontSize: templateConfig.font.defaultFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                fontWeight: templateConfig.font.boldFontWeight,
-                borderColor: templateConfig.color.blackColor
+                fontSize: templateConfig.fontSize.default,
+                fontFamily: templateConfig.font.default,
+                fontWeight: templateConfig.fontStyle.bold,
+                borderColor: templateConfig.color.black
             },
             // column H
             null,
@@ -135,10 +135,10 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 // column J
                 value: timesheetMeta.purchaseOrderNumber, // PO Number
                 span: 3,
-                fontSize: templateConfig.font.defaultFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                fontWeight: templateConfig.font.boldFontWeight,
-                borderColor: templateConfig.color.blackColor
+                fontSize: templateConfig.fontSize.default,
+                fontFamily: templateConfig.font.default,
+                fontWeight: templateConfig.fontStyle.bold,
+                borderColor: templateConfig.color.black
             },
             // column K
             null,
@@ -148,10 +148,10 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 // column M
                 value: timesheetMeta.siteCountry.toUpperCase(), // Site Country
                 span: 2,
-                fontSize: templateConfig.font.defaultFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                fontWeight: templateConfig.font.boldFontWeight,
-                borderColor: templateConfig.color.blackColor,
+                fontSize: templateConfig.fontSize.default,
+                fontFamily: templateConfig.font.default,
+                fontWeight: templateConfig.fontStyle.bold,
+                borderColor: templateConfig.color.black,
             },
             // column N
             null,
@@ -160,12 +160,12 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 value: TimesheetDate.addTimezoneOffsetToJavascriptDate(javascriptDateForLastDayOfCurrentWeek), // week ending date
                 span: 4,
                 type: Date,
-                format: templateConfig.format.defaultDateFormat,
-                align: templateConfig.align.leftAlign,
-                fontSize: templateConfig.font.defaultFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                fontWeight: templateConfig.font.boldFontWeight,
-                borderColor: templateConfig.color.blackColor,
+                format: templateConfig.format.defaultDate,
+                align: templateConfig.align.left,
+                fontSize: templateConfig.fontSize.default,
+                fontFamily: templateConfig.font.default,
+                fontWeight: templateConfig.fontStyle.bold,
+                borderColor: templateConfig.color.black,
             },
             // column P
             null,
@@ -181,102 +181,102 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 {
                     // column A
                     value: currentTimesheetEntry.entryDateDayLabel.toUpperCase(),
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: templateConfig.color.blackColor,
-                    backgroundColor: templateConfig.color.lightGrayColor,
-                    fontWeight: templateConfig.font.boldFontWeight,
-                    fontStyle: templateConfig.font.italicFontStyle
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: templateConfig.color.black,
+                    backgroundColor: templateConfig.color.lightGray,
+                    fontWeight: templateConfig.fontStyle.bold,
+                    fontStyle: templateConfig.fontStyle.italic
                 }, {
                     // column B
                     value: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodType.start.toUpperCase() : '',
-                    fontSize: templateConfig.font.smallerFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.smaller,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 },
                 {
                     // column C
                     value: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? currentTimesheetEntry.entryPeriod?.startTime : '',
-                    fontSize: templateConfig.font.smallerFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.smaller,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 }, {
                     // column D
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column E
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column F
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column G
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column H
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column I
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column J
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column K
                     value: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '',
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 },
                 {
                     // column L
                     value: currentTimesheetEntry.isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '',
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column M
                     value: currentTimesheetEntry.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '',
-                    fontSize: templateConfig.font.defaultFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.default,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 },
                 {
                     // column N
                     value: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOnshore ? currentTimesheetEntry.comment : "",
                     span: 5,
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    rightBorderColor: templateConfig.color.blackColor,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    rightBorderColor: templateConfig.color.black,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 // column O
                 null,
@@ -291,98 +291,98 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 {
                     // column A
                     value: currentTimesheetEntry.entryDateInDayMonthFormat,
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: templateConfig.color.blackColor,
-                    align: templateConfig.align.rightAlign,
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: templateConfig.color.black,
+                    align: templateConfig.align.right,
                 }, {
                     // column B
                     value: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodType.finish.toUpperCase() : '',
-                    fontSize: templateConfig.font.smallerFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.smaller,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 },
                 {
                     // column C
                     value: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? currentTimesheetEntry.entryPeriod?.finishTime : '',
-                    fontSize: templateConfig.font.smallerFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.smaller,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 }, {
                     // column D
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column E
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column F
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column G
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column H
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column I
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 }, {
                     // column J
                     value: "",
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column K
                     value: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : "",
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 },
                 {
                     // column L
                     value: !currentTimesheetEntry.isNullEntry ? LocationType.offshore.toUpperCase() : "",
-                    fontSize: templateConfig.font.smallFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    fontSize: templateConfig.fontSize.small,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 {
                     // column M
                     value: currentTimesheetEntry.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '',
-                    fontSize: templateConfig.font.defaultFontSize,
-                    fontFamily: templateConfig.font.defaultFontFamily,
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor,
-                    align: templateConfig.align.centerAlign,
+                    fontSize: templateConfig.fontSize.default,
+                    fontFamily: templateConfig.font.default,
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white,
+                    align: templateConfig.align.center,
                 },
                 {
                     // column N
                     value: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOffshore ? currentTimesheetEntry.comment : "",
                     span: 5,
-                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.blackColor : null,
-                    rightBorderColor: templateConfig.color.blackColor,
-                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.mildGrayColor
+                    borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,
+                    rightBorderColor: templateConfig.color.black,
+                    backgroundColor: !currentTimesheetEntry.isNullEntry ? null : templateConfig.color.white
                 },
                 // column O
                 null,
@@ -486,7 +486,7 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
         sheets: sheetCollection,
         fileName: 'timesheet.xlsx',
         orientation: 'landscape',
-        fontFamily: templateConfig.font.defaultFontFamily
+        fontFamily: templateConfig.font.default
     })
 
 }
@@ -569,13 +569,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
     const metaRow3 = [
         {
             // column A
-            value: templateConfig.label.titleLabel.toUpperCase(), // title label
+            value: templateConfig.label.title.toUpperCase(), // title label
             span: 4,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontSize: templateConfig.font.defaultFontSize,
-            color: templateConfig.color.blueColor,
-            borderColor: templateConfig.color.blackColor,
-            fontWeight: templateConfig.font.boldFontWeight
+            fontFamily: templateConfig.font.default,
+            fontSize: templateConfig.fontSize.default,
+            color: templateConfig.color.blue,
+            borderColor: templateConfig.color.black,
+            fontWeight: templateConfig.fontStyle.bold
         },
         // column B
         null,
@@ -585,13 +585,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column E
-            value: templateConfig.label.personnelNameLabel.toUpperCase(), // personel name label
+            value: templateConfig.label.personnelName.toUpperCase(), // personel name label
             span: 5,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black
         },
         // column F
         null,
@@ -603,13 +603,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column J
-            value: templateConfig.label.mobilizationDateLabel.toUpperCase(), // mobilization date label
+            value: templateConfig.label.mobilizationDate.toUpperCase(), // mobilization date label
             span: 3,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black
         },
         // column K
         null,
@@ -617,13 +617,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column M
-            value: templateConfig.label.demobilizationDateLabel.toUpperCase(), //demobilization date label
+            value: templateConfig.label.demobilizationDate.toUpperCase(), //demobilization date label
             span: 3,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black
         },
         // column N
         null,
@@ -631,13 +631,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column P
-            value: templateConfig.label.orderNumberLabel.toUpperCase(), // order number label
+            value: templateConfig.label.orderNumber.toUpperCase(), // order number label
             span: 3,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black,
         },
         // column Q
         null,
@@ -651,11 +651,11 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
             // column A
             value: templateConfig.staticValues.defaultTitle.toUpperCase(), //default title
             span: 4,
-            fontSize: templateConfig.font.largeFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontWeight: templateConfig.font.boldFontWeight,
-            color: templateConfig.color.blueColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.large,
+            fontFamily: templateConfig.font.default,
+            fontWeight: templateConfig.fontStyle.bold,
+            color: templateConfig.color.blue,
+            borderColor: templateConfig.color.black
         },
         // column B
         null,
@@ -667,10 +667,10 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
             // column E
             value: timesheetMeta.personnelName.toUpperCase(), // personnel name
             span: 5,
-            fontSize: templateConfig.font.defaultFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontWeight: templateConfig.font.boldFontWeight,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.default,
+            fontFamily: templateConfig.font.default,
+            fontWeight: templateConfig.fontStyle.bold,
+            borderColor: templateConfig.color.black
         },
         // column F
         null,
@@ -684,13 +684,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
             // column J
             value: TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheetMeta.mobilizationDate.toJavascriptDate()), // mobilization date
             type: Date,
-            format: templateConfig.format.defaultDateFormat,
+            format: templateConfig.format.defaultDate,
             span: 3,
-            align: templateConfig.align.leftAlign,
-            fontSize: templateConfig.font.defaultFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontWeight: templateConfig.font.boldFontWeight,
-            borderColor: templateConfig.color.blackColor
+            align: templateConfig.align.left,
+            fontSize: templateConfig.fontSize.default,
+            fontFamily: templateConfig.font.default,
+            fontWeight: templateConfig.fontStyle.bold,
+            borderColor: templateConfig.color.black
         },
         // column K
         null,
@@ -700,13 +700,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
             // column M
             value: TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheetMeta.demobilizationDate.toJavascriptDate()), // demob date
             type: Date,
-            format: templateConfig.format.defaultDateFormat,
+            format: templateConfig.format.defaultDate,
             span: 3,
-            align: templateConfig.align.leftAlign,
-            fontSize: templateConfig.font.defaultFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontWeight: templateConfig.font.boldFontWeight,
-            borderColor: templateConfig.color.blackColor
+            align: templateConfig.align.left,
+            fontSize: templateConfig.fontSize.default,
+            fontFamily: templateConfig.font.default,
+            fontWeight: templateConfig.fontStyle.bold,
+            borderColor: templateConfig.color.black
         },
         // column N
         null,
@@ -716,10 +716,10 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
             // column P
             value: '', // order number
             span: 3,
-            fontSize: templateConfig.font.defaultFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontWeight: templateConfig.font.boldFontWeight,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.default,
+            fontFamily: templateConfig.font.default,
+            fontWeight: templateConfig.fontStyle.bold,
+            borderColor: templateConfig.color.black
         },
         // column Q
         null,
@@ -731,13 +731,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
     const metaRow5 = [
         {
             // column A
-            value: templateConfig.label.customerNameLabel.toUpperCase(), // customer name label
+            value: templateConfig.label.customerName.toUpperCase(), // customer name label
             span: 6,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black
         },
         // column B
         null,
@@ -751,13 +751,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column G
-            value: templateConfig.label.siteNameLabel.toUpperCase(), // site name label
+            value: templateConfig.label.siteName.toUpperCase(), // site name label
             span: 3,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black
         },
         // column H
         null,
@@ -765,13 +765,13 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column J
-            value: templateConfig.label.purchaseOrderNumberLabel.toUpperCase(), // purchase order number label
+            value: templateConfig.label.purchaseOrderNumber.toUpperCase(), // purchase order number label
             span: 3,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black
         },
         // column K
         null,
@@ -779,25 +779,25 @@ const generateExcelRowsForSemiDynamicMetaSection = (timesheetMeta: TimesheetMeta
         null,
         {
             // column M
-            value: templateConfig.label.countryNameLabel.toUpperCase(), // country label
+            value: templateConfig.label.countryName.toUpperCase(), // country label
             span: 2,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black,
         },
         // column N
         null,
         {
             // column O
-            value: templateConfig.label.weekEndingDateLabel.toUpperCase(), // week ending date label
+            value: templateConfig.label.weekEndingDate.toUpperCase(), // week ending date label
             span: 4,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            borderColor: templateConfig.color.blackColor,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray,
+            borderColor: templateConfig.color.black,
         },
         // column P
         null,
@@ -814,24 +814,24 @@ const generateExcelRowsForStaticHeaderSection = () => {
     const timesheetHeaderRow1 = [
         {
             // column A
-            value: templateConfig.label.dateTitleLabel.toUpperCase(),
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            value: templateConfig.label.dateTitle.toUpperCase(),
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            fontWeight: templateConfig.font.boldFontWeight,
-            fontStyle: templateConfig.font.italicFontStyle
+            borderColor: templateConfig.color.black,
+            backgroundColor: templateConfig.color.lightGray,
+            fontWeight: templateConfig.fontStyle.bold,
+            fontStyle: templateConfig.fontStyle.italic
         }, {
             // column B
-            value: templateConfig.label.workingTimeTitleLabel.toUpperCase(),
+            value: templateConfig.label.workingTimeTitle.toUpperCase(),
             span: 5,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            fontStyle: templateConfig.font.italicFontStyle
+            borderColor: templateConfig.color.black,
+            backgroundColor: templateConfig.color.lightGray,
+            fontStyle: templateConfig.fontStyle.italic
         },
         // column C
         null,
@@ -843,67 +843,67 @@ const generateExcelRowsForStaticHeaderSection = () => {
         null,
         {
             // column G
-            value: templateConfig.label.waitingTimeTitleLabel.toUpperCase(),
+            value: templateConfig.label.waitingTimeTitle.toUpperCase(),
             span: 2,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            fontStyle: templateConfig.font.italicFontStyle
+            borderColor: templateConfig.color.black,
+            backgroundColor: templateConfig.color.lightGray,
+            fontStyle: templateConfig.fontStyle.italic
         },
         // column H
         null,
         {
             // column I
-            value: templateConfig.label.travelTimeTitleLabel.toUpperCase(),
+            value: templateConfig.label.travelTimeTitle.toUpperCase(),
             span: 2,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            fontStyle: templateConfig.font.italicFontStyle
+            borderColor: templateConfig.color.black,
+            backgroundColor: templateConfig.color.lightGray,
+            fontStyle: templateConfig.fontStyle.italic
         },
         // column J
         null,
         {
             // column K
-            value: templateConfig.label.totalHoursTitleLabel.toUpperCase(),
+            value: templateConfig.label.totalHoursTitle.toUpperCase(),
             rowSpan: 2,
             wrap: true,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            backgroundColor: templateConfig.color.lightGrayColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            align: templateConfig.align.centerAlign,
+            backgroundColor: templateConfig.color.lightGray,
+            fontStyle: templateConfig.fontStyle.italic,
+            align: templateConfig.align.center,
         },
         {
             // column L
-            value: templateConfig.label.locationTypeIndicatorLabel,
+            value: templateConfig.label.locationTypeIndicatorTitle,
             rowSpan: 2,
             wrap: true,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
+            borderColor: templateConfig.color.black,
         },
         {
             // column M
             value: '',
-            borderColor: templateConfig.color.blackColor,
+            borderColor: templateConfig.color.black,
             topBorderStyle: templateConfig.border.thickBorderStyle,
         },
         {
             // column N
-            value: templateConfig.label.commentTitleLabel.toUpperCase(),
+            value: templateConfig.label.commentTitle.toUpperCase(),
             span: 5,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
+            borderColor: templateConfig.color.black,
         },
         // column O
         null,
@@ -919,81 +919,81 @@ const generateExcelRowsForStaticHeaderSection = () => {
         {
             // column A
             value: '',
-            borderColor: templateConfig.color.blackColor,
+            borderColor: templateConfig.color.black,
         }, {
             // column B
-            value: templateConfig.label.periodTitleLabel.toUpperCase(),
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            value: templateConfig.label.periodTitle.toUpperCase(),
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         },
         {
             // column C
             value: templateConfig.staticValues.workingTimeFirstPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         }, {
             // column D
             value: templateConfig.staticValues.workingTimeSecondPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         }, {
             // column E
             value: templateConfig.staticValues.workingTimeThirdPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         }, {
             // column F
             value: templateConfig.staticValues.workingTimeFourthPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         },
         {
             // column G
             value: templateConfig.staticValues.waitingTimeFirstPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         }, {
             // column H
             value: templateConfig.staticValues.waitingTimeSecondPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         },
         {
             // column I
             value: templateConfig.staticValues.travelTimeFirstPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         }, {
             // column J
             value: templateConfig.staticValues.travelTimeSecondPeriodTitle,
             type: Number,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         },
         // column K
         null,
@@ -1002,14 +1002,14 @@ const generateExcelRowsForStaticHeaderSection = () => {
         {
             // column M
             value: templateConfig.staticValues.locationTypeIndicator,
-            borderColor: templateConfig.color.blackColor,
-            align: templateConfig.align.centerAlign
+            borderColor: templateConfig.color.black,
+            align: templateConfig.align.center
         },
         {
             // column N
             value: "",
             span: 5,
-            borderColor: templateConfig.color.blackColor,
+            borderColor: templateConfig.color.black,
         },
         // column O
         null,
@@ -1028,14 +1028,14 @@ const generateExcelRowsForStaticFooterSection = () => {
     const timesheetFooterRow1 = [
         {
             // column A
-            value: templateConfig.label.personnelSignatureLabel.toUpperCase(),
+            value: templateConfig.label.personnelSignature.toUpperCase(),
             span: 4,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray
         },
         // column B
         null,
@@ -1045,14 +1045,14 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
         {
             // column E
-            value: templateConfig.staticValues.customerVerificationNote.toUpperCase(),
+            value: templateConfig.label.customerVerificationNote.toUpperCase(),
             span: 14,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
             topBorderStyle: templateConfig.border.thickBorderStyle,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray
         },
         // column F
         null,
@@ -1086,12 +1086,12 @@ const generateExcelRowsForStaticFooterSection = () => {
     const timesheetFooterRow2 = [
         {
             // column A
-            value: templateConfig.staticValues.signatureAttestationNote.toUpperCase(),
+            value: templateConfig.staticValues.personnelSignatureCertificationNote.toUpperCase(),
             span: 4,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
         },
         // column B
         null,
@@ -1101,13 +1101,13 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
         {
             // column E
-            value: templateConfig.label.customerRepresentativeNameLabel.toUpperCase(),
+            value: templateConfig.label.customerRepresentativeName.toUpperCase(),
             span: 4,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray
         },
         // column F
         null,
@@ -1117,13 +1117,13 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
         {
             // column I
-            value: templateConfig.label.customerRepresentativeTitleLabel.toUpperCase(),
+            value: templateConfig.label.customerRepresentativeTitle.toUpperCase(),
             span: 4,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray
         },
         // column J
         null,
@@ -1133,14 +1133,14 @@ const generateExcelRowsForStaticFooterSection = () => {
         null,
         {
             // column M
-            value: templateConfig.label.customerRepresentativeSignatureLabel.toUpperCase(),
+            value: templateConfig.label.customerRepresentativeSignature.toUpperCase(),
             span: 6,
-            align: templateConfig.align.centerAlign,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor
+            align: templateConfig.align.center,
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray
         },
         // column N
         null,
@@ -1161,7 +1161,7 @@ const generateExcelRowsForStaticFooterSection = () => {
             value: '',
             span: 4,
             rowSpan: 2,
-            borderColor: templateConfig.color.blackColor
+            borderColor: templateConfig.color.black
         },
         // column B
         null,
@@ -1174,7 +1174,7 @@ const generateExcelRowsForStaticFooterSection = () => {
             value: "",
             span: 4,
             rowSpan: 2,
-            borderColor: templateConfig.color.blackColor
+            borderColor: templateConfig.color.black
         },
         // column F
         null,
@@ -1187,7 +1187,7 @@ const generateExcelRowsForStaticFooterSection = () => {
             value: "",
             span: 4,
             rowSpan: 2,
-            borderColor: templateConfig.color.blackColor
+            borderColor: templateConfig.color.black
         },
         // column J
         null,
@@ -1200,7 +1200,7 @@ const generateExcelRowsForStaticFooterSection = () => {
             value: "",
             span: 6,
             rowSpan: 2,
-            borderColor: templateConfig.color.blackColor
+            borderColor: templateConfig.color.black
         },
         // column N
         null,
@@ -1259,11 +1259,11 @@ const generateExcelRowsForStaticFooterSection = () => {
             // column A
             value: templateConfig.staticValues.defaultAgreementStatement,
             span: 18,
-            fontSize: templateConfig.font.smallFontSize,
-            fontFamily: templateConfig.font.defaultFontFamily,
-            borderColor: templateConfig.color.blackColor,
-            fontStyle: templateConfig.font.italicFontStyle,
-            backgroundColor: templateConfig.color.lightGrayColor
+            fontSize: templateConfig.fontSize.small,
+            fontFamily: templateConfig.font.default,
+            borderColor: templateConfig.color.black,
+            fontStyle: templateConfig.fontStyle.italic,
+            backgroundColor: templateConfig.color.lightGray
         },
         // column B
         null,
@@ -1357,9 +1357,9 @@ const generateExcelRowsForStaticFooterSection = () => {
             {
                 // column D
                 value: address,
-                fontSize: templateConfig.font.smallFontSize,
-                fontFamily: templateConfig.font.defaultFontFamily,
-                fontStyle: templateConfig.font.italicFontStyle,
+                fontSize: templateConfig.fontSize.small,
+                fontFamily: templateConfig.font.default,
+                fontStyle: templateConfig.fontStyle.italic,
             },
             // column E
             null,

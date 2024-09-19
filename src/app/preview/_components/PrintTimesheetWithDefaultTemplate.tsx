@@ -49,7 +49,7 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
             <div className={`${mainPaddingClass} bg-white`}>
 
                 {/* header offset */}
-                <div className={`header-offset-row w-full`} style={{ height: `${templateConfig.headerOffsetForPrintToPdf}rem` }}></div>
+                <div className={`header-offset-row w-full h-10`} /* style={{ height: `${templateConfig.headerOffsetForPrintToPdf}rem` }} */></div>
 
                 {/* Logo and Week Number row */}
                 <div className={`top-meta-row flex justify-between ${marginUnderImageRowClass}`}>
@@ -59,7 +59,7 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                     </div>
                     <div className="week-data">
                         {/* cols - Q, R */}
-                        <span className={`${smallTextFontClass} uppercase font-bold ${blueTextDark}`}>{`${templateConfig.label.weekLabel} ${currentWeek}`}</span>
+                        <span className={`${smallTextFontClass} uppercase font-bold ${blueTextDark}`}>{`${templateConfig.label.weekPrefix} ${currentWeek}`}</span>
                     </div>
                 </div>
                 <div className={`border-b border-black ${marginUnderTimesheetRowClass} `}>
@@ -68,23 +68,23 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                         <div className={`meta-row row-01 grid ${gridColsForTimesheetTable} uppercase`}>
                             <div className={`meta-field-label col-span-26 ${cellPaddingForTimesheetTable} border-t border-l border-black ${verticallyCenteredContentClass} `}>
                                 {/* cols - A, B, C, D */}
-                                <p className={` ${mediumTextFontClass} font-bold not-italic ${blueTextMedium}`}>{templateConfig.label.titleLabel}</p>
+                                <p className={` ${mediumTextFontClass} font-bold not-italic ${blueTextMedium}`}>{templateConfig.label.title}</p>
                             </div>
                             <div className={`meta-field-label col-span-25 ${cellPaddingForTimesheetTable} border-t border-l border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - E, F, G, H, I */}
-                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.personnelNameLabel}</p>
+                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.personnelName}</p>
                             </div>
                             <div className={`meta-field-label col-span-23 ${cellPaddingForTimesheetTable} border-t border-l border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - J, K, L */}
-                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.mobilizationDateLabel}</p>
+                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.mobilizationDate}</p>
                             </div>
                             <div className={`meta-field-label col-span-22 ${cellPaddingForTimesheetTable} border-t border-l border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - M, N, O */}
-                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.demobilizationDateLabel}</p>
+                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.demobilizationDate}</p>
                             </div>
                             <div className={`meta-field-label col-span-24  ${cellPaddingForTimesheetTable} border-t border-x border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - P, Q, R */}
-                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.orderNumberLabel}</p>
+                                <p className={`${smallTextFontClass} italic`}>{templateConfig.label.orderNumber}</p>
                             </div>
                         </div>
                         <div className={`meta-row row-02 grid ${gridColsForTimesheetTable}`}>
@@ -115,23 +115,23 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                         <div className={`meta-row grid ${gridColsForTimesheetTable}`}>
                             <div className={`meta-field-label col-span-36 border-t border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - A, B, C, D, E, F */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerNameLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerName}</p>
                             </div>
                             <div className={`meta-field-label col-span-15 border-t border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - G, H, I */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.siteNameLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.siteName}</p>
                             </div>
                             <div className={`meta-field-label col-span-23 border-t border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - J, K, L */}
-                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.purchaseOrderNumberLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.purchaseOrderNumber}</p>
                             </div>
                             <div className={`meta-field-label col-span-14 border-t border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - M, N */}
-                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.countryNameLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.countryName}</p>
                             </div>
                             <div className={`meta-field-label col-span-32 border-t border-x  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - O, P, Q, R */}
-                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.weekEndingDateLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.weekEndingDate}</p>
                             </div>
                         </div>
                         <div className={`meta-row grid ${gridColsForTimesheetTable}`}>
@@ -164,27 +164,27 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                             {/* Row 1 */}
                             <div className={`core-timesheet-meta-cell col-span-8 border-l border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - A */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.dateTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.dateTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-28 border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - B, C, D, E, F */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.workingTimeTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.workingTimeTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-10 border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - G, H */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.waitingTimeTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.waitingTimeTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-10 border-l  border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - I, J */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.travelTimeTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.travelTimeTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-8 row-span-2  border-l ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass} border-black`}>
                                 {/* cols - K */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.totalHoursTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.totalHoursTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-10 row-span-2  border-l border-black ${cellPaddingForTimesheetTable} ${verticallyCenteredContentClass}`}>
                                 {/* cols - L */}
-                                <p className={`${smallTextFontClass} italic`} >{templateConfig.label.locationTypeIndicatorLabel}</p>
+                                <p className={`${smallTextFontClass} italic`} >{templateConfig.label.locationTypeIndicatorTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-4 row-span-2 border-l border-black ${cellPaddingForTimesheetTable} ${verticallyCenteredContentClass} ${horizontallyCenteredContentClass}`}>
                                 {/* cols - M */}
@@ -192,7 +192,7 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-42 row-span-2  border-x border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - N, O, P, Q, R */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.commentTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.commentTitle}</p>
                             </div>
                             {/* Second Row Start */}
                             <div className={`core-timesheet-meta-cell col-span-8 border-t border-l border-black ${cellPaddingForTimesheetTable} ${verticallyCenteredContentClass}`}>
@@ -201,7 +201,7 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-8 border-t border-l border-black ${cellPaddingForTimesheetTable} ${verticallyCenteredContentClass}`}>
                                 {/* cols - B */}
-                                <p className={`${smallTextFontClass} uppercase text-center`}>{templateConfig.label.periodTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase text-center`}>{templateConfig.label.periodTitle}</p>
                             </div>
                             <div className={`core-timesheet-meta-cell col-span-5 border-t border-l  border-black ${cellPaddingForTimesheetTable} ${verticallyCenteredContentClass}`}>
                                 {/* cols - C */}
@@ -372,29 +372,29 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                         <div className={`verification-heading-row grid ${gridColsForTimesheetTable} ${thickTopBorder} border-black`}>
                             <div className={`heading-label col-span-26 border-l border-black  ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - A, B, C, D, */}
-                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.personnelSignatureLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic `}>{templateConfig.label.personnelSignature}</p>
                             </div>
                             <div className={`heading-label col-span-94 border-x p-1 border-black ${cellPaddingForTimesheetTable} ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - G, H, I, J, K, L, M, N, O, P, Q, R */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.staticValues.customerVerificationNote}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerVerificationNote}</p>
                             </div>
                         </div>
                         <div className={`verification-sub-heading-row grid ${gridColsForTimesheetTable}`}>
                             <div className={`sub-heading-label col-span-26 border-t border-l  border-black ${cellPaddingForTimesheetTable} ${verticallyCenteredContentClass}`}>
                                 {/* cols - A, B, C, D */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.staticValues.signatureAttestationNote}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.staticValues.personnelSignatureCertificationNote}</p>
                             </div>
                             <div className={`sub-heading-label col-span-20 border-t border-l ${cellPaddingForTimesheetTable} border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - E, F, G, H, */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerRepresentativeNameLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerRepresentativeName}</p>
                             </div>
                             <div className={`sub-heading-label col-span-28 border-t border-l ${cellPaddingForTimesheetTable} border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - I, J, K, L */}
-                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerRepresentativeTitleLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase italic`}>{templateConfig.label.customerRepresentativeTitle}</p>
                             </div>
                             <div className={`sub-heading-label col-span-46 border-t border-x ${cellPaddingForTimesheetTable} border-black ${grayBackground} ${verticallyCenteredContentClass}`}>
                                 {/* cols - M, N, O, P, Q, R */}
-                                <p className={`${smallTextFontClass} uppercase text-center italic`}>{templateConfig.label.customerRepresentativeSignatureLabel}</p>
+                                <p className={`${smallTextFontClass} uppercase text-center italic`}>{templateConfig.label.customerRepresentativeSignature}</p>
                             </div>
                         </div>
 
@@ -439,9 +439,8 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                             </div>
                         </div>))}
                 </div>
-                <div className={`footer-offset-row w-full`} style={{ height: `${templateConfig.footerOffsetForPrintToPdf}rem` }}></div>
+                <div className={`footer-offset-row w-full h-10`} /* style={{ height: `${templateConfig.footerOffsetForPrintToPdf}rem` }} */></div>
             </div>
         </div>
-
     )
 }

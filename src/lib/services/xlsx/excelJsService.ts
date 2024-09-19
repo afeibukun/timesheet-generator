@@ -1,10 +1,9 @@
 import { Timesheet } from '../timesheet/timesheet'
 import { TimesheetDate } from '../timesheet/timesheetDate'
-import { LocationType, PeriodType } from '@/lib/constants'
+import { LocationType, PeriodType } from '@/lib/constants';
 import { saveAs } from 'file-saver';
 
 import templateConfig from '../../../../main-timesheet-template'
-import timesheetConfig from '../../../../main-timesheet-template'
 
 const sheetNameCollection = (weeksInGroupedTimesheet: any[]) => {
     let startPoint = "A"
@@ -25,6 +24,57 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
         workbook.created = new Date();
         workbook.modified = new Date();
 
+        const orientationLandscape = 'orientation'
+
+        const imageExtensionPng = 'png';
+
+        const fontDefault = templateConfig.font.default;
+
+        const fontSizeSmall = templateConfig.fontSize.small;
+        const fontSizeMedium = templateConfig.fontSize.default;
+        const fontSizeLarge = templateConfig.fontSize.large;
+
+        const colorBlue = templateConfig.color.blueARGB
+        const colorLightGray = templateConfig.color.lightGrayARGB
+        const colorWhite = templateConfig.color.whiteARGB
+
+        const alignTop = templateConfig.align.top
+        const alignLeft = templateConfig.align.left
+        const alignRight = templateConfig.align.right
+        const alignCenter = templateConfig.align.center
+
+        const cellBorderStyleThin = 'thin'
+        const cellBorderStyleThick = 'thick'
+
+        const borderAllThin = {
+            top: { style: cellBorderStyleThin },
+            left: { style: cellBorderStyleThin },
+            bottom: { style: cellBorderStyleThin },
+            right: { style: cellBorderStyleThin }
+        }
+
+        const borderThickBottom = {
+            top: { style: cellBorderStyleThin },
+            left: { style: cellBorderStyleThin },
+            bottom: { style: cellBorderStyleThick },
+            right: { style: cellBorderStyleThin }
+        }
+
+        const borderThickTop = {
+            top: { style: cellBorderStyleThick },
+            left: { style: cellBorderStyleThin },
+            bottom: { style: cellBorderStyleThin },
+            right: { style: cellBorderStyleThin }
+        }
+
+        const fillTypePattern = 'pattern'
+
+        const fillPatternSolid = 'solid'
+        const fillPatternNone = 'none'
+
+
+
+
         let groupedTimesheetEntry = timesheet.timesheetEntryCollectionByWeek
         let weeksInGroupedTimesheet: string[] = Object.keys(groupedTimesheetEntry)
 
@@ -34,7 +84,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
         weeksInGroupedTimesheet.forEach((week, index) => {
 
             const worksheet = workbook.addWorksheet(sheetCollection[index], {
-                pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, margins: { left: 0.7, right: 0.7, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 } }
+                pageSetup: { paperSize: 9, orientation: orientationLandscape, fitToPage: true, margins: { left: 0.7, right: 0.7, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 } }
             });
 
             let timesheetEntryCollectionForCurrentWeek = groupedTimesheetEntry[week as any];
@@ -48,7 +98,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
             const logoId = workbook.addImage({
                 base64: logoBase64,
-                extension: 'png',
+                extension: imageExtensionPng,
             });
             worksheet.addImage(logoId, {
                 tl: { col: 0, row: 0 },
@@ -56,7 +106,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             });
 
             const weekNumberCell = worksheet.getCell('Q1');
-            weekNumberCell.value = `${timesheetConfig.label.weekLabel} ${week}`.toUpperCase()
+            weekNumberCell.value = `${templateConfig.label.weekPrefix} ${week}`.toUpperCase()
 
             // Row 1 - MERGES
             worksheet.mergeCells('A1:B1')
@@ -66,12 +116,12 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             const timesheetTopRow = worksheet.getRow(1);
             timesheetTopRow.height = 35
 
-            weekNumberCell.alignment = { vertical: 'top', horizontal: 'right' }
+            weekNumberCell.alignment = { vertical: alignTop, horizontal: alignRight }
             weekNumberCell.font = {
-                color: { argb: templateConfig.color.blueARGBColor },
-                name: templateConfig.font.defaultFontFamily,
+                color: { argb: colorBlue },
+                name: fontDefault,
                 family: 2,
-                size: templateConfig.font.smallFontSize,
+                size: fontSizeSmall,
                 bold: true
             }
 
@@ -80,25 +130,25 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             // Row 3 - 6 Data
             const timesheetMetaRows = [
                 { // Row 3 - DATA
-                    column_a: timesheetConfig.label.titleLabel.toUpperCase(),
-                    column_e: timesheetConfig.label.personnelNameLabel.toUpperCase(),
-                    column_j: timesheetConfig.label.mobilizationDateLabel.toUpperCase(),
-                    column_m: timesheetConfig.label.demobilizationDateLabel.toUpperCase(),
-                    column_p: timesheetConfig.label.orderNumberLabel.toUpperCase()
+                    column_a: templateConfig.label.title.toUpperCase(),
+                    column_e: templateConfig.label.personnelName.toUpperCase(),
+                    column_j: templateConfig.label.mobilizationDate.toUpperCase(),
+                    column_m: templateConfig.label.demobilizationDate.toUpperCase(),
+                    column_p: templateConfig.label.orderNumber.toUpperCase()
                 },
                 { // Row 4 - DATA
-                    column_a: timesheetConfig.staticValues.defaultTitle.toUpperCase(),
+                    column_a: templateConfig.staticValues.defaultTitle.toUpperCase(),
                     column_e: timesheetMeta.personnelName.toUpperCase(),
                     column_j: TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheetMeta.mobilizationDate.toJavascriptDate()),
                     column_m: TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheetMeta.demobilizationDate.toJavascriptDate()),
                     column_p: timesheetMeta.orderNumber
                 },
                 { // Row 5 - DATA
-                    column_a: timesheetConfig.label.customerNameLabel.toUpperCase(),
-                    column_g: timesheetConfig.label.siteNameLabel.toUpperCase(),
-                    column_j: timesheetConfig.label.purchaseOrderNumberLabel.toUpperCase(),
-                    column_m: timesheetConfig.label.countryNameLabel.toUpperCase(),
-                    column_o: timesheetConfig.label.weekEndingDateLabel.toUpperCase()
+                    column_a: templateConfig.label.customerName.toUpperCase(),
+                    column_g: templateConfig.label.siteName.toUpperCase(),
+                    column_j: templateConfig.label.purchaseOrderNumber.toUpperCase(),
+                    column_m: templateConfig.label.countryName.toUpperCase(),
+                    column_o: templateConfig.label.weekEndingDate.toUpperCase()
                 },
 
                 { // Row 6 - DATA
@@ -139,113 +189,92 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
             // Row 3 STYLES
             worksheet.getRow(3).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
+                    name: fontDefault,
                     family: 2,
                     italic: true,
-                    size: templateConfig.font.smallFontSize
+                    size: fontSizeSmall
                 }
                 cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                    type: fillTypePattern,
+                    pattern: fillPatternSolid,
+                    fgColor: { argb: colorLightGray }
                 }
             })
             worksheet.getCell('A3').font = {
-                name: templateConfig.font.defaultFontFamily,
-                color: { argb: templateConfig.color.blueARGBColor },
+                name: fontDefault,
+                color: { argb: colorBlue },
                 family: 2,
-                size: templateConfig.font.defaultFontSize,
+                size: fontSizeMedium,
                 bold: true,
                 italic: false
             }
             worksheet.getCell('A3').fill = {
-                type: 'pattern',
-                pattern: 'solid',
-                fgColor: { argb: timesheetConfig.color.whiteARGBColor }
+                type: fillTypePattern,
+                pattern: fillPatternSolid,
+                fgColor: { argb: colorWhite }
             }
 
             // Row 4 STYLES
             worksheet.getRow(4).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.defaultFontSize,
+                    name: fontDefault,
+                    size: fontSizeMedium,
                     bold: true
                 }
                 cell.alignment = {
-                    horizontal: 'left',
-                    vertical: 'center'
+                    horizontal: alignLeft,
+                    vertical: alignCenter
                 }
             })
             worksheet.getCell('A4').font = {
-                color: { argb: templateConfig.color.blueARGBColor },
-                size: templateConfig.font.largeFontSize,
+                color: { argb: colorBlue },
+                size: fontSizeLarge,
                 bold: true,
-                name: templateConfig.font.defaultFontFamily
+                name: fontDefault
             }
-            worksheet.getCell('J4').numFmt = templateConfig.format.defaultDateFormat;
-            worksheet.getCell('M4').numFmt = templateConfig.format.defaultDateFormat;
+            worksheet.getCell('J4').numFmt = templateConfig.format.defaultDate;
+            worksheet.getCell('M4').numFmt = templateConfig.format.defaultDate;
 
             // Row 5 STYLES
             worksheet.getRow(5).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
+                    name: fontDefault,
                     family: 2,
-                    size: templateConfig.font.smallFontSize,
+                    size: fontSizeSmall,
                     italic: true
                 }
                 cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                    type: fillTypePattern,
+                    pattern: fillPatternSolid,
+                    fgColor: { argb: colorLightGray }
                 }
             })
-
             // Row 6 STYLES
             worksheet.getRow(6).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thick' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderThickBottom
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.defaultFontSize,
+                    name: fontDefault,
+                    size: fontSizeMedium,
                     family: 2,
                     bold: true
                 }
                 cell.alignment = {
-                    horizontal: 'left',
-                    vertical: 'center'
+                    horizontal: alignLeft,
+                    vertical: alignCenter
                 }
             })
-            worksheet.getCell('O6').numFmt = templateConfig.format.defaultDateFormat;
+            worksheet.getCell('O6').numFmt = templateConfig.format.defaultDate;
 
             // Row 7 and 8 Data
             const timesheetEntryHeaderRows = [
                 // Row 7 - DATA
-                { column_a: timesheetConfig.label.dateTitleLabel.toUpperCase(), column_b: timesheetConfig.label.workingTimeTitleLabel.toUpperCase(), column_g: timesheetConfig.label.waitingTimeTitleLabel.toUpperCase(), column_i: timesheetConfig.label.travelTimeTitleLabel.toUpperCase(), column_k: timesheetConfig.label.totalHoursTitleLabel.toUpperCase(), column_l: timesheetConfig.label.locationTypeIndicatorLabel, column_m: timesheetConfig.staticValues.locationTypeIndicator, column_n: timesheetConfig.label.commentTitleLabel.toUpperCase() },
+                { column_a: templateConfig.label.dateTitle.toUpperCase(), column_b: templateConfig.label.workingTimeTitle.toUpperCase(), column_g: templateConfig.label.waitingTimeTitle.toUpperCase(), column_i: templateConfig.label.travelTimeTitle.toUpperCase(), column_k: templateConfig.label.totalHoursTitle.toUpperCase(), column_l: templateConfig.label.locationTypeIndicatorTitle, column_m: templateConfig.staticValues.locationTypeIndicator, column_n: templateConfig.label.commentTitle.toUpperCase() },
                 // Row 8 - DATA
-                { column_b: timesheetConfig.label.periodTitleLabel.toUpperCase(), column_c: timesheetConfig.staticValues.workingTimeFirstPeriodTitle, column_d: timesheetConfig.staticValues.workingTimeSecondPeriodTitle, column_e: timesheetConfig.staticValues.workingTimeThirdPeriodTitle, column_f: timesheetConfig.staticValues.workingTimeFourthPeriodTitle, column_g: timesheetConfig.staticValues.waitingTimeFirstPeriodTitle, column_h: timesheetConfig.staticValues.waitingTimeSecondPeriodTitle, column_i: timesheetConfig.staticValues.travelTimeFirstPeriodTitle, column_j: timesheetConfig.staticValues.travelTimeSecondPeriodTitle },
+                { column_b: templateConfig.label.periodTitle.toUpperCase(), column_c: templateConfig.staticValues.workingTimeFirstPeriodTitle, column_d: templateConfig.staticValues.workingTimeSecondPeriodTitle, column_e: templateConfig.staticValues.workingTimeThirdPeriodTitle, column_f: templateConfig.staticValues.workingTimeFourthPeriodTitle, column_g: templateConfig.staticValues.waitingTimeFirstPeriodTitle, column_h: templateConfig.staticValues.waitingTimeSecondPeriodTitle, column_i: templateConfig.staticValues.travelTimeFirstPeriodTitle, column_j: templateConfig.staticValues.travelTimeSecondPeriodTitle },
             ];
 
             worksheet.addRows(timesheetEntryHeaderRows);
@@ -257,63 +286,48 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
             // Row 7 STYLES
             worksheet.getRow(7).eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.smallFontSize,
+                    name: fontDefault,
+                    size: fontSizeSmall,
                     family: 2,
                     italic: true
                 }
                 cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                    type: fillTypePattern,
+                    pattern: fillPatternSolid,
+                    fgColor: { argb: colorLightGray }
                 }
             })
 
             worksheet.getCell('A7').font = {
                 bold: true,
-                name: templateConfig.font.defaultFontFamily,
-                size: templateConfig.font.smallFontSize,
+                name: fontDefault,
+                size: fontSizeSmall,
                 family: 2,
                 italic: true
             };
-            worksheet.getCell('K7').alignment = { vertical: 'center', horizontal: 'center', wrapText: true }
-            worksheet.getCell('K7').font = { size: templateConfig.font.smallFontSize, name: templateConfig.font.defaultFontFamily, italic: true }
-            worksheet.getCell('L7').fill = { type: 'pattern', pattern: 'none' }
-            worksheet.getCell('L7').alignment = { vertical: 'center', horizontal: 'left', wrapText: true }
-            worksheet.getCell('M7').fill = { type: 'pattern', pattern: 'none' }
-            worksheet.getCell('M7').alignment = { vertical: 'center', horizontal: 'center' }
-            worksheet.getCell('M7').font = { size: templateConfig.font.fontSizeMedium, name: templateConfig.font.defaultFontFamily }
-            worksheet.getCell('N7').fill = { type: 'pattern', pattern: 'none' }
-            worksheet.getCell('N7').alignment = { horizontal: 'left', vertical: 'center' }
+            worksheet.getCell('K7').alignment = { vertical: alignCenter, horizontal: alignCenter, wrapText: true }
+            worksheet.getCell('K7').font = { size: fontSizeSmall, name: fontDefault, italic: true }
+            worksheet.getCell('L7').fill = { type: fillTypePattern, pattern: fillPatternNone }
+            worksheet.getCell('L7').alignment = { vertical: alignCenter, horizontal: alignLeft, wrapText: true }
+            worksheet.getCell('M7').fill = { type: fillTypePattern, pattern: fillPatternNone }
+            worksheet.getCell('M7').alignment = { vertical: alignCenter, horizontal: alignCenter }
+            worksheet.getCell('M7').font = { size: fontSizeMedium, name: fontDefault }
+            worksheet.getCell('N7').fill = { type: fillTypePattern, pattern: fillPatternNone }
+            worksheet.getCell('N7').alignment = { horizontal: alignLeft, vertical: alignCenter }
 
             // ROW 8 - STYLES
             worksheet.getRow(8).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.smallFontSize,
+                    name: fontDefault,
+                    size: fontSizeSmall,
                     family: 2,
                 }
-                cell.alignment = { vertical: 'center', horizontal: 'center' }
+                cell.alignment = { vertical: alignCenter, horizontal: alignCenter }
             })
-            worksheet.getCell('A8').border = {
-                top: { style: 'thin' },
-                left: { style: 'thin' },
-                bottom: { style: 'thin' },
-                right: { style: 'thin' }
-            }
+            worksheet.getCell('A8').border = borderAllThin
 
             // ROW 7 and 8 MERGES
             worksheet.mergeCells('K7:K8');
@@ -363,11 +377,11 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             worksheet.getRows(9, 14).forEach((singleRow: any) => {
                 singleRow.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
                     cell.font = {
-                        name: templateConfig.font.defaultFontFamily,
-                        size: templateConfig.font.smallFontSize,
+                        name: fontDefault,
+                        size: fontSizeSmall,
                         family: 2,
                     }
-                    cell.alignment = { vertical: 'center', horizontal: 'center' }
+                    cell.alignment = { vertical: alignCenter, horizontal: alignCenter }
                 })
 
                 let dayCounterInWeek = ((counter) / 2)
@@ -377,36 +391,26 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
                 if (!timesheetEntryCollectionForCurrentWeek![dayCounterInWeek]?.isNullEntry) {
                     singleRow.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
-                        cell.border = {
-                            top: { style: 'thin' },
-                            left: { style: 'thin' },
-                            bottom: { style: 'thin' },
-                            right: { style: 'thin' }
-                        }
+                        cell.border = borderAllThin
                     })
                 } else {
-                    worksheet.getCell(`A${counter + 9}`).border = {
-                        top: { style: 'thin' },
-                        left: { style: 'thin' },
-                        bottom: { style: 'thin' },
-                        right: { style: 'thin' }
-                    }
-                    worksheet.getCell(`N${counter + 9}`).border = { right: { style: 'thin' } }
+                    worksheet.getCell(`A${counter + 9}`).border = borderAllThin
+                    worksheet.getCell(`N${counter + 9}`).border = { right: { style: cellBorderStyleThin } }
                 }
-                worksheet.getCell(`A${counter + 9}`).alignment = { horizontal: 'left', vertical: 'center' }
-                worksheet.getCell(`N${counter + 9}`).alignment = { horizontal: 'left', vertical: 'center' }
+                worksheet.getCell(`A${counter + 9}`).alignment = { horizontal: alignLeft, vertical: alignCenter }
+                worksheet.getCell(`N${counter + 9}`).alignment = { horizontal: alignLeft, vertical: alignCenter }
 
                 if ((counter + 9) % 2 != 0) {
                     worksheet.getCell(`A${counter + 9}`).font = {
                         bold: true,
-                        name: templateConfig.font.defaultFontFamily,
-                        size: templateConfig.font.smallFontSize,
+                        name: fontDefault,
+                        size: fontSizeSmall,
                         italic: true
                     }
                     worksheet.getCell(`A${counter + 9}`).fill = {
-                        type: 'pattern',
-                        pattern: 'solid',
-                        fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                        type: fillTypePattern,
+                        pattern: fillPatternSolid,
+                        fgColor: { argb: colorLightGray }
                     }
                 }
                 counter += 1
@@ -416,21 +420,21 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             const timesheetSignatureRows = [
                 // Row 23
                 {
-                    column_a: timesheetConfig.label.personnelSignatureLabel.toUpperCase(),
-                    column_e: timesheetConfig.staticValues.customerVerificationNote.toUpperCase(),
+                    column_a: templateConfig.label.personnelSignature.toUpperCase(),
+                    column_e: templateConfig.label.customerVerificationNote.toUpperCase(),
                 },
                 // Row 24
                 {
-                    column_a: timesheetConfig.staticValues.signatureAttestationNote.toUpperCase(),
-                    column_e: timesheetConfig.label.customerRepresentativeNameLabel.toUpperCase(),
-                    column_i: timesheetConfig.label.customerRepresentativeTitleLabel.toUpperCase(),
-                    column_m: timesheetConfig.label.customerRepresentativeSignatureLabel.toUpperCase()
+                    column_a: templateConfig.staticValues.personnelSignatureCertificationNote.toUpperCase(),
+                    column_e: templateConfig.label.customerRepresentativeName.toUpperCase(),
+                    column_i: templateConfig.label.customerRepresentativeTitle.toUpperCase(),
+                    column_m: templateConfig.label.customerRepresentativeSignature.toUpperCase()
                 },
                 // Row 25 and 26 - Empty row - for signature purpose
                 [''], [''],
                 //Row 27
                 {
-                    column_a: timesheetConfig.staticValues.defaultAgreementStatement,
+                    column_a: templateConfig.staticValues.defaultAgreementStatement,
                 }
             ];
             worksheet.addRows(timesheetSignatureRows);
@@ -453,78 +457,58 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
             // Row 23 - STYLE
             worksheet.getRow(23).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thick' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderThickTop
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.smallFontSize,
+                    name: fontDefault,
+                    size: fontSizeSmall,
                     family: 2,
                     italic: true
                 }
-                cell.alignment = { vertical: 'center' }
+                cell.alignment = { vertical: alignCenter }
                 cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                    type: fillTypePattern,
+                    pattern: fillPatternSolid,
+                    fgColor: { argb: colorLightGray }
                 }
             })
 
             // Row 24 - STYLE
             worksheet.getRow(24).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.smallFontSize,
+                    name: fontDefault,
+                    size: fontSizeSmall,
                     family: 2,
                     italic: true
                 }
-                cell.alignment = { vertical: 'center' }
+                cell.alignment = { vertical: alignCenter }
                 cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                    type: fillTypePattern,
+                    pattern: fillPatternSolid,
+                    fgColor: { argb: colorLightGray }
                 }
             })
-            worksheet.getCell('A24').fill = { type: 'pattern', pattern: 'none' }
+            worksheet.getCell('A24').fill = { type: fillTypePattern, pattern: fillPatternNone }
 
             // Row 25 to 26 - STYLE
             worksheet.getRow(25).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
             })
 
             // Row 27 - STYLE
             worksheet.getRow(27).eachCell((cell: any, colNumber: number) => {
-                cell.border = {
-                    top: { style: 'thin' },
-                    left: { style: 'thin' },
-                    bottom: { style: 'thin' },
-                    right: { style: 'thin' }
-                }
+                cell.border = borderAllThin
                 cell.font = {
-                    name: templateConfig.font.defaultFontFamily,
-                    size: templateConfig.font.smallFontSize,
+                    name: fontDefault,
+                    size: fontSizeSmall,
                     family: 2,
                     italic: true
                 }
-                cell.alignment = { vertical: 'center' }
+                cell.alignment = { vertical: alignCenter }
                 cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: timesheetConfig.color.lightGrayARGBColor }
+                    type: fillTypePattern,
+                    pattern: fillPatternSolid,
+                    fgColor: { argb: colorLightGray }
                 }
             })
 
@@ -538,23 +522,24 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             worksheet.getRows(28, footerAddressRows.length + 1).forEach((singleRow: any) => {
                 singleRow.eachCell((cell: any, colNumber: number) => {
                     cell.font = {
-                        name: templateConfig.font.defaultFontFamily,
-                        size: templateConfig.font.smallFontSize,
+                        name: fontDefault,
+                        size: fontSizeSmall,
                         family: 2,
                     }
-                    cell.alignment = { vertical: 'center' }
+                    cell.alignment = { vertical: alignCenter }
                 })
             })
         })
 
         // const workbook = createAndFillWorkbook();
-        const filename = "timesheet-file"
+        const fileNameSuffix = templateConfig.fileNameSuffix == undefined || templateConfig.fileNameSuffix == null || templateConfig.fileNameSuffix == '' || !templateConfig.fileNameSuffix ? '' : `-${templateConfig.fileNameSuffix}`
+        const timesheetFileName = `${timesheet.entryCollection[0].date.dateInMonthYearFormat}-Timesheet-${timesheet.meta.personnelName}${fileNameSuffix}`;
         // return workbook.xlsx.writeFile(filename);
 
         const xlsxBuffer = workbook.xlsx.writeBuffer();
         xlsxBuffer.then((data: any) => {
             var blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-            saveAs(blob, filename);
+            saveAs(blob, timesheetFileName);
         });
     } catch (err) {
         console.log(err)

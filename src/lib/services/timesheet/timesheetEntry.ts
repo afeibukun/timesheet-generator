@@ -1,4 +1,4 @@
-import { EntryStateConstants, LocationType, } from "@/lib/constants";
+import { EntryStateConstants, LocationType } from "@/lib/constants";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { Timesheet, TimesheetDefaultInformation } from "./timesheet";

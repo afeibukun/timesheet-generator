@@ -15,6 +15,7 @@ import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timeshe
 import { createPdfTimesheet } from "@/lib/services/pdf/pdfService";
 import PrintTimesheetWithDefaultTemplate from "./_components/PrintTimesheetWithDefaultTemplate";
 import { createXlsxTimesheetStandardTemplateWithExcelJs } from "@/lib/services/xlsx/excelJsService";
+import { createPdfWithJsPdfAutoTable } from "@/lib/services/pdf/jsPdfAutoTableService";
 
 export default function Preview() {
 
@@ -201,7 +202,11 @@ export default function Preview() {
                             <div>
                                 <button type="button" onClick={(e) => createXlsxTimesheetStandardTemplateWithExcelJs(timesheet)}>Create Excel file</button>
 
-                                <button type="button" onClick={(e) => createPdfTimesheet(timesheet)}>Create PDF file</button>
+                                <button type="button" onClick={(e) => createPdfWithJsPdfAutoTable(timesheet)}>Create PDF file</button>
+                                <div className="table">
+                                    <h2 className="text-blue-600">Whatever</h2>
+                                    <h4 className="italic">and whenever</h4>
+                                </div>
                             </div>
                         </div>
                     </footer>
