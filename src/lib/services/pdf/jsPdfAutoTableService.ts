@@ -4,9 +4,10 @@ import { defaultSansProBase64, defaultSansProItalicBase64, defaultSansProBoldBas
 import templateConfig from '../../../../main-timesheet-template'
 import { TimesheetMeta } from "../timesheet/timesheetMeta";
 import { TimesheetEntry } from "../timesheet/timesheetEntry";
-import { checkMarkBase64, LocationType, PeriodType } from "@/lib/constants";
+import { LocationType, PeriodType } from "@/lib/constants";
 import { Timesheet } from "../timesheet/timesheet";
 import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constants/defaultLogoBase64Image";
+import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
 
 export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
     const doc = new jsPDF(
@@ -70,6 +71,10 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
 
     doc.addFileToVFS(`${defaultSansFontFamily}-bolditalic.ttf`, defaultSansProBoldItalicBase64);
     doc.addFont(`${defaultSansFontFamily}-bolditalic.ttf`, defaultSansFontFamily, 'bolditalic');
+
+    const fontAwesomeFontFamily = "font-awesome-6-free-solid-900"
+    doc.addFileToVFS(`${fontAwesomeFontFamily}-normal.ttf`, fontAwesomeSolidBase64String);
+    doc.addFont(`${fontAwesomeFontFamily}-normal.ttf`, fontAwesomeFontFamily, 'normal');
 
     // const defaultFontFamily = templateConfig.font.defaultFontFamily
     const defaultFontFamily = defaultSansFontFamily
@@ -151,23 +156,23 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
         ]
 
         const generalColumnStyles = {
-            columnA: { halign: 'left', cellWidth: columnWidthFromExcel.columnA * mainContentWidth / 100 },
-            columnB: { halign: 'center', cellWidth: columnWidthFromExcel.columnB * mainContentWidth / 100 },
-            columnC: { halign: 'center', cellWidth: columnWidthFromExcel.columnC * mainContentWidth / 100 },
-            columnD: { halign: 'center', cellWidth: columnWidthFromExcel.columnD * mainContentWidth / 100 },
-            columnE: { halign: 'left', cellWidth: columnWidthFromExcel.columnE * mainContentWidth / 100 },
-            columnF: { halign: 'center', cellWidth: columnWidthFromExcel.columnF * mainContentWidth / 100 },
-            columnG: { halign: 'left', cellWidth: columnWidthFromExcel.columnG * mainContentWidth / 100 },
-            columnH: { halign: 'center', cellWidth: columnWidthFromExcel.columnH * mainContentWidth / 100 },
-            columnI: { halign: 'left', cellWidth: columnWidthFromExcel.columnI * mainContentWidth / 100 },
-            columnJ: { halign: 'left', cellWidth: columnWidthFromExcel.columnJ * mainContentWidth / 100 },
-            columnK: { halign: 'center', cellWidth: columnWidthFromExcel.columnK * mainContentWidth / 100 },
-            columnL: { halign: 'center', cellWidth: columnWidthFromExcel.columnL * mainContentWidth / 100 },
-            columnM: { halign: 'left', cellWidth: columnWidthFromExcel.columnM * mainContentWidth / 100 },
-            columnN: { halign: 'left', cellWidth: columnWidthFromExcel.columnN * mainContentWidth / 100 },
-            columnO: { halign: 'left', cellWidth: columnWidthFromExcel.columnO * mainContentWidth / 100 },
-            columnP: { halign: 'left', cellWidth: columnWidthFromExcel.columnP * mainContentWidth / 100 },
-            columnQ: { halign: 'center', cellWidth: columnWidthFromExcel.columnQ * mainContentWidth / 100 }
+            columnA: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnA * mainContentWidth / 100 },
+            columnB: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnB * mainContentWidth / 100 },
+            columnC: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnC * mainContentWidth / 100 },
+            columnD: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnD * mainContentWidth / 100 },
+            columnE: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnE * mainContentWidth / 100 },
+            columnF: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnF * mainContentWidth / 100 },
+            columnG: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnG * mainContentWidth / 100 },
+            columnH: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnH * mainContentWidth / 100 },
+            columnI: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnI * mainContentWidth / 100 },
+            columnJ: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnJ * mainContentWidth / 100 },
+            columnK: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnK * mainContentWidth / 100 },
+            columnL: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnL * mainContentWidth / 100 },
+            columnM: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnM * mainContentWidth / 100 },
+            columnN: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnN * mainContentWidth / 100 },
+            columnO: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnO * mainContentWidth / 100 },
+            columnP: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnP * mainContentWidth / 100 },
+            columnQ: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnQ * mainContentWidth / 100 }
             // column R's width is kinda left undefined so it can be auto.
         }
 
@@ -233,7 +238,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                 { content: templateConfig.label.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
                 { content: templateConfig.label.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
                 { content: templateConfig.label.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } },
-                { content: '', colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }, // check mark indicator
+                { content: '\uf00c', colSpan: 1, rowSpan: 2, styles: { halign: alignCenter, font: fontAwesomeFontFamily, fontStyle: fontStyleItalic, fontSize: fontSizeLarge } }, // check mark indicator
                 { content: templateConfig.label.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }
             ],
             // Excel Row 8
@@ -273,7 +278,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col J*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
+                        { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
                         { content: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOnshore ? currentTimesheetEntry.comment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
                     ],
                     // Row 2
@@ -290,7 +295,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col J*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid ? LocationType.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
+                        { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
                         { content: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOffshore ? currentTimesheetEntry.comment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
                     ],
                 ]
@@ -321,7 +326,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                 { content: '', colSpan: 18, styles: { lineWidth: onlyTopWidth } }
             ],
             ...templateConfig.footerAddress.map((address) => {
-                return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: fontStyleItalic } }]
+                return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: alignLeft } }]
             })
         ];
 
@@ -330,20 +335,6 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
             columns: columnDefinition,
             columnStyles: generalColumnStyles as any,
             body: timesheetTemplateBodyRows,
-            didDrawCell: (data) => {
-                let base64CheckMark = checkMarkBase64;
-                if (data.section == 'body' && data.column.dataKey === 'columnM' && data.row.index === 4) {
-                    doc.addImage(base64CheckMark, pngImageFormat, data.cell.x + 4, data.cell.y + 4, 12, 12)
-                }
-                let cellHasCheckMark = false
-                if (data.section == 'body' && data.column.dataKey === 'columnM') {
-                    cellHasCheckMark = checkMarkRowPlacementArray.some((rowData: any) => (rowData.rowIndex == data.row.index && rowData.hasCheckMark))
-                }
-                if (cellHasCheckMark) {
-                    let base64CheckMark = checkMarkBase64;
-                    doc.addImage(base64CheckMark, pngImageFormat, data.cell.x + 3, data.cell.y + 3, 8, 8)
-                }
-            },
             startY: currentYPosition,
             theme: 'grid',
             margin: marginInPt.left,
