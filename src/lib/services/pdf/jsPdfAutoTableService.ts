@@ -4,7 +4,7 @@ import { defaultSansProBase64, defaultSansProItalicBase64, defaultSansProBoldBas
 import templateConfig from '../../../../main-timesheet-template'
 import { TimesheetMeta } from "../timesheet/timesheetMeta";
 import { TimesheetEntry } from "../timesheet/timesheetEntry";
-import { LocationType, PeriodType } from "@/lib/constants";
+import { LocationTypeEnum, PeriodTypeEnum } from "@/lib/constants/enum";
 import { Timesheet } from "../timesheet/timesheet";
 import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constants/defaultLogoBase64Image";
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
@@ -267,7 +267,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                     //Row 1
                     [
                         { content: currentTimesheetEntry.entryDateDayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
-                        { content: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodType.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
+                        { content: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodTypeEnum.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
                         { content: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? currentTimesheetEntry.entryPeriod?.startTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col E*/ },
@@ -277,14 +277,14 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col I*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col J*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
+                        { content: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
                         { content: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOnshore ? currentTimesheetEntry.comment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
                     ],
                     // Row 2
                     [
                         { content: currentTimesheetEntry.entryDateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
-                        { content: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodType.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
+                        { content: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodTypeEnum.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
                         { content: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? currentTimesheetEntry.entryPeriod?.finishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col E*/ },
@@ -294,7 +294,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col I*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col J*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid ? LocationType.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
+                        { content: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
                         { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
                         { content: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOffshore ? currentTimesheetEntry.comment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
                     ],

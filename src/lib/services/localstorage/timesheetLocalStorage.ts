@@ -1,10 +1,10 @@
 import { LocalStorageLabelEnum } from "@/lib/constants/enum";
-import { TimesheetEntry } from "./timesheetEntry"
-import { CannotParsePrimitiveDataToDefaultTimesheetInformationError, CannotParsePrimitiveDataToTimesheetError } from "./timesheetErrors";
-import { TimesheetDate } from "./timesheetDate";
-import { TimesheetMeta } from "./timesheetMeta";
-import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { Timesheet } from "./timesheet";
+import { TimesheetEntry } from "../timesheet/timesheetEntry";
+import { CannotParsePrimitiveDataToDefaultTimesheetInformationError, CannotParsePrimitiveDataToTimesheetError } from "../timesheet/timesheetErrors";
+import { TimesheetDate } from "../timesheet/timesheetDate";
+import { TimesheetMeta } from "../timesheet/timesheetMeta";
+import { TimesheetEntryPeriod } from "../timesheet/timesheetEntryPeriod";
+import { Timesheet } from "../timesheet/timesheet";
 import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface } from "@/lib/types/timesheetType";
 
 export class TimesheetLocalStorage {

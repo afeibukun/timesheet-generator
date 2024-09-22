@@ -1,7 +1,7 @@
 import writeXlsxFile, { SheetData } from 'write-excel-file'
 import { Timesheet } from '../timesheet/timesheet'
 import { TimesheetDate } from '../timesheet/timesheetDate'
-import { LocationType, PeriodType } from '@/lib/constants'
+import { LocationTypeEnum, PeriodTypeEnum } from '@/lib/constants/enum'
 import { TimesheetMeta } from '../timesheet/timesheetMeta'
 import templateConfig from '../../../../main-timesheet-template'
 
@@ -189,7 +189,7 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                     fontStyle: templateConfig.fontStyle.italic
                 }, {
                     // column B
-                    value: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodType.start.toUpperCase() : '',
+                    value: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodTypeEnum.start.toUpperCase() : '',
                     fontSize: templateConfig.fontSize.smaller,
                     fontFamily: templateConfig.font.default,
                     borderColor: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? templateConfig.color.black : null,
@@ -253,7 +253,7 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 },
                 {
                     // column L
-                    value: currentTimesheetEntry.isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '',
+                    value: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.onshore.toUpperCase() : '',
                     fontSize: templateConfig.fontSize.small,
                     fontFamily: templateConfig.font.default,
                     borderColor: currentTimesheetEntry.isEntryPeriodValid ? templateConfig.color.black : null,
@@ -297,7 +297,7 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                     align: templateConfig.align.right,
                 }, {
                     // column B
-                    value: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodType.finish.toUpperCase() : '',
+                    value: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodTypeEnum.finish.toUpperCase() : '',
                     fontSize: templateConfig.fontSize.smaller,
                     fontFamily: templateConfig.font.default,
                     borderColor: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? templateConfig.color.black : null,
@@ -361,7 +361,7 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
                 },
                 {
                     // column L
-                    value: !currentTimesheetEntry.isNullEntry ? LocationType.offshore.toUpperCase() : "",
+                    value: !currentTimesheetEntry.isNullEntry ? LocationTypeEnum.offshore.toUpperCase() : "",
                     fontSize: templateConfig.fontSize.small,
                     fontFamily: templateConfig.font.default,
                     borderColor: !currentTimesheetEntry.isNullEntry ? templateConfig.color.black : null,

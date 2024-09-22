@@ -1,6 +1,6 @@
 import { Timesheet } from '../timesheet/timesheet'
 import { TimesheetDate } from '../timesheet/timesheetDate'
-import { LocationType, PeriodType } from '@/lib/constants';
+import { LocationTypeEnum, PeriodTypeEnum } from '@/lib/constants/enum';
 import { saveAs } from 'file-saver';
 
 import templateConfig from '../../../../main-timesheet-template'
@@ -342,20 +342,20 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
                 const excelDataForCurrentDay = [
                     {
                         column_a: currentTimesheetEntry.entryDateDayLabel.toUpperCase(),
-                        column_b: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodType.start.toUpperCase() : '',
+                        column_b: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodTypeEnum.start.toUpperCase() : '',
                         column_c: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? currentTimesheetEntry.entryPeriod?.startTime : '',
                         column_k: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '',
-                        column_l: currentTimesheetEntry.isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '',
+                        column_l: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.onshore.toUpperCase() : '',
                         column_m: currentTimesheetEntry.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '',
                         column_n: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOnshore ? currentTimesheetEntry.comment : ""
                     },
 
                     {
                         column_a: currentTimesheetEntry.entryDateInDayMonthFormat,
-                        column_b: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodType.finish.toUpperCase() : '',
+                        column_b: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodTypeEnum.finish.toUpperCase() : '',
                         column_c: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? currentTimesheetEntry.entryPeriod?.finishTime : '',
                         column_k: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : "",
-                        column_l: !currentTimesheetEntry.isNullEntry ? LocationType.offshore.toUpperCase() : "",
+                        column_l: !currentTimesheetEntry.isNullEntry ? LocationTypeEnum.offshore.toUpperCase() : "",
                         column_m: currentTimesheetEntry.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '',
                         column_n: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOffshore ? currentTimesheetEntry.comment : ""
                     },

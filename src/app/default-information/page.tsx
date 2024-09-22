@@ -7,52 +7,68 @@ import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import DefaultFormItem from "../_components/DefaultFormItem";
 import DefaultLabelText from "../_components/DefaultLabelText";
 import { useEffect, useState } from "react";
-import { StatusConstants, timesheetDefaultInformationConstant } from "@/lib/constants";
+import { LocationTypeEnum, StatusEnum, storageOptionLabel } from "@/lib/constants/enum";
 import SubmitButton02 from "../_components/SubmitButton02";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
-import { TimesheetDefaultInformation } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { CannotParsePrimitiveDataToDefaultTimesheetInformationError } from "@/lib/services/timesheet/timesheetErrors";
+import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constants/defaultData";
+import { DefaultPrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheetType";
+import { createOrUpdateTimesheetEntryDefaultData, getTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
+import { AppOptionSchema, appOptionStoreName } from "@/lib/constants/schema";
 
 export default function DefaultTimesheetInformationView() {
 
-    let _initialDefaultInfo: TimesheetDefaultInformation = timesheetDefaultInformationConstant
+    let _initialDefaultInfo: DefaultPrimitiveTimesheetEntryDataInterface = defaultTimesheetEntryData
 
     const [timesheetDefaultInformationFormData, setTimesheetDefaultInformationFormData] = useState(_initialDefaultInfo);
 
-    const [status, setStatus] = useState(StatusConstants.enteringData);
+    const [status, setStatus] = useState(StatusEnum.enteringData);
 
     useEffect(() => {
-        var retrievedDefaultInfo
-        try {
-            retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
-        } catch (e) {
-            if (e instanceof CannotParsePrimitiveDataToDefaultTimesheetInformationError) {
-                console.log(e.name);
-            }
-            retrievedDefaultInfo = null
-        }
+        // var retrievedDefaultInfo
+        let retrievedTimesheetEntryDefaultData
 
-        if (retrievedDefaultInfo != null) {
-            setTimesheetDefaultInformationFormData(retrievedDefaultInfo);
+        const fetchSavedTimesheetEntryDefaultData = async () => {
+            try {
+                // retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
+                let retrievedData = await getTimesheetEntryDefaultData()
+                if (retrievedData) {
+                    retrievedTimesheetEntryDefaultData = retrievedData.value
+                } else throw Error
+            } catch (e) {
+                if (e instanceof CannotParsePrimitiveDataToDefaultTimesheetInformationError) {
+                    console.log(e.name);
+                }
+                // retrievedDefaultInfo = null
+                retrievedTimesheetEntryDefaultData = null
+            }
+            /* if (retrievedDefaultInfo != null) {
+                        setTimesheetDefaultInformationFormData(retrievedDefaultInfo);
+                    } */
+            if (retrievedTimesheetEntryDefaultData) {
+                setTimesheetDefaultInformationFormData(retrievedTimesheetEntryDefaultData);
+            }
         }
+        fetchSavedTimesheetEntryDefaultData();
     }, []);
 
     function handleInputChange(e: any, informationKey: string) {
         setTimesheetDefaultInformationFormData({ ...timesheetDefaultInformationFormData, [informationKey]: e.target.value });
     }
 
-    function handleSubmitDefaultInformation(e: any) {
+    async function handleSubmitDefaultInformation(e: any) {
         e.preventDefault();
         e.stopPropagation();
-        setStatus(StatusConstants.submitting);
+        setStatus(StatusEnum.submitting);
 
         const updatedAtDate = TimesheetDate.simpleNowDateTimeFormat();
         const updatedDefaultTimesheetInfo = { ...timesheetDefaultInformationFormData, updatedAt: updatedAtDate };
         setTimesheetDefaultInformationFormData(updatedDefaultTimesheetInfo);
 
-        TimesheetLocalStorage.setDefaultInformationInLocalStorage(updatedDefaultTimesheetInfo);
-        setStatus(StatusConstants.submitted);
+        // TimesheetLocalStorage.setDefaultInformationInLocalStorage(updatedDefaultTimesheetInfo);
+        await createOrUpdateTimesheetEntryDefaultData(updatedDefaultTimesheetInfo);
+        setStatus(StatusEnum.submitted);
     }
 
     return (
@@ -106,9 +122,9 @@ export default function DefaultTimesheetInformationView() {
                                         handleInputChange(e, 'locationType')
                                     }
                                 }
-                                className="inline-block border rounded">
-                                <option value="onshore">Onshore</option>
-                                <option value="offshore">Offshore</option>
+                                className="inline-block border rounded capitalize">
+                                <option value={LocationTypeEnum.onshore}>{LocationTypeEnum.onshore}</option>
+                                <option value={LocationTypeEnum.offshore}>{LocationTypeEnum.offshore}</option>
                             </select>
                         </DefaultFormItem>
                         <DefaultFormItem>
@@ -141,7 +157,7 @@ export default function DefaultTimesheetInformationView() {
                                 }
                                 id="weekStartDay"
                                 className="inline-block border rounded capitalize">
-                                {TimesheetDate.daysOfTheWeek.map((day) => <option key={day} value={day} className="capitalize">{day}</option>)}
+                                {possibleWeekStartDays.map((day) => <option key={day} value={day} className="capitalize">{day}</option>)}
                             </select>
                         </DefaultFormItem>
 
@@ -156,7 +172,7 @@ export default function DefaultTimesheetInformationView() {
                                 </div>
                                 <div>
                                     {
-                                        status == StatusConstants.submitted ? (
+                                        status == StatusEnum.submitted ? (
                                             <div className="p-4 mb-2 rounded bg-green-200">
                                                 <p className="text-sm text-green-900"><span>🎉</span><span>The Default Timesheet Information has been successfully saved</span></p>
                                             </div>
@@ -165,7 +181,7 @@ export default function DefaultTimesheetInformationView() {
                                 </div>
                             </div>
                             <div className="flex gap-x-4">
-                                <SubmitButton02 handleButtonClick={handleSubmitDefaultInformation} showLoading={status == StatusConstants.submitting} loadingText="Saving">Save Default Info</SubmitButton02>
+                                <SubmitButton02 handleButtonClick={handleSubmitDefaultInformation} showLoading={status == StatusEnum.submitting} loadingText="Saving">Save Default Info</SubmitButton02>
 
                                 <Link href="/" className="px-8 py-2 rounded uppercase text-sm font-semibold border ">Go Back</Link>
                             </div>

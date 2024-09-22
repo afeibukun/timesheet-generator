@@ -1,11 +1,15 @@
-export enum LocalStorageLabel {
+export enum LocalStorageLabelEnum {
     timesheetDefaultInformationLabel = "DEFAULT_TIMESHEET_INFORMATION",
     currentTimesheetMetaLabel = "CURRENT_TIMESHEET_META",
     generatedTimesheetLabel = "GENERATED_TIMESHEET",
+    personnelCollectionLabel = "PERSONNEL_COLLECTION",
 }
 
+export enum storageOptionLabel {
+    timesheetEntryDefaultDataLabel = "TIMESHEET_ENTRY_DEFAULT_DATA",
+}
 
-export enum StatusConstants {
+export enum StatusEnum {
     enteringData = "ENTERING_DATA",
     inProgress = "IN_PROGRESS",
     pending = "PENDING",
@@ -21,26 +25,17 @@ export enum StatusConstants {
     new = "NEW",
 }
 
-export enum LocationType {
+export enum LocationTypeEnum {
     onshore = "onshore",
     offshore = "offshore"
 }
 
-export enum PeriodType {
+export enum PeriodTypeEnum {
     start = "start",
     finish = "finish"
 }
 
-export const timesheetDefaultInformationConstant = {
-    startTime: '06:00',
-    finishTime: '18:00',
-    locationType: LocationType.onshore,
-    comment: 'Productive Work at the Office',
-    weekStartDay: "monday",
-    updatedAt: ''
-}
-
-export enum EntryStateConstants {
+export enum EntryStateEnum {
     default = "DEFAULT",
     edit = "EDIT",
     recentlyUpdated = "RECENTLY_UPDATED"

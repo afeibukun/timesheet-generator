@@ -1,70 +1,61 @@
-import { EntryStateConstants, LocationType } from "@/lib/constants";
+import { EntryStateEnum, LocationTypeEnum } from "@/lib/constants/enum";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { Timesheet, TimesheetDefaultInformation } from "./timesheet";
-
-export type TimesheetEntryEditFormData = {
-    id: number
-    startTime: string,
-    finishTime: string,
-    locationType: string,
-    comment: string,
-    state: EntryStateConstants,
-    updatedAt: TimesheetDate | null,
-    isRecentlySaved: boolean
-}
-
-type EntryState = {
-    entryId: number,
-    state: EntryStateConstants
-}
-
-interface TimesheetEntryInterface {
-    id: number,
-    date: TimesheetDate,
-    entryPeriod: TimesheetEntryPeriod | null,
-    locationType: string | null,
-    comment: string | null,
-}
+import { Timesheet } from "./timesheet";
+import { DefaultPrimitiveTimesheetEntryDataInterface, TimesheetEntryInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheetType";
 
 export class TimesheetEntry implements TimesheetEntryInterface {
     id: number;
     date: TimesheetDate;
-    entryPeriod: TimesheetEntryPeriod | null;
-    locationType: string | null;
-    comment: string | null;
+    timesheetEntryType: TimesheetEntryTypeInterface;
+    entryPeriod: TimesheetEntryPeriod;
+    locationType?: LocationTypeEnum;
+    comment?: string;
 
-    constructor(timesheetEntryInput: TimesheetEntry | TimesheetEntryInterface) {
+    constructor(timesheetEntryInput: TimesheetEntryInterface) {
         this.id = timesheetEntryInput.id;
         this.date = timesheetEntryInput.date;
+        this.timesheetEntryType = timesheetEntryInput.timesheetEntryType
         this.entryPeriod = timesheetEntryInput.entryPeriod
         this.locationType = timesheetEntryInput.locationType;
         this.comment = timesheetEntryInput.comment
     }
 
-    static createTimesheet(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate): TimesheetEntry[] {
+    static createTimesheetEntryCollection(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate): TimesheetEntry[] {
         let timesheet = [];
-        let defaultData: TimesheetDefaultInformation = Timesheet.defaultInformation()
+        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = Timesheet.defaultInformation()
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
         const _mobDate = mobilizationDate;
         const _demobDate = demobilizationDate;
-        const _firstDayOfTheMobilizationWeek = _mobDate.getFirstDayOfTheWeek;
-        const _lastDayOfTheDemobilizationWeek = _demobDate.getLastDayOfTheWeek;
-        let _cursorDate = new TimesheetDate(_firstDayOfTheMobilizationWeek);
-        let count = 0;
+        // const _firstDayOfTheMobilizationWeek = _mobDate.getFirstDayOfTheWeek;
+        // const _lastDayOfTheDemobilizationWeek = _demobDate.getLastDayOfTheWeek;
+        // let _cursorDate = new TimesheetDate(_firstDayOfTheMobilizationWeek);
 
-        while (_cursorDate.isDateSameOrBefore(_lastDayOfTheDemobilizationWeek)) {
-            count++;
-            const currentDateIsWithinMobilizationPeriod: boolean = _cursorDate.isDateBetween(_mobDate, _demobDate);
-            const startTime = currentDateIsWithinMobilizationPeriod ? defaultData.startTime : null;
-            const finishTime = currentDateIsWithinMobilizationPeriod ? defaultData.finishTime : null
+        let _cursorDate = new TimesheetDate(_mobDate);
+        let _count = 0;
+
+        // while (_cursorDate.isDateSameOrBefore(_lastDayOfTheDemobilizationWeek)) {
+        while (_cursorDate.isDateSameOrBefore(_demobDate)) {
+            _count++;
+            /* const _currentDateIsWithinMobilizationPeriod: boolean = _cursorDate.isDateBetween(_mobDate, _demobDate);
+            const _startTime = _currentDateIsWithinMobilizationPeriod ? defaultData.startTime : null;
+            const _finishTime = _currentDateIsWithinMobilizationPeriod ? defaultData.finishTime : null 
+            const _locationType = _currentDateIsWithinMobilizationPeriod ? defaultData.locationType : null;
+            const _comment = _currentDateIsWithinMobilizationPeriod ? defaultData.comment : null */
+
+            const _startTime = defaultData.startTime;
+            const _finishTime = defaultData.finishTime;
+            const _locationType = defaultData.locationType as LocationTypeEnum;
+            const _comment = defaultData.comment;
+            const _timesheetEntryType = defaultData.timesheetEntryType
 
             let timesheetEntry = new TimesheetEntry({
-                id: count,
+                id: _count,
                 date: _cursorDate,
-                entryPeriod: new TimesheetEntryPeriod({ startTime: startTime, finishTime: finishTime }),
-                locationType: currentDateIsWithinMobilizationPeriod ? defaultData.locationType : null,
-                comment: currentDateIsWithinMobilizationPeriod ? defaultData.comment : null,
+                entryPeriod: new TimesheetEntryPeriod({ startTime: _startTime, finishTime: _finishTime }),
+                locationType: _locationType,
+                comment: _comment,
+                timesheetEntryType: _timesheetEntryType
             });
 
             timesheet.push(timesheetEntry);
@@ -98,7 +89,7 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     }
 
     get isNullEntry(): boolean {
-        if (this.entryPeriod == null || this.locationType == null || this.locationType == '') {
+        if (this.entryPeriod == null || this.locationType == null) {
             return true
         }
         return false
@@ -124,12 +115,12 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     }
 
     get isLocationTypeOnshore(): Boolean {
-        if (!this.isNullEntry && this.locationType == LocationType.onshore) return true
+        if (!this.isNullEntry && this.locationType == LocationTypeEnum.onshore) return true
         return false
     }
 
     get isLocationTypeOffshore(): Boolean {
-        if (!this.isNullEntry && this.locationType == LocationType.offshore) return true
+        if (!this.isNullEntry && this.locationType == LocationTypeEnum.offshore) return true
         return false
     }
 

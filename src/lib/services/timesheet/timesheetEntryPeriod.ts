@@ -1,15 +1,11 @@
+import { TimesheetEntryPeriodInterface } from "@/lib/types/timesheetType";
 import moment from "moment";
-
-interface TimesheetEntryPeriodInterface {
-    startTime: string | null,
-    finishTime: string | null,
-}
 
 export class TimesheetEntryPeriod implements TimesheetEntryPeriodInterface {
     startTime: string | null;
     finishTime: string | null;
 
-    constructor(_entryPeriodInput: TimesheetEntryPeriodInterface | TimesheetEntryPeriod) {
+    constructor(_entryPeriodInput: TimesheetEntryPeriodInterface) {
         this.startTime = _entryPeriodInput.startTime;
         this.finishTime = _entryPeriodInput.finishTime;
     }

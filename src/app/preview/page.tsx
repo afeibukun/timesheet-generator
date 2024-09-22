@@ -5,7 +5,7 @@ import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import InfoLabel from "./_components/InfoLabel";
 import TimesheetTable from "./_components/TimesheetTable";
-import { TimesheetEntry, TimesheetEntryEditFormData } from "@/lib/services/timesheet/timesheetEntry";
+import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { useEffect, useState } from "react";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
@@ -16,6 +16,8 @@ import { createPdfTimesheet } from "@/lib/services/pdf/pdfService";
 import PrintTimesheetWithDefaultTemplate from "./_components/PrintTimesheetWithDefaultTemplate";
 import { createXlsxTimesheetStandardTemplateWithExcelJs } from "@/lib/services/xlsx/excelJsService";
 import { createPdfWithJsPdfAutoTable } from "@/lib/services/pdf/jsPdfAutoTableService";
+import { PrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheetType";
+import { LocationTypeEnum } from "@/lib/constants/enum";
 
 export default function Preview() {
 
@@ -40,11 +42,11 @@ export default function Preview() {
 
     }, []);
 
-    function updateTimesheetEntryCollection(weekNumber: number, updatedTimesheetEntryFormData: TimesheetEntryEditFormData) {
+    function updateTimesheetEntryCollection(weekNumber: number, updatedTimesheetEntryFormData: PrimitiveTimesheetEntryDataInterface) {
         try {
             let updatedTimesheetEntryCollection: TimesheetEntry[] = timesheet.entryCollection.map((timesheetEntry: TimesheetEntry) => {
                 if (timesheetEntry.id == updatedTimesheetEntryFormData.id) {
-                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType, comment: updatedTimesheetEntryFormData.comment })
+                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType as LocationTypeEnum, comment: updatedTimesheetEntryFormData.comment })
                 }
                 return timesheetEntry;
             });
@@ -203,10 +205,6 @@ export default function Preview() {
                                 <button type="button" onClick={(e) => createXlsxTimesheetStandardTemplateWithExcelJs(timesheet)}>Create Excel file</button>
 
                                 <button type="button" onClick={(e) => createPdfWithJsPdfAutoTable(timesheet)}>Create PDF file</button>
-                                <div className="table">
-                                    <h2 className="text-blue-600">Whatever</h2>
-                                    <h4 className="italic">and whenever</h4>
-                                </div>
                             </div>
                         </div>
                     </footer>

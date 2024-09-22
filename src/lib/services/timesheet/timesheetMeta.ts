@@ -1,28 +1,5 @@
+import { PrimitiveTimesheetMetaInterface, TimesheetMetaInterface } from "@/lib/types/timesheetType";
 import { TimesheetDate } from "./timesheetDate";
-
-export type TimesheetMetaForForms = {
-    id: number | null,
-    personnelName: string,
-    mobilizationDate: string,
-    demobilizationDate: string,
-    customerName: string,
-    siteName: string,
-    siteCountry: string,
-    purchaseOrderNumber: string,
-    orderNumber: string | null
-}
-
-interface TimesheetMetaInterface {
-    id: number | null,
-    personnelName: string,
-    mobilizationDate: TimesheetDate,
-    demobilizationDate: TimesheetDate,
-    customerName: string,
-    siteName: string,
-    siteCountry: string,
-    purchaseOrderNumber: string,
-    orderNumber: string | null
-}
 
 export class TimesheetMeta implements TimesheetMetaInterface {
     id: number | null;
@@ -35,7 +12,7 @@ export class TimesheetMeta implements TimesheetMetaInterface {
     purchaseOrderNumber: string;
     orderNumber: string | null;
 
-    constructor(metaInput: TimesheetMetaInterface | TimesheetMeta) {
+    constructor(metaInput: TimesheetMetaInterface) {
         this.id = metaInput.id;
         this.personnelName = metaInput.personnelName;
         this.mobilizationDate = metaInput.mobilizationDate;
@@ -47,22 +24,22 @@ export class TimesheetMeta implements TimesheetMetaInterface {
         this.orderNumber = metaInput.orderNumber;
     }
 
-    static createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForms: TimesheetMetaForForms): TimesheetMeta {
-        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...timesheetMetaForForms, mobilizationDate: new TimesheetDate({ dateInput: timesheetMetaForForms.mobilizationDate }), demobilizationDate: new TimesheetDate({ dateInput: timesheetMetaForForms.demobilizationDate }) });
+    static createTimesheetMetaFromPrimitiveTimesheetMeta(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): TimesheetMeta {
+        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...primitiveTimesheetMeta, mobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.mobilizationDate }), demobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.demobilizationDate }) });
         return timesheetMeta;
     }
 
-    convertToTimesheetMetaForForms(): TimesheetMetaForForms {
-        const timesheetMetaForForms: TimesheetMetaForForms = {
+    convertToPrimitiveTimesheetMeta(): PrimitiveTimesheetMetaInterface {
+        const primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface = {
             ...this,
             mobilizationDate: this.mobilizationDate.dateInputNaturalFormat(),
             demobilizationDate: this.demobilizationDate.dateInputNaturalFormat(),
         }
-        return timesheetMetaForForms;
+        return primitiveTimesheetMeta;
     }
 
-    isMobilizationPeriodChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
-        const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
+    isMobilizationPeriodChanged(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): Boolean {
+        const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromPrimitiveTimesheetMeta(primitiveTimesheetMeta);
         if (!(this.mobilizationDate.isDateSame(updatedTimesheetMeta.mobilizationDate) && this.demobilizationDate.isDateSame(updatedTimesheetMeta.demobilizationDate))) {
             return true;
         }
@@ -70,30 +47,29 @@ export class TimesheetMeta implements TimesheetMetaInterface {
 
     }
 
-    isMinorDataChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
-        const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
+    isMinorDataChanged(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): Boolean {
+        const updatedTimesheetMeta = TimesheetMeta.createTimesheetMetaFromPrimitiveTimesheetMeta(primitiveTimesheetMeta);
         if (this.personnelName != updatedTimesheetMeta.personnelName || this.customerName != updatedTimesheetMeta.customerName || this.siteName != updatedTimesheetMeta.siteName || this.siteCountry != updatedTimesheetMeta.siteCountry || this.purchaseOrderNumber != updatedTimesheetMeta.purchaseOrderNumber || this.orderNumber != updatedTimesheetMeta.orderNumber) {
             return true;
         }
         return false;
     }
 
-    isMinorDataOnlyChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
-        if (this.isMinorDataChanged(timesheetMetaForForm) && !this.isMobilizationPeriodChanged(timesheetMetaForForm)) return true;
+    isMinorDataOnlyChanged(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): Boolean {
+        if (this.isMinorDataChanged(primitiveTimesheetMeta) && !this.isMobilizationPeriodChanged(primitiveTimesheetMeta)) return true;
         return false;
     }
 
-    isAnyDataChanged(timesheetMetaForForm: TimesheetMetaForForms): Boolean {
-        if (this.isMinorDataChanged(timesheetMetaForForm) || this.isMobilizationPeriodChanged(timesheetMetaForForm)) return true;
+    isAnyDataChanged(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): Boolean {
+        if (this.isMinorDataChanged(primitiveTimesheetMeta) || this.isMobilizationPeriodChanged(primitiveTimesheetMeta)) return true;
         return false;
     }
 
-
-    static createTimesheetMetaFromTimesheetMetaForForms_duplicate(timesheetMetaFormData: TimesheetMetaForForms): TimesheetMeta {
+    static createTimesheetMetaFromTimesheetMetaForForms_duplicate(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): TimesheetMeta {
         const timesheetMeta: TimesheetMeta = new TimesheetMeta({
-            ...timesheetMetaFormData,
-            mobilizationDate: new TimesheetDate({ dateInput: timesheetMetaFormData.mobilizationDate }),
-            demobilizationDate: new TimesheetDate({ dateInput: timesheetMetaFormData.demobilizationDate }),
+            ...primitiveTimesheetMeta,
+            mobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.mobilizationDate }),
+            demobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.demobilizationDate }),
         } as TimesheetMetaInterface);
         return timesheetMeta;
     }

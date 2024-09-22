@@ -1,27 +1,16 @@
-import { timesheetDefaultInformationConstant } from "@/lib/constants";
+import { defaultTimesheetEntryData } from "@/lib/constants/defaultData";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetMeta } from "./timesheetMeta";
 import { TimesheetLocalStorage } from "./timesheetLocalStorage";
-
-export type TimesheetDefaultInformation = {
-    startTime: string,
-    finishTime: string,
-    locationType: string,
-    comment: string,
-    weekStartDay: string,
-    updatedAt: string,
-}
-
-interface TimesheetInterface {
-    meta: TimesheetMeta;
-    entryCollection: TimesheetEntry[];
-}
+import { DefaultPrimitiveTimesheetEntryDataInterface, TimesheetInterface } from "@/lib/types/timesheetType";
 
 export class Timesheet implements TimesheetInterface {
+
     meta: TimesheetMeta;
     entryCollection: TimesheetEntry[];
-    constructor(timesheetInput: TimesheetInterface | Timesheet) {
+
+    constructor(timesheetInput: TimesheetInterface) {
         this.meta = timesheetInput.meta;
         this.entryCollection = timesheetInput.entryCollection;
     }
@@ -56,8 +45,8 @@ export class Timesheet implements TimesheetInterface {
         return false;
     }
 
-    static defaultInformation(): TimesheetDefaultInformation {
-        let defaultData: TimesheetDefaultInformation = timesheetDefaultInformationConstant
+    static defaultInformation(): DefaultPrimitiveTimesheetEntryDataInterface {
+        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = defaultTimesheetEntryData
         try {
             let retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
             defaultData = retrievedDefaultInfo;

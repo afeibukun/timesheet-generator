@@ -18,7 +18,8 @@ export default function Home() {
         </div>
         <footer className="section-footer section-action">
           <div className="button-group py-4 flex gap-x-4">
-            <Link href="/generate" className="py-3 px-6 rounded bg-slate-400">Generate Timesheet</Link>
+            <Link href="/overview" className="py-3 px-6 rounded border">Timesheet Overview</Link>
+            <Link href="/generate" className="py-3 px-6 rounded bg-slate-400">Auto-Generate Mobilization Entry </Link>
             <Link href="/default-information" className="py-3 px-6 rounded border">Update Default Info</Link>
           </div>
         </footer>

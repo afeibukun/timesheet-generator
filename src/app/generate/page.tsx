@@ -8,38 +8,31 @@ import DefaultFormGroup from "../_components/DefaultFormGroup";
 import DefaultSectionHeader from "../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import { useEffect, useState } from "react";
-import { StatusConstants } from "@/lib/constants";
+import { StatusEnum } from "@/lib/constants/enum";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
-import { TimesheetMeta, TimesheetMetaForForms } from "@/lib/services/timesheet/timesheetMeta";
+import { TimesheetMeta } from "@/lib/services/timesheet/timesheetMeta";
 import { useRouter } from "next/navigation";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
-import { Timesheet, TimesheetDefaultInformation } from "@/lib/services/timesheet/timesheet";
+import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import moment from "moment";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
+import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface } from "@/lib/types/timesheetType";
+import { initialTimesheetMeta } from "@/lib/constants/defaultData";
 
 export default function Generate() {
     const router = useRouter();
-    const _initialTimesheetMeta: TimesheetMetaForForms = {
-        id: null,
-        personnelName: "",
-        mobilizationDate: "",
-        demobilizationDate: "",
-        customerName: "",
-        siteName: "",
-        siteCountry: "",
-        purchaseOrderNumber: "",
-        orderNumber: "",
-    }
 
-    const timesheetDefaultData: TimesheetDefaultInformation = Timesheet.defaultInformation();
+    const _initialTimesheetMeta: PrimitiveTimesheetMetaInterface = initialTimesheetMeta;
+
+    const timesheetDefaultData: DefaultPrimitiveTimesheetEntryDataInterface = Timesheet.defaultInformation();
     const hasUpdatedDefaultInformation = Timesheet.hasUpdatedDefaultInformation();
-    const [timesheetDefaultViewStatus, setTimesheetDefaultViewStatus] = useState(StatusConstants.hidden);
+    const [timesheetDefaultViewStatus, setTimesheetDefaultViewStatus] = useState(StatusEnum.hidden);
 
-    const [timesheetMetaForForm, setTimesheetMetaForForm] = useState(_initialTimesheetMeta);
+    const [primitiveTimesheetMeta, setPrimitiveTimesheetMeta] = useState(_initialTimesheetMeta);
     const [timesheet, setTimesheet] = useState(null as Timesheet | null);
 
-    const [status, setStatus] = useState(StatusConstants.enteringData);
-    const [viewState, setViewState] = useState(StatusConstants.new);
+    const [status, setStatus] = useState(StatusEnum.enteringData);
+    const [viewState, setViewState] = useState(StatusEnum.new);
 
 
     useEffect(() => {
@@ -50,42 +43,42 @@ export default function Generate() {
         } catch (e) { }
 
         if (retrievedTimesheet != undefined) {
-            const currentTimesheetMetaForForm = retrievedTimesheet.meta.convertToTimesheetMetaForForms();
-            setTimesheetMetaForForm(currentTimesheetMetaForForm);
-            setViewState(StatusConstants.updating);
+            const _primitiveTimesheetMeta = retrievedTimesheet.meta.convertToPrimitiveTimesheetMeta();
+            setPrimitiveTimesheetMeta(_primitiveTimesheetMeta);
+            setViewState(StatusEnum.updating);
         }
     }, []);
 
     function handleInputChange(e: any, metaKey: string) {
         let metaValue = e.target.value;
-        setTimesheetMetaForForm({ ...timesheetMetaForForm, [metaKey]: metaValue });
+        setPrimitiveTimesheetMeta({ ...primitiveTimesheetMeta, [metaKey]: metaValue });
     }
 
     function handleSubmitTimesheetMeta(e: any) {
         e.preventDefault();
         e.stopPropagation();
-        setStatus(StatusConstants.submitting);
+        setStatus(StatusEnum.submitting);
 
         var localTimesheet
-        if (Timesheet.isNull(timesheet) || timesheet?.meta.isMobilizationPeriodChanged(timesheetMetaForForm)) {
-            const timesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
-            let timesheetEntryCollection = TimesheetEntry.createTimesheet(timesheetMeta.mobilizationDate, timesheetMeta.demobilizationDate);
+        if (Timesheet.isNull(timesheet) || timesheet?.meta.isMobilizationPeriodChanged(primitiveTimesheetMeta)) {
+            const timesheetMeta = TimesheetMeta.createTimesheetMetaFromPrimitiveTimesheetMeta(primitiveTimesheetMeta);
+            let timesheetEntryCollection = TimesheetEntry.createTimesheetEntryCollection(timesheetMeta.mobilizationDate, timesheetMeta.demobilizationDate);
             localTimesheet = new Timesheet({ meta: timesheetMeta, entryCollection: timesheetEntryCollection });
             TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(localTimesheet);
-        } else if (timesheet?.meta.isMinorDataOnlyChanged(timesheetMetaForForm)) {
-            const timesheetMeta = TimesheetMeta.createTimesheetMetaFromTimesheetMetaForForms(timesheetMetaForForm);
+        } else if (timesheet?.meta.isMinorDataOnlyChanged(primitiveTimesheetMeta)) {
+            const timesheetMeta = TimesheetMeta.createTimesheetMetaFromPrimitiveTimesheetMeta(primitiveTimesheetMeta);
             localTimesheet = new Timesheet({ meta: timesheetMeta, entryCollection: timesheet!.entryCollection });
             TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(localTimesheet);
         } else { }
-        setStatus(StatusConstants.submitted);
+        setStatus(StatusEnum.submitted);
         router.push('/preview');
     }
     return (
         <main className="container">
             <DefaultSection>
                 <DefaultSectionHeader>
-                    <DefaultSectionTitle><span>{viewState == StatusConstants.new ? 'Generate New ' : 'Edit '} Timesheet</span>
-                        {viewState == StatusConstants.new ? <span>🆕</span> : <span>✍</span>}
+                    <DefaultSectionTitle><span>{viewState == StatusEnum.new ? 'Generate New ' : 'Edit '} Timesheet</span>
+                        {viewState == StatusEnum.new ? <span>🆕</span> : <span>✍</span>}
                     </DefaultSectionTitle>
                 </DefaultSectionHeader>
                 <div className="section-body">
@@ -96,7 +89,7 @@ export default function Generate() {
                                     <DefaultLabelText>Personnel Name</DefaultLabelText>
                                 </label>
                                 <input type="text"
-                                    value={timesheetMetaForForm.personnelName}
+                                    value={primitiveTimesheetMeta.personnelName}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'personnelName');
@@ -114,7 +107,7 @@ export default function Generate() {
                                     <DefaultLabelText>Personnel Mobilization Date</DefaultLabelText>
                                 </label>
                                 <input type="date"
-                                    value={timesheetMetaForForm.mobilizationDate}
+                                    value={primitiveTimesheetMeta.mobilizationDate}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'mobilizationDate');
@@ -129,7 +122,7 @@ export default function Generate() {
                                 <input type="date"
                                     name="demobilizationDate"
                                     id="demobilizationDate"
-                                    value={timesheetMetaForForm.demobilizationDate}
+                                    value={primitiveTimesheetMeta.demobilizationDate}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'demobilizationDate');
@@ -148,7 +141,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="customerName"
                                     id="customerName"
-                                    value={timesheetMetaForForm.customerName}
+                                    value={primitiveTimesheetMeta.customerName}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'customerName');
@@ -164,7 +157,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="siteName"
                                     id="siteName"
-                                    value={timesheetMetaForForm.siteName}
+                                    value={primitiveTimesheetMeta.siteName}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'siteName');
@@ -179,7 +172,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="siteCountry"
                                     id="siteCountry"
-                                    value={timesheetMetaForForm.siteCountry}
+                                    value={primitiveTimesheetMeta.siteCountry}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'siteCountry');
@@ -198,7 +191,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="purchaseOrderNumber"
                                     id="purchaseOrderNumber"
-                                    value={timesheetMetaForForm.purchaseOrderNumber}
+                                    value={primitiveTimesheetMeta.purchaseOrderNumber}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'purchaseOrderNumber');
@@ -213,7 +206,7 @@ export default function Generate() {
                                 <input type="text"
                                     name="orderNumber"
                                     id="orderNumber"
-                                    value={timesheetMetaForForm.orderNumber?.toString()}
+                                    value={primitiveTimesheetMeta.orderNumber?.toString()}
                                     onChange={
                                         e => {
                                             handleInputChange(e, 'orderNumber');
@@ -233,10 +226,10 @@ export default function Generate() {
                                             <p className="text-sm"><b className="inline-block bg-blue-300 px-1 py-0.5 rounded">Gentle Reminder:</b> You can review your Timesheet Default Information here, Confirm that the default data below is okay to auto populate the timesheet. If you want edit the Timesheet Default Information, Click <Link href="/default-information" className="text-blue-700 border-dashed border-b border-blue-700 italic">Here!</Link></p>
                                         }
                                         <div>
-                                            <button type="button" onClick={() => setTimesheetDefaultViewStatus(timesheetDefaultViewStatus == StatusConstants.visible ? StatusConstants.hidden : StatusConstants.visible)} className="border-dashed border-b border-slate-400 text-xs text-slate-400 italic">[Show {timesheetDefaultViewStatus == StatusConstants.visible ? 'Less' : 'More'}]</button>
+                                            <button type="button" onClick={() => setTimesheetDefaultViewStatus(timesheetDefaultViewStatus == StatusEnum.visible ? StatusEnum.hidden : StatusEnum.visible)} className="border-dashed border-b border-slate-400 text-xs text-slate-400 italic">[Show {timesheetDefaultViewStatus == StatusEnum.visible ? 'Less' : 'More'}]</button>
                                         </div>
                                     </div>
-                                    <div className={timesheetDefaultViewStatus == StatusConstants.visible ? 'h-auto overflow-auto' : 'h-0 overflow-hidden'}>
+                                    <div className={timesheetDefaultViewStatus == StatusEnum.visible ? 'h-auto overflow-auto' : 'h-0 overflow-hidden'}>
                                         <div className="mt-4">
                                             <ul>
                                                 <li className="pb-1">

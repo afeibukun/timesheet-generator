@@ -1,21 +1,18 @@
 import moment from "moment";
 import { InvalidTimesheetDateError } from "./timesheetErrors";
-import { Timesheet, TimesheetDefaultInformation } from "./timesheet";
-
-interface TimesheetDateInterface {
-    dateInput: string,
-}
+import { Timesheet } from "./timesheet";
+import { DefaultPrimitiveTimesheetEntryDataInterface, TimesheetDateInterface } from "@/lib/types/timesheetType";
 
 export class TimesheetDate implements TimesheetDateInterface {
     dateInput: string;
-    _isValidTimesheetDate: boolean;
+    _isValidTimesheetDate?: boolean;
 
-    constructor(timesheetDateInput: TimesheetDate | TimesheetDateInterface) {
+    constructor(timesheetDateInput: TimesheetDateInterface) {
         this.dateInput = timesheetDateInput.dateInput;
         let momentTimesheetDate = moment(this.dateInput);
         this._isValidTimesheetDate = momentTimesheetDate.isValid();
 
-        let defaultData: TimesheetDefaultInformation = Timesheet.defaultInformation()
+        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = Timesheet.defaultInformation()
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
     }
 
