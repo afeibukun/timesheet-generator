@@ -175,6 +175,17 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
         return Timesheet.doesPrimitiveTimesheetHaveEntryOnPrimitiveDate(localPrimitiveTimesheet, dayString)
     }
 
+    const getTotalHoursOnADay = (dayString: string) => {
+        const entriesInDay = localTimesheet.entries.filter(entry => entry.date.defaultFormat() == dayString);
+        if (entriesInDay.length == 0) return "00:00"
+
+        let totalHoursInDay: TimesheetHour = entriesInDay[0].totalEntryPeriodHours;
+        for (let i = 1; i < entriesInDay.length; i++) {
+            totalHoursInDay = TimesheetHour.sumTimesheetHours(entriesInDay[i].totalEntryPeriodHours, totalHoursInDay);
+        }
+        return totalHoursInDay.time
+    }
+
     function handleLocalPrimitiveTimesheetDataChange(e: any, timesheetEntryId: number, entryItemKey: string) {
         let itemValue = e.target.value;
         if (entryItemKey === 'hasPremium') itemValue = !!e.target.checked
@@ -191,8 +202,12 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
     }
 
     async function handleLocalTimesheetUpdate(updatedLocalPrimitiveTimesheet: PrimitiveTimesheetInterface) {
-        const updatedLocalTimesheet = await Timesheet.convertPrimitiveToTimesheet(updatedLocalPrimitiveTimesheet, localTimesheet.personnel, localTimesheet.weekEndingDate);
-        setLocalTimesheet(updatedLocalTimesheet)
+        try {
+            const updatedLocalTimesheet = await Timesheet.convertPrimitiveToTimesheet(updatedLocalPrimitiveTimesheet, localTimesheet.personnel, localTimesheet.weekEndingDate);
+            setLocalTimesheet(updatedLocalTimesheet)
+        } catch (e) {
+            console.log(e)
+        }
         /* let key: string;
         let value: any;
         if (itemKey === "entryTypeSlug") {
@@ -340,10 +355,11 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                             </div>
                                             <div className="hours-container">
                                                 <div>
-                                                    <p className="text-xs text-white">
-                                                        <span>Hours: </span>
-                                                        <span>12:00</span>
-                                                    </p>
+                                                    {doesPrimitiveTimesheetHaveEntryOnDate(localPrimitiveTimesheet, day.defaultFormat()) ?
+                                                        <p className="text-xs text-white">
+                                                            <span>Hours: </span>
+                                                            <span>{getTotalHoursOnADay(day.defaultFormat())}</span>
+                                                        </p> : ''}
                                                 </div>
                                             </div>
                                             <div></div>
