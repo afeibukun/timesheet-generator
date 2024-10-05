@@ -88,7 +88,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             });
 
             let timesheetEntryCollectionForCurrentWeek = groupedTimesheetEntry[week as any];
-            let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek!.length - 1].date;
+            let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek?.length - 1].date;
             let javascriptDateForLastDayOfCurrentWeek = timesheetDateForLastDayOfCurrentWeek.toJavascriptDate();
             let javascriptDateForLastDayOfCurrentWeekWithOffset = TimesheetDate.addTimezoneOffsetToJavascriptDate(javascriptDateForLastDayOfCurrentWeek);
 

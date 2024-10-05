@@ -2,71 +2,37 @@ import { EntryStateEnum, LocationTypeEnum } from "@/lib/constants/enum";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { Timesheet } from "./timesheet";
-import { DefaultPrimitiveTimesheetEntryDataInterface, TimesheetEntryInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheetType";
+import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetEntryInterface, TimesheetDateInterface, TimesheetEntryInterface, TimesheetEntryPeriodInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheetType";
+import { AppOptionSchema } from "@/lib/constants/schema";
+import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/defaultData";
+import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
+import { TimesheetHour } from "./timesheetHour";
 
 export class TimesheetEntry implements TimesheetEntryInterface {
     id: number;
     date: TimesheetDate;
-    timesheetEntryType: TimesheetEntryTypeInterface;
+    entryType: TimesheetEntryTypeInterface;
     entryPeriod: TimesheetEntryPeriod;
-    locationType?: LocationTypeEnum;
-    comment?: string;
+    locationType: LocationTypeEnum;
+    hasPremium: boolean;
+    comment: string;
 
     constructor(timesheetEntryInput: TimesheetEntryInterface) {
-        this.id = timesheetEntryInput.id;
-        this.date = timesheetEntryInput.date;
-        this.timesheetEntryType = timesheetEntryInput.timesheetEntryType
-        this.entryPeriod = timesheetEntryInput.entryPeriod
-        this.locationType = timesheetEntryInput.locationType;
-        this.comment = timesheetEntryInput.comment
+        this.id = timesheetEntryInput.id!;
+        this.date = new TimesheetDate(timesheetEntryInput.date);
+        this.entryType = timesheetEntryInput.entryType
+        this.entryPeriod = new TimesheetEntryPeriod(timesheetEntryInput.entryPeriod)
+        this.locationType = timesheetEntryInput.locationType ? this.locationType = timesheetEntryInput.locationType : LocationTypeEnum.onshore;
+        this.hasPremium = timesheetEntryInput.hasPremium ? timesheetEntryInput.hasPremium : false;
+        this.comment = timesheetEntryInput.comment ? timesheetEntryInput.comment : ''
     }
 
-    static createTimesheetEntryCollection(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate): TimesheetEntry[] {
-        let timesheet = [];
-        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = Timesheet.defaultInformation()
-        TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
-        const _mobDate = mobilizationDate;
-        const _demobDate = demobilizationDate;
-        // const _firstDayOfTheMobilizationWeek = _mobDate.getFirstDayOfTheWeek;
-        // const _lastDayOfTheDemobilizationWeek = _demobDate.getLastDayOfTheWeek;
-        // let _cursorDate = new TimesheetDate(_firstDayOfTheMobilizationWeek);
-
-        let _cursorDate = new TimesheetDate(_mobDate);
-        let _count = 0;
-
-        // while (_cursorDate.isDateSameOrBefore(_lastDayOfTheDemobilizationWeek)) {
-        while (_cursorDate.isDateSameOrBefore(_demobDate)) {
-            _count++;
-            /* const _currentDateIsWithinMobilizationPeriod: boolean = _cursorDate.isDateBetween(_mobDate, _demobDate);
-            const _startTime = _currentDateIsWithinMobilizationPeriod ? defaultData.startTime : null;
-            const _finishTime = _currentDateIsWithinMobilizationPeriod ? defaultData.finishTime : null 
-            const _locationType = _currentDateIsWithinMobilizationPeriod ? defaultData.locationType : null;
-            const _comment = _currentDateIsWithinMobilizationPeriod ? defaultData.comment : null */
-
-            const _startTime = defaultData.startTime;
-            const _finishTime = defaultData.finishTime;
-            const _locationType = defaultData.locationType as LocationTypeEnum;
-            const _comment = defaultData.comment;
-            const _timesheetEntryType = defaultData.timesheetEntryType
-
-            let timesheetEntry = new TimesheetEntry({
-                id: _count,
-                date: _cursorDate,
-                entryPeriod: new TimesheetEntryPeriod({ startTime: _startTime, finishTime: _finishTime }),
-                locationType: _locationType,
-                comment: _comment,
-                timesheetEntryType: _timesheetEntryType
-            });
-
-            timesheet.push(timesheetEntry);
-            _cursorDate = _cursorDate.dateIncrementByDay(1);
-        }
-
-        return timesheet;
-    }
-
-    get totalEntryPeriodHours(): number {
+    get totalEntryPeriodHours(): TimesheetHour {
         return new TimesheetEntryPeriod(this.entryPeriod!).totalHours
+    }
+
+    get totalEntryPeriodHoursInString(): string {
+        return new TimesheetEntryPeriod(this.entryPeriod!).totalHoursInString
     }
 
     get entryDateDayLabel(): string {
@@ -79,13 +45,28 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         return date
     }
     get entryPeriodStartTime(): string {
-        let time = this.entryPeriod?.startTime!
-        return time
+        let time = this.entryPeriod?.startTime?.time
+        if (time) return time
+        throw new Error // Time not found 
     }
 
     get entryPeriodFinishTime(): string {
-        let time = this.entryPeriod?.finishTime!
-        return time
+        let time = this.entryPeriod?.finishTime?.time
+        if (time) return time
+        throw new Error // finish time not found
+    }
+
+    get weekNumber(): number {
+        const timesheetEntryWeek = this.date.weekNumber;
+        return timesheetEntryWeek;
+    }
+
+    get monthNumber(): number {
+        return this.date.monthNumber;
+    }
+
+    get month(): string {
+        return this.date.month;
     }
 
     get isNullEntry(): boolean {
@@ -127,6 +108,43 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     get isCommentNull(): Boolean {
         if (this.isNullEntry || this.comment == null) return true
         return false
+    }
+
+    static async defaultInformation() {
+        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = defaultTimesheetEntryData
+        try {
+            const retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
+            if (retrievedData) {
+                defaultData = retrievedData.value
+            } else throw Error
+        } catch (e) { }
+
+        return defaultData;
+    }
+
+    static getTimesheetEntryForDate(timesheet: Timesheet, day: TimesheetDate) {
+        const timesheetEntryCollection = timesheet.entries.filter((entry) => day.isEqual(entry.date))
+        return timesheetEntryCollection;
+    }
+
+    static convertPrimitiveToTimesheetEntryInterface(primitiveTimesheetEntry: PrimitiveTimesheetEntryInterface) {
+        const _id = primitiveTimesheetEntry.id;
+        const _date: TimesheetDateInterface = { date: primitiveTimesheetEntry.date };
+        const _entryType: TimesheetEntryTypeInterface = defaultTimesheetEntryType.filter((entryType) => entryType.slug == primitiveTimesheetEntry.entryTypeSlug)[0];
+
+        let _breakTimeStart = !!primitiveTimesheetEntry.breakPeriodStartTime ? new TimesheetHour(primitiveTimesheetEntry.breakPeriodStartTime) : undefined;
+        let _breakTimeFinish = !!primitiveTimesheetEntry.breakPeriodFinishTime ? new TimesheetHour(primitiveTimesheetEntry.breakPeriodFinishTime) : undefined;
+        if (!_breakTimeStart || !_breakTimeFinish) {
+            _breakTimeStart = undefined
+            _breakTimeFinish = undefined
+        }
+
+        const _entryPeriod: TimesheetEntryPeriodInterface = { startTime: new TimesheetHour(primitiveTimesheetEntry.entryPeriodStartTime), finishTime: new TimesheetHour(primitiveTimesheetEntry.entryPeriodFinishTime), breakTimeStart: _breakTimeStart, breakTimeFinish: _breakTimeFinish }
+        const _locationType: LocationTypeEnum = LocationTypeEnum.offshore === primitiveTimesheetEntry.locationType ? LocationTypeEnum.offshore : LocationTypeEnum.onshore;
+        const _hasPremium = !!primitiveTimesheetEntry.hasPremium
+        const _comment = primitiveTimesheetEntry.comment
+        const _timesheetEntry: TimesheetEntryInterface = { id: _id, date: _date, entryType: _entryType, entryPeriod: _entryPeriod, locationType: _locationType, hasPremium: _hasPremium, comment: _comment };
+        return _timesheetEntry;
     }
 }
 

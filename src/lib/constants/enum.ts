@@ -5,8 +5,16 @@ export enum LocalStorageLabelEnum {
     personnelCollectionLabel = "PERSONNEL_COLLECTION",
 }
 
-export enum storageOptionLabel {
+export enum StorageOptionLabel {
     timesheetEntryDefaultDataLabel = "TIMESHEET_ENTRY_DEFAULT_DATA",
+    activeTimesheetCollectionIdLabel = "ACTIVE_TIMESHEET_COLLECTION_ID",
+    activeTimesheetIdLabel = "ACTIVE_TIMESHEET_ID",
+    activeComponentType = "ACTIVE_COMPONENT_TYPE" // the value here tells us if a timesheet collection is the active component or the regular timesheet, I might not need this later sha.
+}
+
+export enum ActiveComponentType {
+    timesheet = "TIMESHEET",
+    timesheetCollection = "TIMESHEET_COLLECTION"
 }
 
 export enum StatusEnum {
@@ -23,6 +31,9 @@ export enum StatusEnum {
     visible = "VISIBLE",
     hidden = "HIDDEN",
     new = "NEW",
+    default = "DEFAULT",
+    displayForm = "DISPLAY_FORM",
+    hideForm = "HIDE_FORM"
 }
 
 export enum LocationTypeEnum {

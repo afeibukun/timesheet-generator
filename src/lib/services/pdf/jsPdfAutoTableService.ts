@@ -121,7 +121,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
 
     weeksInGroupedTimesheet.forEach((week, index) => {
         let timesheetEntryCollectionForCurrentWeek = groupedTimesheet[week as any];
-        let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek!.length - 1].date;
+        let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek?.length - 1].date;
 
         let currentXPosition = startingPointX
         let currentYPosition = startingPointY

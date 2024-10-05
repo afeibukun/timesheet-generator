@@ -1,14 +1,19 @@
 import { EntryStateEnum, LocationTypeEnum } from "@/lib/constants/enum";
+import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
-import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
 import { PrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheetType";
 import { useEffect, useState } from "react";
 
+export type TimesheetTableProps = {
+    timesheetData: Timesheet,
+    handleTimesheetEntryUpdate: Function
+}
 
-export default function TimesheetTable({ timesheetEntryCollectionData, handleTimesheetEntryCollectionUpdate }: any) {
 
-    const [editableTimesheetCollection, setEditableTimesheetCollection] = useState(timesheetEntryCollectionData.map((entry: any) => {
+export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpdate }: TimesheetTableProps) {
+
+    const [editableTimesheetCollection, setEditableTimesheetCollection] = useState(timesheetData?.entries.map((entry: any) => {
         return { ...entry, 'startTime': entry.entryPeriod.startTime, 'finishTime': entry.entryPeriod.finishTime, state: EntryStateEnum.default, updatedAt: null } as PrimitiveTimesheetEntryDataInterface
     }) as PrimitiveTimesheetEntryDataInterface[]);
 
@@ -43,7 +48,7 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
     function handleSaveButtonClick(e: any, timesheetEntryId: number) {
         try {
             let entry = selectedEditableTimesheetEntry(timesheetEntryId);
-            handleTimesheetEntryCollectionUpdate({ id: entry.id, startTime: entry.startTime, finishTime: entry.finishTime, locationType: entry.locationType, comment: entry.comment });
+            handleTimesheetEntryUpdate({ id: entry.id, startTime: entry.startTime, finishTime: entry.finishTime, locationType: entry.locationType, comment: entry.comment });
             updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.recentlyUpdated);
             setTimeout(() => {
                 updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.default);
@@ -71,7 +76,7 @@ export default function TimesheetTable({ timesheetEntryCollectionData, handleTim
         setEditableTimesheetCollection(updatedEditableTimesheetCollection);
     }
 
-    let timesheetTableMarkup = timesheetEntryCollectionData.map((timesheetEntry: TimesheetEntry) =>
+    let timesheetTableMarkup = timesheetData.entries.map((timesheetEntry: TimesheetEntry) =>
         <tr key={timesheetEntry.id} className="px-2 odd:bg-white even:bg-slate-50">
             <td className="pl-4">
                 <span className="flex flex-col pr-2 py-2">

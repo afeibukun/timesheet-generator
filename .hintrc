@@ -2,5 +2,13 @@
   "extends": [
     "development"
   ],
-  "hints": {}
+  "hints": {
+    "no-inline-styles": "off",
+    "axe/parsing": [
+      "default",
+      {
+        "duplicate-id-active": "off"
+      }
+    ]
+  }
 }

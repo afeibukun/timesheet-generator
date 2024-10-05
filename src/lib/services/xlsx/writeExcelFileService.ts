@@ -16,7 +16,7 @@ export const createXlsxTimesheetStandardTemplateWithWriteExcelFile = async (time
 
     const timesheetExcelMultiSheetData = weeksInGroupedTimesheet.map((week) => {
         let timesheetEntryCollectionForCurrentWeek = groupedTimesheetEntry[week as any];
-        let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek!.length - 1].date;
+        let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek?.length - 1].date;
         let javascriptDateForLastDayOfCurrentWeek = timesheetDateForLastDayOfCurrentWeek.toJavascriptDate();
 
         // row has dynamic component

@@ -7,7 +7,7 @@ import DefaultSectionTitle from "../_components/DefaultSectionTitle";
 import DefaultFormItem from "../_components/DefaultFormItem";
 import DefaultLabelText from "../_components/DefaultLabelText";
 import { useEffect, useState } from "react";
-import { LocationTypeEnum, StatusEnum, storageOptionLabel } from "@/lib/constants/enum";
+import { LocationTypeEnum, StatusEnum, StorageOptionLabel } from "@/lib/constants/enum";
 import SubmitButton02 from "../_components/SubmitButton02";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
@@ -15,7 +15,7 @@ import { CannotParsePrimitiveDataToDefaultTimesheetInformationError } from "@/li
 import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constants/defaultData";
 import { DefaultPrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheetType";
 import { createOrUpdateTimesheetEntryDefaultData, getTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
-import { AppOptionSchema, appOptionStoreName } from "@/lib/constants/schema";
+import { AppOptionSchema } from "@/lib/constants/schema";
 
 export default function DefaultTimesheetInformationView() {
 
@@ -32,7 +32,7 @@ export default function DefaultTimesheetInformationView() {
         const fetchSavedTimesheetEntryDefaultData = async () => {
             try {
                 // retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
-                let retrievedData = await getTimesheetEntryDefaultData()
+                let retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
                 if (retrievedData) {
                     retrievedTimesheetEntryDefaultData = retrievedData.value
                 } else throw Error

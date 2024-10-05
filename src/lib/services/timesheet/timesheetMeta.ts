@@ -25,7 +25,7 @@ export class TimesheetMeta implements TimesheetMetaInterface {
     }
 
     static createTimesheetMetaFromPrimitiveTimesheetMeta(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): TimesheetMeta {
-        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...primitiveTimesheetMeta, mobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.mobilizationDate }), demobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.demobilizationDate }) });
+        let timesheetMeta: TimesheetMeta = new TimesheetMeta({ ...primitiveTimesheetMeta, mobilizationDate: new TimesheetDate({ date: primitiveTimesheetMeta.mobilizationDate }), demobilizationDate: new TimesheetDate({ date: primitiveTimesheetMeta.demobilizationDate }) });
         return timesheetMeta;
     }
 
@@ -68,8 +68,8 @@ export class TimesheetMeta implements TimesheetMetaInterface {
     static createTimesheetMetaFromTimesheetMetaForForms_duplicate(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface): TimesheetMeta {
         const timesheetMeta: TimesheetMeta = new TimesheetMeta({
             ...primitiveTimesheetMeta,
-            mobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.mobilizationDate }),
-            demobilizationDate: new TimesheetDate({ dateInput: primitiveTimesheetMeta.demobilizationDate }),
+            mobilizationDate: new TimesheetDate({ date: primitiveTimesheetMeta.mobilizationDate }),
+            demobilizationDate: new TimesheetDate({ date: primitiveTimesheetMeta.demobilizationDate }),
         } as TimesheetMetaInterface);
         return timesheetMeta;
     }

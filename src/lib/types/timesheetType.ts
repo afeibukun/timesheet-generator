@@ -1,13 +1,43 @@
 import { EntryStateEnum, LocationTypeEnum } from "../constants/enum"
 import { Personnel } from "../services/personnel";
+import { Timesheet } from "../services/timesheet/timesheet";
 import { TimesheetDate } from "../services/timesheet/timesheetDate"
 import { TimesheetEntry } from "../services/timesheet/timesheetEntry";
 import { TimesheetEntryPeriod } from "../services/timesheet/timesheetEntryPeriod";
 import { TimesheetMeta } from "../services/timesheet/timesheetMeta";
 
+// A timesheet refers to a week group of timesheet entries. it cannot overlap months though
 export interface TimesheetInterface {
-    meta: TimesheetMeta;
-    entryCollection: TimesheetEntry[];
+    id?: number
+    personnel: Personnel;
+    weekEndingDate: TimesheetDate;
+    customer: CustomerInterface;
+    site: SiteInterface;
+    project: ProjectInterface;
+    options: TimesheetOptionInterface[];
+    entries: TimesheetEntry[];
+    comment: string;
+}
+
+export interface PrimitiveTimesheetInterface {
+    id?: number,
+    customerSlug: string,
+    siteSlug: string,
+    projectId: number,
+    options: TimesheetOptionInterface[],
+    entries: PrimitiveTimesheetEntryInterface[],
+    comment: string,
+}
+
+export interface TimesheetCollectionInterface {
+    id?: number,
+    collection: Timesheet[];
+}
+
+export interface TimesheetCollectionByMonthInterface {
+    id?: number,
+    collection: TimesheetInterface[][];
+
 }
 
 // META
@@ -35,30 +65,37 @@ export interface TimesheetMetaInterface {
     orderNumber: string | null
 }
 
+// TIMESHEET OPTIONS examples (mobilization date, demob date)
+export interface TimesheetOptionInterface {
+    id?: number,
+    key: any,
+    value: any,
+}
+
 // DATE
 export interface TimesheetDateInterface {
-    dateInput: string,
+    date: string,
 }
 
 // SITE
-export interface SiteDataInterface {
-    id: number,
+export interface SiteInterface {
+    id?: number,
     slug: string,
-    customerSlug: string,
-    siteName: string,
-    siteDescription?: string,
-    siteCountry: string
+    name: string,
+    description?: string,
+    country: string
 }
 
 // CUSTOMER
-export interface CustomerDataInterface {
+export interface CustomerInterface {
     id: number,
     slug: string,
-    customerName: string
+    name: string,
 }
 
 // PROJECT
-export interface ProjectDataInterface {
+export interface ProjectInterface {
+    id?: number
     purchaseOrderNumber: string,
     orderNumber?: string
 }
@@ -79,7 +116,7 @@ export interface TimesheetEntryCollectionInterface { // to be renamed to Timeshe
 export interface DefaultPrimitiveTimesheetEntryDataInterface {
     startTime: string,
     finishTime: string,
-    locationType: string,
+    locationType: LocationTypeEnum,
     comment: string,
     weekStartDay: string,
     updatedAt: string,
@@ -98,17 +135,38 @@ export interface PrimitiveTimesheetEntryDataInterface {
 }
 
 export interface TimesheetEntryPeriodInterface {
-    startTime: string | null,
-    finishTime: string | null,
+    startTime?: TimesheetHourInterface,
+    finishTime?: TimesheetHourInterface,
+    breakTimeStart?: TimesheetHourInterface,
+    breakTimeFinish?: TimesheetHourInterface
 }
 
+export interface TimesheetHourInterface {
+    hour?: number,
+    minute?: number,
+}
+
+
 export interface TimesheetEntryInterface {
-    id: number,
-    date: TimesheetDate,
-    timesheetEntryType: TimesheetEntryTypeInterface
-    entryPeriod: TimesheetEntryPeriod,
-    breakPeriod?: TimesheetEntryPeriod,
+    id?: number,
+    date: TimesheetDateInterface,
+    entryType: TimesheetEntryTypeInterface
+    entryPeriod: TimesheetEntryPeriodInterface,
     locationType?: LocationTypeEnum,
+    hasPremium?: boolean
+    comment?: string,
+}
+
+export interface PrimitiveTimesheetEntryInterface {
+    id: number,
+    date: string,
+    entryTypeSlug: string
+    entryPeriodStartTime: string,
+    entryPeriodFinishTime: string,
+    breakPeriodStartTime: string,
+    breakPeriodFinishTime: string,
+    locationType?: string,
+    hasPremium: boolean,
     comment?: string,
 }
 
