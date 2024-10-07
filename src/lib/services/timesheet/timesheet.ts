@@ -6,7 +6,7 @@ import { Personnel } from "../personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getByIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
 import { CustomerSchema, IndexName, PersonnelSchema, StoreName, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/constants/schema";
-import { ActiveComponentType, StorageOptionLabel } from "@/lib/constants/enum";
+import { ActiveComponentType, ErrorMessageEnum, StorageOptionLabel } from "@/lib/constants/enum";
 import { PersonnelInterface } from "@/lib/types/personnelType";
 import { TimesheetHour } from "./timesheetHour";
 
@@ -81,6 +81,51 @@ export class Timesheet implements TimesheetInterface {
     hasEntryOnDate(date: TimesheetDate): Boolean {
         return this.entries.some((entry) => date.isEqual(entry.date))
     }
+
+    getTotalHoursOnADay(date: TimesheetDate) {
+        const nullHour = new TimesheetHour("00:00");
+
+        if (!this.hasEntryOnDate(date)) return nullHour
+
+        const entriesInDay = this.entries.filter(entry => date.isEqual(entry.date));
+        if (entriesInDay.length == 0) return nullHour
+
+        let totalHoursInDay: TimesheetHour = entriesInDay[0].totalEntryPeriodHours;
+        for (let i = 1; i < entriesInDay.length; i++) {
+            totalHoursInDay = TimesheetHour.sumTimesheetHours(entriesInDay[i].totalEntryPeriodHours, totalHoursInDay);
+        }
+        return totalHoursInDay
+    }
+
+    entriesWithOverlappingPeriodInDay(date: TimesheetDate) {
+        if (!this.hasEntryOnDate(date)) throw Error(ErrorMessageEnum.entryOnDateNotFound);
+
+        const entriesInDay = this.entries.filter(entry => date.isEqual(entry.date));
+        let _cursorEntries = [...entriesInDay];
+        let overlappingEntries: TimesheetEntry[] = [];
+        let _countMain = _cursorEntries.length - 1;
+        let _countSub = 0;
+        while (_countMain !== 0) {
+            const overlapChecker = TimesheetEntryPeriod.doesPeriodOverlap(_cursorEntries[_countMain].entryPeriod, _cursorEntries[_countSub].entryPeriod)
+            if (overlapChecker) {
+                overlappingEntries = [...overlappingEntries, _cursorEntries[_countMain], _cursorEntries[_countSub]]
+            }
+            _countSub++
+            if (_countSub >= _cursorEntries.length - 1) {
+                _cursorEntries.pop();
+                _countSub = 0;
+                _countMain = _cursorEntries.length - 1;
+            }
+        }
+        return overlappingEntries
+    }
+
+    doesEntryWithinDayOverlap(date: TimesheetDate) {
+        const overlappingEntries = this.entriesWithOverlappingPeriodInDay(date);
+        if (overlappingEntries.length > 0) return true
+        return false
+    }
+
 
     static doesPrimitiveTimesheetHaveEntryOnPrimitiveDate(primitiveTimesheet: PrimitiveTimesheetInterface, primitiveDate: string) {
         return primitiveTimesheet.entries.some((entry) => entry.date === primitiveDate)
@@ -192,7 +237,7 @@ export class Timesheet implements TimesheetInterface {
     }
 
     static async updateTimesheetInDb(timesheet: Timesheet | TimesheetInterface) {
-        if (!timesheet.id) throw Error //Invalid timesheet Supplied
+        if (!timesheet.id) throw Error(ErrorMessageEnum.invalidTimesheet) //Invalid-Timesheet
 
         const _stringifiedUpdatedTimesheet = JSON.stringify(timesheet);
         const _timesheetSchema: TimesheetSchema = JSON.parse(_stringifiedUpdatedTimesheet);
@@ -203,7 +248,7 @@ export class Timesheet implements TimesheetInterface {
     }
 
     static convertTimesheetToPrimitive(timesheet: Timesheet) {
-        if (!timesheet.project.id) throw Error;
+        if (!timesheet.project.id) throw Error(ErrorMessageEnum.projectNotFound);
         const _projectId = timesheet.project.id
 
         const _primitiveTimesheet: PrimitiveTimesheetInterface = {
@@ -217,10 +262,10 @@ export class Timesheet implements TimesheetInterface {
                 const _breakStartTime = entry?.entryPeriod?.breakTimeStart?.time;
                 const _breakFinishTime = entry?.entryPeriod?.breakTimeFinish?.time;
 
-                if (!entry.entryPeriod?.startTime) throw Error // invalid starttime
+                if (!entry.entryPeriod?.startTime) throw Error(ErrorMessageEnum.invalidStartTime) // invalid starttime
                 const _entryPeriodStartTime = entry.entryPeriod.startTime.time
 
-                if (!entry.entryPeriod?.finishTime?.time) throw Error
+                if (!entry.entryPeriod?.finishTime?.time) throw Error(ErrorMessageEnum.invalidFinishTime)
                 const _entryPeriodFinishTime = entry.entryPeriod?.finishTime?.time
 
                 const _primitiveTimesheetEntry: PrimitiveTimesheetEntryInterface = { id: entry.id, date: entry.date.defaultFormat(), entryTypeSlug: entry.entryType.slug, hasPremium: entry.hasPremium, entryPeriodStartTime: _entryPeriodStartTime, entryPeriodFinishTime: _entryPeriodFinishTime, locationType: entry.locationType, comment: entry.comment, breakPeriodStartTime: _breakStartTime ? _breakStartTime : '', breakPeriodFinishTime: _breakFinishTime ? _breakFinishTime : '' }
@@ -237,13 +282,13 @@ export class Timesheet implements TimesheetInterface {
         const _personnel = new Personnel(personnelData);
 
         // const customerDbData: CustomerSchema = await getByIndexInStore(StoreName.customer, IndexName.slugIndex, timesheetDBData.customerSlug);
-        /* if (!customerDbData.id) throw Error //Customer not found or something
+        /* if (!customerDbData.id) throw Error(ErrorMessageEnum.customerNotFound) //Customer not found or something
         const _customer: CustomerInterface = { ...customerDbData, id: customerDbData.id }; */
         const _customer: CustomerInterface = timesheetDBData.customer;
 
-        /* if (customerDbData.sites.length == 0) throw Error; //There are no sites for the selected customer, not right  
+        /* if (customerDbData.sites.length == 0) throw Error(ErrorMessageEnum.customerSitesNotFound); //There are no sites for the selected customer, not right  
         const _site: SiteInterface = customerDbData.sites.filter(s => s.slug == timesheetDBData.siteSlug)[0];
-        if (!_site) throw Error; // there are sites for the customer, but the one saved on the timesheet Data is not on the site list */
+        if (!_site) throw Error(ErrorMessageEnum.siteNotValid); // there are sites for the customer, but the one saved on the timesheet Data is not on the site list */
         const _site: SiteInterface = timesheetDBData.site;
 
         // const _project: ProjectInterface = await getInStore(timesheetDBData.projectId, StoreName.project);
@@ -254,7 +299,7 @@ export class Timesheet implements TimesheetInterface {
         let _options: TimesheetOptionInterface[] = [];
         if (timesheetDBData.options) _options = timesheetDBData.options
 
-        if (!timesheetDBData.entries) throw Error //entry is undefined or null, bad situation.
+        if (!timesheetDBData.entries) throw Error(ErrorMessageEnum.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
         const timesheetEntries = timesheetDBData.entries.map((entry) => {
             return new TimesheetEntry(entry)
         });
@@ -269,19 +314,19 @@ export class Timesheet implements TimesheetInterface {
 
     static async convertPrimitiveToSchema(primitiveTimesheet: PrimitiveTimesheetInterface, personnel: PersonnelInterface, weekEndingDate: TimesheetDate) {
         const customerDbData: CustomerSchema = await getByIndexInStore(StoreName.customer, IndexName.slugIndex, primitiveTimesheet.customerSlug);
-        if (!customerDbData.id) throw Error //Customer not found
+        if (!customerDbData.id) throw Error(ErrorMessageEnum.customerNotFound) //Customer not found
         const _customer: CustomerInterface = { ...customerDbData, id: customerDbData.id };
 
-        if (customerDbData.sites.length == 0) throw Error; //There are no sites for the selected customer, not right  
+        if (customerDbData.sites.length == 0) throw Error(ErrorMessageEnum.customerSitesNotFound); //There are no sites for the selected customer, not right  
         const _site: SiteInterface = customerDbData.sites.filter(s => s.slug == primitiveTimesheet.siteSlug)[0];
-        if (!_site) throw Error; // there are sites for the customer, but the one saved on the timesheet Data is not on the site list
+        if (!_site) throw Error(ErrorMessageEnum.siteNotValid); // there are sites for the customer, but the one saved on the timesheet Data is not on the site list
 
         const _project: ProjectInterface = await getInStore(primitiveTimesheet.projectId, StoreName.project);
 
         let _options: TimesheetOptionInterface[] = [];
         if (primitiveTimesheet.options) _options = primitiveTimesheet.options
 
-        if (!primitiveTimesheet.entries) throw Error //entry is undefined or null, bad situation.
+        if (!primitiveTimesheet.entries) throw Error(ErrorMessageEnum.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
         const timesheetEntries = primitiveTimesheet.entries.map((primitiveEntry) => TimesheetEntry.convertPrimitiveToTimesheetEntryInterface(primitiveEntry));
 
         const timesheetSchema: TimesheetSchema = {
@@ -301,7 +346,7 @@ export class Timesheet implements TimesheetInterface {
         const _timesheetFromDb: TimesheetSchema = await getInStore(timesheetId, StoreName.timesheet);
         const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetFromDb);
         if (_timesheet) return _timesheet;
-        throw Error // timesheet not found
+        throw Error(ErrorMessageEnum.timesheetNotFound) // timesheet not found
     }
 
     static async getTimesheetCollectionFromId(timesheetCollectionId: number) {

@@ -95,6 +95,11 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
         const entryPeriodFinishTime = new TimesheetHour(entryPeriodFinishTimeString);
 
         if (entryPeriodFinishTime.isEarlierThan(entryPeriodStartTime) || entryPeriodFinishTime.isEqualTo(entryPeriodStartTime)) return true; // time order is wrong
+
+        const _entry = localTimesheet.entries.filter(e => e.id == entryId)[0];
+        if (_entry) {
+            if (localTimesheet.doesEntryWithinDayOverlap(_entry.date) && localTimesheet.entriesWithOverlappingPeriodInDay(_entry.date).some(e => e.id === entryId)) return true
+        }
         return false
     }
 
@@ -107,6 +112,11 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
         const entryPeriodStartTime = new TimesheetHour(entryPeriodStartTimeString);
 
         if (entryPeriodFinishTime.isEarlierThan(entryPeriodStartTime) || entryPeriodFinishTime.isEqualTo(entryPeriodStartTime)) return true; // time order is wrong
+
+        const _entry = localTimesheet.entries.filter(e => e.id == entryId)[0];
+        if (_entry) {
+            if (localTimesheet.doesEntryWithinDayOverlap(_entry.date) && localTimesheet.entriesWithOverlappingPeriodInDay(_entry.date).some(e => e.id === entryId)) return true
+        }
         return false
     }
 
@@ -176,13 +186,8 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
     }
 
     const getTotalHoursOnADay = (dayString: string) => {
-        const entriesInDay = localTimesheet.entries.filter(entry => entry.date.defaultFormat() == dayString);
-        if (entriesInDay.length == 0) return "00:00"
-
-        let totalHoursInDay: TimesheetHour = entriesInDay[0].totalEntryPeriodHours;
-        for (let i = 1; i < entriesInDay.length; i++) {
-            totalHoursInDay = TimesheetHour.sumTimesheetHours(entriesInDay[i].totalEntryPeriodHours, totalHoursInDay);
-        }
+        const date = new TimesheetDate(dayString)
+        const totalHoursInDay = localTimesheet.getTotalHoursOnADay(date);
         return totalHoursInDay.time
     }
 
@@ -206,7 +211,6 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
             const updatedLocalTimesheet = await Timesheet.convertPrimitiveToTimesheet(updatedLocalPrimitiveTimesheet, localTimesheet.personnel, localTimesheet.weekEndingDate);
             setLocalTimesheet(updatedLocalTimesheet)
         } catch (e) {
-            console.log(e)
         }
         /* let key: string;
         let value: any;
@@ -227,10 +231,11 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
         })); */
     }
 
-    function handleTimesheetEntryDelete(e: any, localPrimitiveTimesheetEntryId: number) {
+    function handleTimesheetEntryDelete(e: any, entryId: number) {
         setLocalPrimitiveTimesheet({
-            ...localPrimitiveTimesheet, entries: localPrimitiveTimesheet.entries.filter((primitiveEntry) => primitiveEntry.id !== localPrimitiveTimesheetEntryId)
+            ...localPrimitiveTimesheet, entries: localPrimitiveTimesheet.entries.filter((primitiveEntry) => primitiveEntry.id !== entryId)
         });
+        setLocalTimesheet(new Timesheet({ ...localTimesheet, entries: localTimesheet.entries.filter((entry) => entry.id !== entryId) }));
     }
 
     function _handleSaveTimesheet(e: any) {
@@ -482,7 +487,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                                         </div>
                                                         <div className="action-list">
                                                             <div className="flex gap-x-1 justify-end">
-                                                                <button type="button" title="Duplicate Entry">
+                                                                <button type="button" title="Duplicate Entry" className="hidden">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
                                                                     </svg>

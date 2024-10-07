@@ -3,6 +3,7 @@ import { InvalidTimesheetDateError } from "./timesheetErrors";
 import { Timesheet } from "./timesheet";
 import { DefaultPrimitiveTimesheetEntryDataInterface, TimesheetDateInterface } from "@/lib/types/timesheetType";
 import { TimesheetEntry } from "./timesheetEntry";
+import { ErrorMessageEnum } from "@/lib/constants/enum";
 
 export class TimesheetDate implements TimesheetDateInterface {
     date: string;
@@ -234,7 +235,7 @@ export class TimesheetDate implements TimesheetDateInterface {
                 count++;
             }
             return monthArray;
-        } else throw Error
+        } else throw Error(ErrorMessageEnum.dateSelectionMismatch)
     }
 
     static getWeekDaysCollection(referenceDate: TimesheetDate) {

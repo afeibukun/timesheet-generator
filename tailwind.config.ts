@@ -37,6 +37,32 @@ const config: Config = {
         'span-46': 'span 46 / span 46',
         'span-94': 'span 94 / span 94',
         'span-99': 'span 99 / span 99',
+      },
+      keyframes: {
+        slideInRight: {
+          '0%': { transform: 'translateX(110%)' },
+          '75%': { transform: 'translateX(-10%)' },
+          '100%': { transform: 'translateX(0%)' },
+        },
+        slideOutRight: {
+          '0%': { transform: 'translateX(0%)' },
+          '25%': { transform: 'translateX(-10%)' },
+          '100%': { transform: 'translateX(110%)' },
+        },
+        fadeOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' }
+        },
+        progress: {
+          '0%': { width: '100%' },
+          '100%': { width: '0%' }
+        }
+      },
+      animation: {
+        slideInRight: 'slideInRight 0.3s ease-in-out forwards',
+        slideOutRight: 'slideOutRight 0.5s ease-in-out forwards',
+        fadeOut: 'fadeOut 0.5s ease-in-out forwards 3s',
+        progress: 'progress 3s ease-in-out forwards',
       }
     },
   },

@@ -1,3 +1,4 @@
+import { ErrorMessageEnum } from "@/lib/constants/enum";
 import { TimesheetHourInterface } from "@/lib/types/timesheetType";
 import moment from "moment";
 
@@ -15,7 +16,7 @@ export class TimesheetHour implements TimesheetHourInterface {
             if (_timeInput.hour) {
                 this.hour = _timeInput.hour;
                 this.minute = _timeInput.minute ? _timeInput.minute : 0;
-            } else throw new Error // invalid time input
+            } else throw new Error(ErrorMessageEnum.timeInputNotFound) // invalid time input
         }
         const paddedHour = String(this.hour).padStart(2, '0');
         const paddedMinute = String(this.minute).padStart(2, '0');
@@ -31,6 +32,14 @@ export class TimesheetHour implements TimesheetHourInterface {
 
     isEqualTo(secondTime: TimesheetHour) {
         if (this.time === secondTime.time) return true
+        return false
+    }
+
+    isInBetweenTimeRange(timeRangeStart: TimesheetHour, timeRangeFinish: TimesheetHour) {
+        if (timeRangeStart.isEarlierThan(this) && this.isEarlierThan(timeRangeFinish)) {
+            //  && period1.startTime?.isEarlierThan(period2.finishTime) && (period1.finishTime.isEarlierThan(period2.startTime) && period1.finishTime?.isEarlierThan(period2.finishTime))) || ((period2.startTime.isEarlierThan(period2.finishTime) && period2.startTime.isEarlierThan(period1.startTime) && period2.startTime?.isEarlierThan(period1.finishTime) && (period2.finishTime.isEarlierThan(period1.startTime) && period2.finishTime.isEarlierThan(period1.finishTime))) ))
+            return true
+        }
         return false
     }
 

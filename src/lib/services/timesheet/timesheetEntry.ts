@@ -1,4 +1,4 @@
-import { EntryStateEnum, LocationTypeEnum } from "@/lib/constants/enum";
+import { EntryStateEnum, ErrorMessageEnum, LocationTypeEnum } from "@/lib/constants/enum";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { Timesheet } from "./timesheet";
@@ -47,13 +47,13 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     get entryPeriodStartTime(): string {
         let time = this.entryPeriod?.startTime?.time
         if (time) return time
-        throw new Error // Time not found 
+        throw new Error(ErrorMessageEnum.startTimeNotFound) // Time not found 
     }
 
     get entryPeriodFinishTime(): string {
         let time = this.entryPeriod?.finishTime?.time
         if (time) return time
-        throw new Error // finish time not found
+        throw new Error(ErrorMessageEnum.finishTimeNotFound) // finish time not found
     }
 
     get weekNumber(): number {
@@ -116,7 +116,7 @@ export class TimesheetEntry implements TimesheetEntryInterface {
             const retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
             if (retrievedData) {
                 defaultData = retrievedData.value
-            } else throw Error
+            } else throw Error(ErrorMessageEnum.defaultDataNotFound)
         } catch (e) { }
 
         return defaultData;

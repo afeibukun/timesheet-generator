@@ -51,3 +51,25 @@ export enum EntryStateEnum {
     edit = "EDIT",
     recentlyUpdated = "RECENTLY_UPDATED"
 }
+
+export enum ErrorMessageEnum {
+    entryOnDateNotFound = "entry-on-date-not-found-in-timesheet",
+    invalidTimesheet = "invalid-timesheet",
+    projectNotFound = "project-information-not-found",
+    invalidStartTime = "invalid-start-time",
+    invalidFinishTime = "invalid-finish-time",
+    customerNotFound = "customer-information-not-found",
+    customerSitesNotFound = "sites-not-found-for-selected-customer",
+    siteNotValid = "selected-site-not-valid",
+    timesheetEntriesNotFound = "entries-not-found",
+    timesheetNotFound = "timesheet-not-found",
+    dateSelectionMismatch = "start-date-is-after-finish-date",
+    defaultDataNotFound = "default-data-not-found",
+    startTimeNotFound = "start-time-not-found",
+    finishTimeNotFound = "finish-time-not-found",
+    timeNotDefined = "time-not-defined",
+    wrongTimeOrder = "time-order-is-wrong",
+    wrongBreakStartAndStartTimeOrder = "wrong-break-start-and-start-time-order",
+    wrongBreakTimeOrder = "wrong-break-time-order",
+    timeInputNotFound = "time-input-not-found",
+}
