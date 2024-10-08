@@ -1,28 +1,38 @@
-import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/defaultData";
-import { EntryStateEnum, LocationTypeEnum } from "@/lib/constants/enum";
+import { defaultTimesheetEntryType } from "@/lib/constants/defaultData";
+import { LocationTypeEnum } from "@/lib/constants/enum";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
-import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod";
 import { TimesheetHour } from "@/lib/services/timesheet/timesheetHour";
-import { PrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetEntryInterface, PrimitiveTimesheetInterface, TimesheetEntryInterface } from "@/lib/types/timesheetType";
+import { PrimitiveTimesheetEntryInterface, PrimitiveTimesheetInterface } from "@/lib/types/timesheetType";
 import { useEffect, useState } from "react";
 import InfoLabel from "./InfoLabel";
+import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 
-export type TimesheetTableProps = {
+type TimesheetTableProps = {
     timesheetData: Timesheet,
     handleSaveTimesheet: Function
 }
 
+interface PrimitiveTimesheetEntryErrorInterface {
+    id: number,
+    entryType: { error: boolean, message: string },
+    locationType: { error: boolean, message: string },
+    entryPeriodStartTime: { error: boolean, message: string },
+    entryPeriodFinishTime: { error: boolean, message: string },
+    breakPeriodStartTime: { error: boolean, message: string },
+    breakPeriodFinishTime: { error: boolean, message: string },
+}
 
 export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet }: TimesheetTableProps) {
 
     const [localPrimitiveTimesheet, setLocalPrimitiveTimesheet] = useState(Timesheet.convertTimesheetToPrimitive(timesheetData));
     const [localTimesheet, setLocalTimesheet] = useState(timesheetData);
 
-    const [localPrimitiveTimesheetCollection, setLocalPrimitiveTimesheetCollection] = useState(timesheetData?.entries.map((entry: any) => {
-        return { ...entry, 'startTime': entry.entryPeriod.startTime, 'finishTime': entry.entryPeriod.finishTime, state: EntryStateEnum.default, updatedAt: null } as PrimitiveTimesheetEntryDataInterface
-    }) as PrimitiveTimesheetEntryDataInterface[]);
+    const defaultErrorObject = { error: false, message: "" }
+    const [localPrimitiveTimesheetEntryErrors, setLocalPrimitiveTimesheetEntryErrors] = useState(timesheetData?.entries.map((entry: any) => {
+        return { id: entry.id, entryType: defaultErrorObject, locationType: defaultErrorObject, entryPeriodStartTime: defaultErrorObject, entryPeriodFinishTime: defaultErrorObject, breakPeriodStartTime: defaultErrorObject, breakPeriodFinishTime: defaultErrorObject } as PrimitiveTimesheetEntryErrorInterface
+    }) as PrimitiveTimesheetEntryErrorInterface[]);
 
     const [daysInCurrentTimesheetWeek, setDaysInCurrentTimesheetWeek] = useState(TimesheetDate.getWeekDaysCollection(timesheetData.weekEndingDate));
 
@@ -38,146 +48,19 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
 
     }, []);
 
-    const updateEditableTimsheetEntryState = (timesheetEntryId: number, entryState: EntryStateEnum) => {
-        setLocalPrimitiveTimesheetCollection(localPrimitiveTimesheetCollection.map((localPrimitiveTimesheetEntry: PrimitiveTimesheetEntryDataInterface) => {
-            if (localPrimitiveTimesheetEntry.id == timesheetEntryId) {
-                return { ...localPrimitiveTimesheetEntry, state: entryState };
-            }
-            return localPrimitiveTimesheetEntry
-        }));
-    }
-
-    function handleEditButtonClick(e: any, timesheetEntryId: number) {
-        updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.edit);
-    }
-
-    function handleBackButtonClick(e: any, timesheetEntryId: number) {
-        updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.default);
-    }
-
-    function handleInputChange(e: any, timesheetEntryId: number, entryItemKey: string,) {
-        let entryItemValue = e.target.value;
-        setLocalPrimitiveTimesheetCollection(localPrimitiveTimesheetCollection.map((localPrimitiveTimesheetEntry) => {
-            if (localPrimitiveTimesheetEntry.id == timesheetEntryId) {
-                return { ...localPrimitiveTimesheetEntry, [entryItemKey]: entryItemValue };
-            }
-            return localPrimitiveTimesheetEntry
-        }));
-    }
-
-    const computeTotalTime = (entryId: number) => {
+    const getEntryTime = (entryId: number) => {
         try {
-            const entryPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodStartTime
-            const entryPeriodStartTime = new TimesheetHour(entryPeriodStartTimeString)
-
-            const entryPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodFinishTime
-            const entryPeriodFinishTime = new TimesheetHour(entryPeriodFinishTimeString);
-
-            const breakPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].breakPeriodStartTime;
-            const breakPeriodStartTime = breakPeriodStartTimeString ? new TimesheetHour(breakPeriodStartTimeString) : undefined;
-
-            const breakPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].breakPeriodFinishTime;
-            const breakPeriodFinishTime = breakPeriodFinishTimeString ? new TimesheetHour(breakPeriodFinishTimeString) : undefined;
-
-            const newTimesheetEntryPeriod = new TimesheetEntryPeriod({ startTime: entryPeriodStartTime, finishTime: entryPeriodFinishTime, breakTimeStart: breakPeriodStartTime, breakTimeFinish: breakPeriodFinishTime })
-            return newTimesheetEntryPeriod.totalHoursInString;
+            return localTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriod.totalHoursInString
         } catch (e) {
             return '00:00'
         }
-    }
-
-    const errorOnEntryStartTime = (entryId: number) => {
-        const entryPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodStartTime;
-        if (!(!!entryPeriodStartTimeString)) return true
-        const entryPeriodStartTime = new TimesheetHour(entryPeriodStartTimeString);
-
-        const entryPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodFinishTime
-        const entryPeriodFinishTime = new TimesheetHour(entryPeriodFinishTimeString);
-
-        if (entryPeriodFinishTime.isEarlierThan(entryPeriodStartTime) || entryPeriodFinishTime.isEqualTo(entryPeriodStartTime)) return true; // time order is wrong
-
-        const _entry = localTimesheet.entries.filter(e => e.id == entryId)[0];
-        if (_entry) {
-            if (localTimesheet.doesEntryWithinDayOverlap(_entry.date) && localTimesheet.entriesWithOverlappingPeriodInDay(_entry.date).some(e => e.id === entryId)) return true
-        }
-        return false
-    }
-
-    const errorOnEntryFinishTime = (entryId: number) => {
-        const entryPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodFinishTime
-        if (!(!!entryPeriodFinishTimeString)) return true
-        const entryPeriodFinishTime = new TimesheetHour(entryPeriodFinishTimeString);
-
-        const entryPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodStartTime;
-        const entryPeriodStartTime = new TimesheetHour(entryPeriodStartTimeString);
-
-        if (entryPeriodFinishTime.isEarlierThan(entryPeriodStartTime) || entryPeriodFinishTime.isEqualTo(entryPeriodStartTime)) return true; // time order is wrong
-
-        const _entry = localTimesheet.entries.filter(e => e.id == entryId)[0];
-        if (_entry) {
-            if (localTimesheet.doesEntryWithinDayOverlap(_entry.date) && localTimesheet.entriesWithOverlappingPeriodInDay(_entry.date).some(e => e.id === entryId)) return true
-        }
-        return false
-    }
-
-    const errorOnBreakStartTime = (entryId: number) => {
-        const breakPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].breakPeriodStartTime;
-        const breakPeriodStartTime = breakPeriodStartTimeString ? new TimesheetHour(breakPeriodStartTimeString) : undefined;
-
-        const entryPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodStartTime;
-        const entryPeriodStartTime = new TimesheetHour(entryPeriodStartTimeString);
-
-        if (!!breakPeriodStartTime && !!entryPeriodStartTime && breakPeriodStartTime.isEarlierThan(entryPeriodStartTime)) {
-            return true; // Break Time cannot start before Main Start Time
-        }
-        const entryPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodFinishTime
-        const entryPeriodFinishTime = new TimesheetHour(entryPeriodFinishTimeString);
-
-        if (!!breakPeriodStartTime && !!entryPeriodFinishTime && entryPeriodFinishTime.isEarlierThan(breakPeriodStartTime)) {
-            return true; // Break Time cannot start after Main Finish Time
-        }
-        const breakPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].breakPeriodFinishTime;
-        const breakPeriodFinishTime = breakPeriodFinishTimeString ? new TimesheetHour(breakPeriodFinishTimeString) : undefined;
-
-        if (!!breakPeriodStartTime && !!breakPeriodFinishTime && (breakPeriodFinishTime.isEarlierThan(breakPeriodStartTime) || breakPeriodFinishTime.isEqualTo(breakPeriodStartTime))) {
-            return true; // Invalid Break Time
-        }
-
-        return false
-    }
-
-    const errorOnBreakFinishTime = (entryId: number) => {
-
-        const breakPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].breakPeriodFinishTime;
-        const breakPeriodFinishTime = breakPeriodFinishTimeString ? new TimesheetHour(breakPeriodFinishTimeString) : undefined;
-
-        const entryPeriodFinishTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodFinishTime
-        const entryPeriodFinishTime = new TimesheetHour(entryPeriodFinishTimeString);
-
-        if (!!breakPeriodFinishTime && !!entryPeriodFinishTime && entryPeriodFinishTime.isEarlierThan(breakPeriodFinishTime)) {
-            return true; // Break Time cannot end after Main Finish Time
-        }
-
-        const breakPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].breakPeriodStartTime;
-        const breakPeriodStartTime = breakPeriodStartTimeString ? new TimesheetHour(breakPeriodStartTimeString) : undefined;
-        if (!!breakPeriodStartTime && !!breakPeriodFinishTime && (breakPeriodFinishTime.isEarlierThan(breakPeriodStartTime) || breakPeriodFinishTime.isEqualTo(breakPeriodStartTime))) {
-            return true; // Invalid Break Time
-        }
-
-        const entryPeriodStartTimeString = localPrimitiveTimesheet.entries.filter((e) => e.id === entryId)[0].entryPeriodStartTime;
-        const entryPeriodStartTime = new TimesheetHour(entryPeriodStartTimeString);
-
-        if (!!breakPeriodFinishTime && !!entryPeriodStartTime && breakPeriodFinishTime.isEarlierThan(entryPeriodStartTime)) {
-            return true; // Break Time cannot finish before Main Start Time        
-        }
-
-        return false
     }
 
     const addTimesheetEntry = (dayString: string) => {
         const newPrimitiveTimesheetEntry: PrimitiveTimesheetEntryInterface = { id: Date.now(), date: dayString, entryTypeSlug: '', hasPremium: false, entryPeriodStartTime: '', entryPeriodFinishTime: '', locationType: LocationTypeEnum.onshore, comment: '', breakPeriodStartTime: '', breakPeriodFinishTime: '' }
         const updatedLocalPrimitiveTimesheet = { ...localPrimitiveTimesheet, entries: [...localPrimitiveTimesheet.entries, newPrimitiveTimesheetEntry] }
         setLocalPrimitiveTimesheet(updatedLocalPrimitiveTimesheet);
+        setLocalPrimitiveTimesheetEntryErrors([...localPrimitiveTimesheetEntryErrors, { id: newPrimitiveTimesheetEntry.id, entryType: defaultErrorObject, locationType: defaultErrorObject, entryPeriodStartTime: defaultErrorObject, entryPeriodFinishTime: defaultErrorObject, breakPeriodStartTime: defaultErrorObject, breakPeriodFinishTime: defaultErrorObject }])
         handleLocalTimesheetUpdate(updatedLocalPrimitiveTimesheet);
     }
 
@@ -209,26 +92,59 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
     async function handleLocalTimesheetUpdate(updatedLocalPrimitiveTimesheet: PrimitiveTimesheetInterface) {
         try {
             const updatedLocalTimesheet = await Timesheet.convertPrimitiveToTimesheet(updatedLocalPrimitiveTimesheet, localTimesheet.personnel, localTimesheet.weekEndingDate);
+            generateTimesheetEntryErrors(updatedLocalTimesheet)
             setLocalTimesheet(updatedLocalTimesheet)
         } catch (e) {
+            // console.log(e)
         }
-        /* let key: string;
-        let value: any;
-        if (itemKey === "entryTypeSlug") {
-            key = "entryType"
-            value = defaultTimesheetEntryType.filter((t) => t.slug === itemValue)[0]
-        } else if (itemKey === "entryTypeSlug") {
-            key = "entryType"
-            value = defaultTimesheetEntryType.filter((t) => t.slug === itemValue)[0]
+    }
+
+    const generateTimesheetEntryErrors = (_localTimesheet: Timesheet) => {
+        const errorEntries = _localTimesheet.entries.map((entry) => {
+
+            let _entryTypeError = defaultErrorObject
+            if (!entry.entryType) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
+
+            let startTimeError = Timesheet.errorOnEntryTime(entry, _localTimesheet, 'start');
+            let _entryStartTimeError = defaultErrorObject
+            if (startTimeError.error) _entryStartTimeError = startTimeError
+
+            let finishTimeError = Timesheet.errorOnEntryTime(entry, _localTimesheet, 'finish');
+            let _entryFinishTimeError = defaultErrorObject
+            if (finishTimeError.error) _entryFinishTimeError = finishTimeError
+
+            let breakStartTimeError = entry.entryPeriod.errorOnBreakStartTime()
+            let _entryBreakStartTimeError = defaultErrorObject
+            if (breakStartTimeError.error) _entryBreakStartTimeError = breakStartTimeError
+
+            let breakFinishTimeError = entry.entryPeriod.errorOnBreakFinishTime()
+            let _entryBreakFinishTimeError = defaultErrorObject
+            if (breakFinishTimeError.error) _entryBreakFinishTimeError = breakFinishTimeError
+
+            let entryError: PrimitiveTimesheetEntryErrorInterface = localPrimitiveTimesheetEntryErrors.filter((e) => e.id === entry.id)[0];
+            if (entryError) entryError = { ...entryError, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError }
+            else entryError = { id: entry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
+            return entryError
+        })
+        setLocalPrimitiveTimesheetEntryErrors(errorEntries);
+    }
+
+    const doesTimesheetHaveError = () => {
+        return localPrimitiveTimesheetEntryErrors.some((err) => {
+            const hasErrors = err.entryType.error || err.entryPeriodStartTime.error || err.entryPeriodFinishTime.error || err.breakPeriodStartTime.error || err.breakPeriodFinishTime.error
+            return hasErrors
+        })
+    }
+
+    const verifyErrorData = (entryId: number, fieldName: string) => {
+        const entryError = localPrimitiveTimesheetEntryErrors.filter(e => e.id == entryId)[0]
+        if (entryError) {
+            const errorData = entryError[fieldName as keyof PrimitiveTimesheetEntryErrorInterface] as { error: boolean, message: string }
+            return errorData
+        } else {
+            return { error: true, message: "Not Found" }
         }
-        setLocalTimesheet(new Timesheet({
-            ...localTimesheet, entries: localTimesheet.entries.map((entry) => {
-                if (entry.id == timesheetEntryId) {
-                    return new TimesheetEntry({ ...entry, [key]: value })
-                }
-                return entry
-            })
-        })); */
+        return defaultErrorObject
     }
 
     function handleTimesheetEntryDelete(e: any, entryId: number) {
@@ -238,52 +154,12 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
         setLocalTimesheet(new Timesheet({ ...localTimesheet, entries: localTimesheet.entries.filter((entry) => entry.id !== entryId) }));
     }
 
-    function _handleSaveTimesheet(e: any) {
-        // takes the local primitive timesheet, converts it to a timesheet schema
-        // updates the db equivalent
-        // updates the one in the state of the parent
-        try {
-            /* localPrimitiveTimesheet
-            let entry = selectedEditableTimesheetEntry(localPrimitiveTimesheetEntryId);
-            handleTimesheetEntryUpdate({ id: entry.id, startTime: entry.startTime, finishTime: entry.finishTime, locationType: entry.locationType, comment: entry.comment });
-            updateEditableTimsheetEntryState(localPrimitiveTimesheetEntryId, EntryStateEnum.recentlyUpdated);
-            setTimeout(() => {
-                updateEditableTimsheetEntryState(localPrimitiveTimesheetEntryId, EntryStateEnum.default);
-            }, 5000) */
-        } catch (e) {
-
+    function handleTimesheetSaveButtonClick(e: any) {
+        if (!doesTimesheetHaveError()) {
+            handleSaveTimesheet(e, localTimesheet)
+        } else {
+            handleSaveTimesheet(e, undefined);
         }
-    }
-
-    function handleSaveButtonClick(e: any, timesheetEntryId: number) {
-        /* try {
-            let entry = selectedEditableTimesheetEntry(timesheetEntryId);
-            handleTimesheetEntryUpdate({ id: entry.id, startTime: entry.startTime, finishTime: entry.finishTime, locationType: entry.locationType, comment: entry.comment });
-            updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.recentlyUpdated);
-            setTimeout(() => {
-                updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.default);
-            }, 5000)
-        } catch (e) {
-
-        } */
-    }
-
-    const selectedEditableTimesheetEntry = (timesheetEntryId: number) => localPrimitiveTimesheetCollection.filter((localPrimitiveTimesheetEntry: PrimitiveTimesheetEntryDataInterface) => localPrimitiveTimesheetEntry.id == timesheetEntryId)[0];
-
-    function isEntryInEditState(timesheetEntryId: number) {
-        let entry = selectedEditableTimesheetEntry(timesheetEntryId);
-        if (entry.state == EntryStateEnum.edit) return true
-        return false
-    }
-
-    const setRecentlySavedField = (timesheetEntryId: number, isRecentlySaved: boolean) => {
-        let updatedEditableTimesheetCollection = localPrimitiveTimesheetCollection.map((localPrimitiveTimesheetEntry: PrimitiveTimesheetEntryDataInterface) => {
-            if (localPrimitiveTimesheetEntry.id == timesheetEntryId) {
-                return { ...localPrimitiveTimesheetEntry, isRecentlySaved: !!isRecentlySaved }
-            }
-            return localPrimitiveTimesheetEntry;
-        });
-        setLocalPrimitiveTimesheetCollection(updatedEditableTimesheetCollection);
     }
 
     return (
@@ -297,7 +173,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                 <span>{timesheetData.weekNumber} <small className="capitalize">({timesheetData.month})</small></span>
                             </h4>
                             <div className="">
-                                <button type="button" className="px-4 py-1.5 bg-green-800 rounded text-sm text-white hover:bg-green-900" onClick={(e) => handleSaveTimesheet(e, localTimesheet)}>
+                                <button type="button" className="px-4 py-1.5 bg-green-800 rounded text-sm text-white hover:bg-green-900" onClick={(e) => handleTimesheetSaveButtonClick(e)}>
                                     <span>Save Timesheet</span>
                                 </button>
                             </div>
@@ -418,7 +294,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                                 {localPrimitiveTimesheet.entries.filter(entry => day.defaultFormat() == entry.date).map((editableEntry, entryIndex) =>
                                                     <div className="entry-body grid grid-cols-12 gap-x-1.5 mb-2" key={editableEntry.id}>
                                                         <div className="time-type-edit col-span-2">
-                                                            <select name="timeType" id={`time-type-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Select Time Type" className={`text-xs p-1 rounded-sm border w-full ${(!!editableEntry.entryTypeSlug) ? 'border-black' : 'border-red-600 focus:outline-red-600'}`} value={editableEntry.entryTypeSlug} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'entryTypeSlug')} >
+                                                            <select name="timeType" id={`time-type-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Select Time Type" className={`text-xs p-1 rounded-sm border w-full ${!(verifyErrorData(editableEntry.id, 'entryType').error) ? 'border-black' : 'border-red-600 focus:outline-red-600'}`} value={editableEntry.entryTypeSlug} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'entryTypeSlug')} >
                                                                 <option value="" >Select Time Type</option>
                                                                 {defaultTimesheetEntryType.map((entryType, entryTypeIndex) =>
                                                                     <option value={entryType.slug} key={entryTypeIndex}>{entryType.name}</option>
@@ -435,7 +311,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                                             <input type="checkbox" name="premium" id={`premium-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Check Premium" checked={!!editableEntry.hasPremium} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'hasPremium')} className="text-center" />
                                                         </div>
                                                         <div className="start-time-edit">
-                                                            <input type="time" name="startTime" id={`start-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Start Time" className={`w-full text-xs p-1 rounded-sm border border-black ${!errorOnEntryStartTime(editableEntry.id) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} value={editableEntry.entryPeriodStartTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'entryPeriodStartTime')} step={300} list="entryStartTimePopularHours" />
+                                                            <input type="time" name="startTime" id={`start-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Start Time" className={`w-full text-xs p-1 rounded-sm border border-black ${!verifyErrorData(editableEntry.id, 'entryPeriodStartTime').error ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} value={editableEntry.entryPeriodStartTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'entryPeriodStartTime')} step={300} list="entryStartTimePopularHours" />
                                                             <datalist id="entryStartTimePopularHours">
                                                                 <option value="06:00"></option>
                                                                 <option value="07:00"></option>
@@ -444,7 +320,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                                             </datalist>
                                                         </div>
                                                         <div className="finish-time-edit">
-                                                            <input type="time" name="finishTime" id={`finish-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Finish Time" value={editableEntry.entryPeriodFinishTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'entryPeriodFinishTime')} className={`w-full text-xs p-1 rounded-sm border ${!errorOnEntryFinishTime(editableEntry.id) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} step="300" list="entryFinishTimePopularHours" />
+                                                            <input type="time" name="finishTime" id={`finish-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Finish Time" value={editableEntry.entryPeriodFinishTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'entryPeriodFinishTime')} className={`w-full text-xs p-1 rounded-sm border ${!verifyErrorData(editableEntry.id, 'entryPeriodFinishTime').error ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} step="300" list="entryFinishTimePopularHours" />
                                                             <datalist id="entryFinishTimePopularHours">
                                                                 <option value="16:00"></option>
                                                                 <option value="18:00"></option>
@@ -454,7 +330,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                                             </datalist>
                                                         </div>
                                                         <div className="break-start-time-edit">
-                                                            <input type="time" name="breakStartTime" id={`break-start-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Break Start Time" className={`w-full text-xs p-1 rounded-sm border border-black ${!errorOnBreakStartTime(editableEntry.id) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} value={editableEntry.breakPeriodStartTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'breakPeriodStartTime')} step="300" list="breakStartTimePopularHours" />
+                                                            <input type="time" name="breakStartTime" id={`break-start-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Break Start Time" className={`w-full text-xs p-1 rounded-sm border border-black ${!verifyErrorData(editableEntry.id, 'breakPeriodStartTime').error ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} value={editableEntry.breakPeriodStartTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'breakPeriodStartTime')} step="300" list="breakStartTimePopularHours" />
                                                             <datalist id="breakStartTimePopularHours">
                                                                 <option value="11:00"></option>
                                                                 <option value="11:30"></option>
@@ -469,7 +345,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
 
                                                         </div>
                                                         <div className="break-finish-time-edit">
-                                                            <input type="time" name="breakFinishTime" id={`break-finish-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Break Finish Time" className={`w-full text-xs p-1 rounded-sm border ${!errorOnBreakFinishTime(editableEntry.id) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} value={editableEntry.breakPeriodFinishTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'breakPeriodFinishTime')} step="300" list="breakFinishTimePopularHours" />
+                                                            <input type="time" name="breakFinishTime" id={`break-finish-time-${timesheetData.id}${dayOfTheWeekIndex}-${editableEntry.id}${entryIndex}`} title="Pick Your Break Finish Time" className={`w-full text-xs p-1 rounded-sm border ${!verifyErrorData(editableEntry.id, 'breakPeriodFinishTime').error ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`} value={editableEntry.breakPeriodFinishTime} onChange={(e) => handleLocalPrimitiveTimesheetDataChange(e, editableEntry.id, 'breakPeriodFinishTime')} step="300" list="breakFinishTimePopularHours" />
                                                             <datalist id="breakFinishTimePopularHours">
                                                                 <option value="12:00"></option>
                                                                 <option value="12:30"></option>
@@ -479,7 +355,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                                                         </div>
                                                         <div className="total-time place-self-center">
                                                             <span className="text-xs border-b border-black p-1">
-                                                                {computeTotalTime(editableEntry.id)}
+                                                                {getEntryTime(editableEntry.id)}
                                                             </span>
                                                         </div>
                                                         <div className="comment-edit col-span-2">

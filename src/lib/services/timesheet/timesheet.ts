@@ -88,7 +88,6 @@ export class Timesheet implements TimesheetInterface {
         if (!this.hasEntryOnDate(date)) return nullHour
 
         const entriesInDay = this.entries.filter(entry => date.isEqual(entry.date));
-        if (entriesInDay.length == 0) return nullHour
 
         let totalHoursInDay: TimesheetHour = entriesInDay[0].totalEntryPeriodHours;
         for (let i = 1; i < entriesInDay.length; i++) {
@@ -386,6 +385,16 @@ export class Timesheet implements TimesheetInterface {
         }));
 
         return _timesheetCollectionByMonth
+    }
+
+    static errorOnEntryTime = (entry: TimesheetEntry, timesheet: Timesheet, timeType: string = 'finish',) => {
+        let errorData = timeType === 'start' ? entry.entryPeriod.errorOnStartTime() : entry.entryPeriod.errorOnFinishTime()
+        if (errorData.error) return errorData
+
+        if (entry) {
+            if (timesheet.doesEntryWithinDayOverlap(entry.date) && timesheet.entriesWithOverlappingPeriodInDay(entry.date).some(e => e.id === entry.id)) return { error: true, message: "Entry Period Overlaps with other entries." }
+        }
+        return { error: false, message: "" }
     }
 }
 

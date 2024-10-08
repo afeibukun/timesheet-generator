@@ -72,4 +72,11 @@ export enum ErrorMessageEnum {
     wrongBreakStartAndStartTimeOrder = "wrong-break-start-and-start-time-order",
     wrongBreakTimeOrder = "wrong-break-time-order",
     timeInputNotFound = "time-input-not-found",
+    timeInvalid = "time-invalid"
+}
+
+export enum ToastStatus {
+    success = "success",
+    danger = "danger",
+    info = "info"
 }
