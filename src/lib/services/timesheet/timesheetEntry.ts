@@ -1,19 +1,22 @@
-import { EntryStateEnum, ErrorMessageEnum, LocationTypeEnum } from "@/lib/constants/enum";
+import { ErrorMessage, LocationType } from "@/lib/constants/constant";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { Timesheet } from "./timesheet";
-import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetEntryInterface, TimesheetDateInterface, TimesheetEntryInterface, TimesheetEntryPeriodInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheetType";
-import { AppOptionSchema } from "@/lib/constants/schema";
-import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/defaultData";
+import { TimesheetDateInterface, TimesheetEntryInterface, TimesheetEntryPeriodInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheet";
+import { AppOptionSchema } from "@/lib/types/schema";
+import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
 import { TimesheetHour } from "./timesheetHour";
+import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry } from "@/lib/types/primitive";
 
+/**
+ * Refers to actual timesheet activity entries, working time, travel time e.t.c.
+ */
 export class TimesheetEntry implements TimesheetEntryInterface {
     id: number;
     date: TimesheetDate;
     entryType: TimesheetEntryTypeInterface;
     entryPeriod: TimesheetEntryPeriod;
-    locationType: LocationTypeEnum;
+    locationType: LocationType;
     hasPremium: boolean;
     comment: string;
 
@@ -22,16 +25,16 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         this.date = new TimesheetDate(timesheetEntryInput.date);
         this.entryType = timesheetEntryInput.entryType
         this.entryPeriod = new TimesheetEntryPeriod(timesheetEntryInput.entryPeriod)
-        this.locationType = timesheetEntryInput.locationType ? this.locationType = timesheetEntryInput.locationType : LocationTypeEnum.onshore;
+        this.locationType = timesheetEntryInput.locationType ? this.locationType = timesheetEntryInput.locationType : LocationType.onshore;
         this.hasPremium = timesheetEntryInput.hasPremium ? timesheetEntryInput.hasPremium : false;
         this.comment = timesheetEntryInput.comment ? timesheetEntryInput.comment : ''
     }
 
-    get totalEntryPeriodHours(): TimesheetHour {
+    get totalHours(): TimesheetHour {
         return new TimesheetEntryPeriod(this.entryPeriod!).totalHours
     }
 
-    get totalEntryPeriodHoursInString(): string {
+    get totalHoursInString(): string {
         return new TimesheetEntryPeriod(this.entryPeriod!).totalHoursInString
     }
 
@@ -47,13 +50,13 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     get entryPeriodStartTime(): string {
         let time = this.entryPeriod?.startTime?.time
         if (time) return time
-        throw new Error(ErrorMessageEnum.startTimeNotFound) // Time not found 
+        throw new Error(ErrorMessage.startTimeNotFound) // Time not found 
     }
 
     get entryPeriodFinishTime(): string {
         let time = this.entryPeriod?.finishTime?.time
         if (time) return time
-        throw new Error(ErrorMessageEnum.finishTimeNotFound) // finish time not found
+        throw new Error(ErrorMessage.finishTimeNotFound) // finish time not found
     }
 
     get weekNumber(): number {
@@ -96,12 +99,12 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     }
 
     get isLocationTypeOnshore(): Boolean {
-        if (!this.isNullEntry && this.locationType == LocationTypeEnum.onshore) return true
+        if (!this.isNullEntry && this.locationType == LocationType.onshore) return true
         return false
     }
 
     get isLocationTypeOffshore(): Boolean {
-        if (!this.isNullEntry && this.locationType == LocationTypeEnum.offshore) return true
+        if (!this.isNullEntry && this.locationType == LocationType.offshore) return true
         return false
     }
 
@@ -110,41 +113,55 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         return false
     }
 
+    convertToInterface(): TimesheetEntryInterface {
+        const _stringifiedTimesheetEntry = JSON.stringify(this)
+        const _timesheetEntryAsInterface: TimesheetEntryInterface = JSON.parse(_stringifiedTimesheetEntry)
+        return _timesheetEntryAsInterface;
+    }
+
+    convertToPrimitive(): PrimitiveTimesheetEntry {
+        const _breakStartTime = this.entryPeriod?.breakTimeStart?.time;
+        const _breakFinishTime = this?.entryPeriod?.breakTimeFinish?.time;
+
+        if (!this.entryPeriod?.startTime) throw Error(ErrorMessage.invalidStartTime) // invalid starttime
+        const _entryPeriodStartTime = this.entryPeriod.startTime.time
+
+        if (!this.entryPeriod?.finishTime?.time) throw Error(ErrorMessage.invalidFinishTime)
+        const _entryPeriodFinishTime = this.entryPeriod?.finishTime?.time
+
+        const _primitiveTimesheetEntry: PrimitiveTimesheetEntry = { id: this.id, date: this.date.defaultFormat(), entryTypeSlug: this.entryType.slug, hasPremium: this.hasPremium, entryPeriodStartTime: _entryPeriodStartTime, entryPeriodFinishTime: _entryPeriodFinishTime, locationType: this.locationType, comment: this.comment, breakPeriodStartTime: _breakStartTime ? _breakStartTime : '', breakPeriodFinishTime: _breakFinishTime ? _breakFinishTime : '' }
+        return _primitiveTimesheetEntry;
+    }
+
     static async defaultInformation() {
-        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = defaultTimesheetEntryData
+        let defaultData: PrimitiveDefaultTimesheetEntry = defaultTimesheetEntryData
         try {
             const retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
             if (retrievedData) {
                 defaultData = retrievedData.value
-            } else throw Error(ErrorMessageEnum.defaultDataNotFound)
+            } else throw Error(ErrorMessage.defaultDataNotFound)
         } catch (e) { }
 
         return defaultData;
     }
 
-    static getTimesheetEntryForDate(timesheet: Timesheet, day: TimesheetDate) {
-        const timesheetEntryCollection = timesheet.entries.filter((entry) => day.isEqual(entry.date))
-        return timesheetEntryCollection;
-    }
-
-    static convertPrimitiveToTimesheetEntryInterface(primitiveTimesheetEntry: PrimitiveTimesheetEntryInterface) {
+    static convertPrimitiveToTimesheetEntry(primitiveTimesheetEntry: PrimitiveTimesheetEntry) {
         const _id = primitiveTimesheetEntry.id;
-        const _date: TimesheetDateInterface = { date: primitiveTimesheetEntry.date };
+        const _date: TimesheetDate = new TimesheetDate(primitiveTimesheetEntry.date);
         const _entryType: TimesheetEntryTypeInterface = defaultTimesheetEntryType.filter((entryType) => entryType.slug == primitiveTimesheetEntry.entryTypeSlug)[0];
 
-        let _breakTimeStart = !!primitiveTimesheetEntry.breakPeriodStartTime ? new TimesheetHour(primitiveTimesheetEntry.breakPeriodStartTime) : undefined;
-        let _breakTimeFinish = !!primitiveTimesheetEntry.breakPeriodFinishTime ? new TimesheetHour(primitiveTimesheetEntry.breakPeriodFinishTime) : undefined;
-        if (!_breakTimeStart || !_breakTimeFinish) {
-            _breakTimeStart = undefined
-            _breakTimeFinish = undefined
-        }
+        const _entryPeriod: TimesheetEntryPeriod = TimesheetEntryPeriod.convertPrimitiveToEntryPeriod(primitiveTimesheetEntry.entryPeriodStartTime, primitiveTimesheetEntry.entryPeriodFinishTime, primitiveTimesheetEntry.breakPeriodStartTime, primitiveTimesheetEntry.breakPeriodFinishTime);
 
-        const _entryPeriod: TimesheetEntryPeriodInterface = { startTime: new TimesheetHour(primitiveTimesheetEntry.entryPeriodStartTime), finishTime: new TimesheetHour(primitiveTimesheetEntry.entryPeriodFinishTime), breakTimeStart: _breakTimeStart, breakTimeFinish: _breakTimeFinish }
-        const _locationType: LocationTypeEnum = LocationTypeEnum.offshore === primitiveTimesheetEntry.locationType ? LocationTypeEnum.offshore : LocationTypeEnum.onshore;
+        const _locationType: LocationType = LocationType.offshore === primitiveTimesheetEntry.locationType ? LocationType.offshore : LocationType.onshore;
         const _hasPremium = !!primitiveTimesheetEntry.hasPremium
         const _comment = primitiveTimesheetEntry.comment
-        const _timesheetEntry: TimesheetEntryInterface = { id: _id, date: _date, entryType: _entryType, entryPeriod: _entryPeriod, locationType: _locationType, hasPremium: _hasPremium, comment: _comment };
+        const _timesheetEntry: TimesheetEntry = new TimesheetEntry({ id: _id, date: _date, entryType: _entryType, entryPeriod: _entryPeriod, locationType: _locationType, hasPremium: _hasPremium, comment: _comment });
         return _timesheetEntry;
     }
-}
 
+    static createId() {
+        const randomCode = 273
+        const id = randomCode.toString() + Date.now().toString();
+        return Number(id);
+    }
+}

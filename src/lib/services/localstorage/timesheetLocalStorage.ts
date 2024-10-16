@@ -1,19 +1,19 @@
-import { LocalStorageLabelEnum } from "@/lib/constants/enum";
+import { StorageLabel } from "@/lib/constants/constant";
 import { TimesheetEntry } from "../timesheet/timesheetEntry";
 import { CannotParsePrimitiveDataToDefaultTimesheetInformationError, CannotParsePrimitiveDataToTimesheetError } from "../timesheet/timesheetErrors";
 import { TimesheetDate } from "../timesheet/timesheetDate";
 import { TimesheetMeta } from "../timesheet/timesheetMeta";
 import { TimesheetEntryPeriod } from "../timesheet/timesheetEntryPeriod";
 import { Timesheet } from "../timesheet/timesheet";
-import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface } from "@/lib/types/timesheetType";
+import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface } from "@/lib/types/timesheet";
 
 export class TimesheetLocalStorage {
     static setDefaultInformationInLocalStorage(timesheetDefaultInformation: DefaultPrimitiveTimesheetEntryDataInterface) {
-        localStorage.setItem(LocalStorageLabelEnum.timesheetDefaultInformationLabel, JSON.stringify(timesheetDefaultInformation));
+        localStorage.setItem(StorageLabel.timesheetDefaultInformationLabel, JSON.stringify(timesheetDefaultInformation));
     }
 
     static getDefaultInformationFromLocalStorage(): DefaultPrimitiveTimesheetEntryDataInterface {
-        const rawDefaultTimesheetInformation = localStorage.getItem(LocalStorageLabelEnum.timesheetDefaultInformationLabel);
+        const rawDefaultTimesheetInformation = localStorage.getItem(StorageLabel.timesheetDefaultInformationLabel);
         try {
             if (rawDefaultTimesheetInformation != null) {
                 return JSON.parse(rawDefaultTimesheetInformation) as DefaultPrimitiveTimesheetEntryDataInterface;
@@ -23,7 +23,7 @@ export class TimesheetLocalStorage {
     }
 
     static getPrimitiveTimesheetMetaFromLocalStorage(): PrimitiveTimesheetMetaInterface {
-        const stringifiedTimesheetMeta = localStorage.getItem(LocalStorageLabelEnum.currentTimesheetMetaLabel);
+        const stringifiedTimesheetMeta = localStorage.getItem(StorageLabel.currentTimesheetMetaLabel);
         if (stringifiedTimesheetMeta != null && stringifiedTimesheetMeta != undefined && stringifiedTimesheetMeta != '') {
             let primitiveTimesheetMeta = JSON.parse(stringifiedTimesheetMeta);
             return primitiveTimesheetMeta as PrimitiveTimesheetMetaInterface;
@@ -32,16 +32,16 @@ export class TimesheetLocalStorage {
     }
 
     static setTimesheetMetaInLocalStorage(primitiveTimesheetMeta: PrimitiveTimesheetMetaInterface) {
-        localStorage.setItem(LocalStorageLabelEnum.currentTimesheetMetaLabel, JSON.stringify(primitiveTimesheetMeta));
+        localStorage.setItem(StorageLabel.currentTimesheetMetaLabel, JSON.stringify(primitiveTimesheetMeta));
     }
 
 
     static setGeneratedTimesheetInLocalStorage(timesheetEntryCollection: Timesheet) {
-        localStorage.setItem(LocalStorageLabelEnum.generatedTimesheetLabel, JSON.stringify(timesheetEntryCollection));
+        localStorage.setItem(StorageLabel.generatedTimesheetLabel, JSON.stringify(timesheetEntryCollection));
     }
 
     static getTimesheetFromLocalStorage(): Timesheet {
-        const stringifiedTimesheetEntryCollection = localStorage.getItem(LocalStorageLabelEnum.generatedTimesheetLabel);
+        const stringifiedTimesheetEntryCollection = localStorage.getItem(StorageLabel.generatedTimesheetLabel);
         try {
             if (stringifiedTimesheetEntryCollection != null) {
                 let primitiveTimesheet = JSON.parse(stringifiedTimesheetEntryCollection)
@@ -64,8 +64,8 @@ export class TimesheetLocalStorage {
     }
 
     static clearTimesheetFromLocalStorage() {
-        localStorage.removeItem(LocalStorageLabelEnum.currentTimesheetMetaLabel);
-        localStorage.removeItem(LocalStorageLabelEnum.generatedTimesheetLabel);
-        localStorage.removeItem(LocalStorageLabelEnum.timesheetDefaultInformationLabel);
+        localStorage.removeItem(StorageLabel.currentTimesheetMetaLabel);
+        localStorage.removeItem(StorageLabel.generatedTimesheetLabel);
+        localStorage.removeItem(StorageLabel.timesheetDefaultInformationLabel);
     }
 }

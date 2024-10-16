@@ -1,5 +1,5 @@
-import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface, TimesheetEntryTypeInterface } from "../types/timesheetType";
-import { LocationTypeEnum } from "./enum";
+import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface, TimesheetEntryTypeInterface } from "../types/timesheet";
+import { LocationType } from "./constant";
 
 export const defaultTimesheetEntryType: TimesheetEntryTypeInterface[] = [
     {
@@ -37,7 +37,7 @@ export const defaultTimesheetEntryType: TimesheetEntryTypeInterface[] = [
 export const defaultTimesheetEntryData: DefaultPrimitiveTimesheetEntryDataInterface = {
     startTime: '06:00',
     finishTime: '18:00',
-    locationType: LocationTypeEnum.onshore,
+    locationType: LocationType.onshore,
     comment: 'Productive Work at the Office',
     weekStartDay: "monday",
     updatedAt: '',

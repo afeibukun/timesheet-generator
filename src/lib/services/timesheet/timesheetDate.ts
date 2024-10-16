@@ -1,9 +1,9 @@
 import moment from "moment";
 import { InvalidTimesheetDateError } from "./timesheetErrors";
-import { Timesheet } from "./timesheet";
-import { DefaultPrimitiveTimesheetEntryDataInterface, TimesheetDateInterface } from "@/lib/types/timesheetType";
+import { TimesheetDateInterface } from "@/lib/types/timesheet";
 import { TimesheetEntry } from "./timesheetEntry";
-import { ErrorMessageEnum } from "@/lib/constants/enum";
+import { ErrorMessage } from "@/lib/constants/constant";
+import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
 
 export class TimesheetDate implements TimesheetDateInterface {
     date: string;
@@ -17,13 +17,6 @@ export class TimesheetDate implements TimesheetDateInterface {
         }
         let momentTimesheetDate = moment(this.date);
         this._isValidTimesheetDate = momentTimesheetDate.isValid();
-        this.initializeWeekStartDay()
-
-    }
-
-    private initializeWeekStartDay = async () => {
-        const defaultData: DefaultPrimitiveTimesheetEntryDataInterface = await TimesheetEntry.defaultInformation();
-        TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
     }
 
     get getFirstDayOfTheWeek(): TimesheetDate {
@@ -66,6 +59,10 @@ export class TimesheetDate implements TimesheetDateInterface {
 
     get month(): string {
         return moment(this.date).format("MMMM").toLowerCase();
+    }
+
+    get yearNumber(): number {
+        return moment(this.date).year();
     }
 
     isDateSameOrBefore(secondDate: TimesheetDate): boolean {
@@ -137,6 +134,11 @@ export class TimesheetDate implements TimesheetDateInterface {
         return this.date === date.date
     }
 
+    static initializeWeekStartDay = async () => {
+        const defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+        TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
+    }
+
     static setWeekStartDayAsMonday() {
         moment.updateLocale("en", {
             week: {
@@ -156,8 +158,8 @@ export class TimesheetDate implements TimesheetDateInterface {
     }
 
     static updateWeekStartDay(selectedWeekStartDay: string) {
-        let weekStartDayNumber = TimesheetDate.convertWeekdayTextToWeekdayNumber(selectedWeekStartDay);
-        if (weekStartDayNumber == 1) {
+        const _weekStartDayNumber = TimesheetDate.convertWeekdayTextToWeekdayNumber(selectedWeekStartDay);
+        if (_weekStartDayNumber === 1) {
             TimesheetDate.setWeekStartDayAsMonday();
         } else {
             TimesheetDate.setWeekStartDayAsSunday();
@@ -235,11 +237,12 @@ export class TimesheetDate implements TimesheetDateInterface {
                 count++;
             }
             return monthArray;
-        } else throw Error(ErrorMessageEnum.dateSelectionMismatch)
+        } else throw Error(ErrorMessage.dateSelectionMismatch)
     }
 
-    static getWeekDaysCollection(referenceDate: TimesheetDate) {
+    static async getWeekDays(referenceDate: TimesheetDate) {
         let weekDays: TimesheetDate[] = [];
+        await TimesheetDate.initializeWeekStartDay();
         const firstDayOfTheWeek = referenceDate.getFirstDayOfTheWeek;
         let _currentDay = firstDayOfTheWeek;
         for (var i = 0; i < 7; i++) {
@@ -247,5 +250,46 @@ export class TimesheetDate implements TimesheetDateInterface {
             _currentDay = _currentDay.dateIncrementByDay(1);
         }
         return weekDays;
+    }
+
+    static convertPrimitiveToInterface(primitiveDate: string) {
+        const _dateAsInterface: TimesheetDateInterface = { date: primitiveDate };
+        return _dateAsInterface;
+    }
+    static convertPrimitiveToDate(primitiveDate: string) {
+        const _date: TimesheetDate = new TimesheetDate(primitiveDate);
+        return _date;
+    }
+
+    static extractWeekDataFromPrimitiveWeek(primitiveWeek: string) {
+        // I expect the week number to be lke 2024-W41
+        try {
+            const _weekDataArr = primitiveWeek.split('-');
+            if (_weekDataArr.length > 1) {
+                const _weekData = Number.parseInt(_weekDataArr[1].slice(1));
+                const _yearData = Number.parseInt(_weekDataArr[0])
+                return { year: _yearData, week: _weekData }
+            }
+        } catch (e) {
+        }
+        throw new Error("Invalid Week Number");
+    }
+
+    static getLastDayOfWeekFromWeekNumber(weekNumber: number, year: number): TimesheetDate {
+        try {
+            const lastDayOfTheWeek = moment().year(year).week(weekNumber).endOf('week').format();
+            return new TimesheetDate({ date: lastDayOfTheWeek });
+        } catch (e) {
+        }
+        throw new Error("Invalid Week Number or Year");
+    }
+
+    static getFirstDayOfWeekFromWeekNumber(weekNumber: number, year: number): TimesheetDate {
+        try {
+            const lastDayOfTheWeek = moment().year(year).week(weekNumber).startOf('week').format();
+            return new TimesheetDate({ date: lastDayOfTheWeek });
+        } catch (e) {
+        }
+        throw new Error("Invalid Week Number or Year");
     }
 }

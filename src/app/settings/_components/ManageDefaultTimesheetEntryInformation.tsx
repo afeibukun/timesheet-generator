@@ -1,78 +1,58 @@
 'use client'
-
-import Link from "next/link";
-import DefaultSection from "../_components/DefaultSection";
-import DefaultSectionHeader from "../_components/DefaultSectionHeader";
-import DefaultSectionTitle from "../_components/DefaultSectionTitle";
-import DefaultFormItem from "../_components/DefaultFormItem";
-import DefaultLabelText from "../_components/DefaultLabelText";
-import { useEffect, useState } from "react";
-import { LocationTypeEnum, StatusEnum, StorageOptionLabel } from "@/lib/constants/enum";
-import SubmitButton02 from "../_components/SubmitButton02";
+import DefaultFormItem from "@/app/_components/DefaultFormItem";
+import DefaultLabelText from "@/app/_components/DefaultLabelText";
+import DefaultSection from "@/app/_components/DefaultSection";
+import DefaultSectionHeader from "@/app/_components/DefaultSectionHeader";
+import DefaultSectionTitle from "@/app/_components/DefaultSectionTitle";
+import SubmitButton02 from "@/app/_components/SubmitButton02";
+import { LocationType, Status } from "@/lib/constants/constant";
+import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constants/default";
+import { createOrUpdateTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
+import { AppOption } from "@/lib/services/meta/appOption";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
-import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
-import { CannotParsePrimitiveDataToDefaultTimesheetInformationError } from "@/lib/services/timesheet/timesheetErrors";
-import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constants/defaultData";
-import { DefaultPrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheetType";
-import { createOrUpdateTimesheetEntryDefaultData, getTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
-import { AppOptionSchema } from "@/lib/constants/schema";
+import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
+import { PrimitiveDefaultTimesheetEntry as PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
-export default function DefaultTimesheetInformationView() {
+export default function ManageDefaultTimesheetEntryInformation() {
+    let _initialDefaultInfo: PrimitiveDefaultTimesheetEntry = defaultTimesheetEntryData
 
-    let _initialDefaultInfo: DefaultPrimitiveTimesheetEntryDataInterface = defaultTimesheetEntryData
-
-    const [timesheetDefaultInformationFormData, setTimesheetDefaultInformationFormData] = useState(_initialDefaultInfo);
-
-    const [status, setStatus] = useState(StatusEnum.enteringData);
+    const [defaultTimesheetEntryForm, setDefaultTimesheetEntryForm] = useState(_initialDefaultInfo);
+    const [status, setStatus] = useState(Status.enteringData);
 
     useEffect(() => {
-        // var retrievedDefaultInfo
-        let retrievedTimesheetEntryDefaultData
-
         const fetchSavedTimesheetEntryDefaultData = async () => {
             try {
-                // retrievedDefaultInfo = TimesheetLocalStorage.getDefaultInformationFromLocalStorage();
-                let retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
-                if (retrievedData) {
-                    retrievedTimesheetEntryDefaultData = retrievedData.value
-                } else throw Error
+                const _defaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+                setDefaultTimesheetEntryForm(_defaultTimesheetEntry);
             } catch (e) {
-                if (e instanceof CannotParsePrimitiveDataToDefaultTimesheetInformationError) {
-                    console.log(e.name);
-                }
-                // retrievedDefaultInfo = null
-                retrievedTimesheetEntryDefaultData = null
-            }
-            /* if (retrievedDefaultInfo != null) {
-                        setTimesheetDefaultInformationFormData(retrievedDefaultInfo);
-                    } */
-            if (retrievedTimesheetEntryDefaultData) {
-                setTimesheetDefaultInformationFormData(retrievedTimesheetEntryDefaultData);
+                // if there is an error, nothing is set then
             }
         }
         fetchSavedTimesheetEntryDefaultData();
     }, []);
 
     function handleInputChange(e: any, informationKey: string) {
-        setTimesheetDefaultInformationFormData({ ...timesheetDefaultInformationFormData, [informationKey]: e.target.value });
+        setDefaultTimesheetEntryForm({ ...defaultTimesheetEntryForm, [informationKey]: e.target.value });
     }
 
-    async function handleSubmitDefaultInformation(e: any) {
+    async function handleSubmitDefaultTimesheetEntry(e: any) {
         e.preventDefault();
         e.stopPropagation();
-        setStatus(StatusEnum.submitting);
+        setStatus(Status.submitting);
 
-        const updatedAtDate = TimesheetDate.simpleNowDateTimeFormat();
-        const updatedDefaultTimesheetInfo = { ...timesheetDefaultInformationFormData, updatedAt: updatedAtDate };
-        setTimesheetDefaultInformationFormData(updatedDefaultTimesheetInfo);
+        const _updatedAt = TimesheetDate.simpleNowDateTimeFormat();
+        const _updatedDefaultTimesheetEntryInfo = { ...defaultTimesheetEntryForm, updatedAt: _updatedAt };
+        setDefaultTimesheetEntryForm(_updatedDefaultTimesheetEntryInfo);
 
         // TimesheetLocalStorage.setDefaultInformationInLocalStorage(updatedDefaultTimesheetInfo);
-        await createOrUpdateTimesheetEntryDefaultData(updatedDefaultTimesheetInfo);
-        setStatus(StatusEnum.submitted);
+        await createOrUpdateTimesheetEntryDefaultData(_updatedDefaultTimesheetEntryInfo);
+        setStatus(Status.submitted);
     }
 
     return (
-        <main>
+        <div>
             <DefaultSection>
                 <DefaultSectionHeader>
                     <DefaultSectionTitle>Default Information</DefaultSectionTitle>
@@ -84,7 +64,7 @@ export default function DefaultTimesheetInformationView() {
                                 <DefaultLabelText>Start Time</DefaultLabelText>
                             </label>
                             <input type="time"
-                                value={timesheetDefaultInformationFormData.startTime}
+                                value={defaultTimesheetEntryForm.startTime}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'startTime');
@@ -99,7 +79,7 @@ export default function DefaultTimesheetInformationView() {
                                 <DefaultLabelText>Finish Time</DefaultLabelText>
                             </label>
                             <input type="time"
-                                value={timesheetDefaultInformationFormData.finishTime}
+                                value={defaultTimesheetEntryForm.finishTime}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'finishTime')
@@ -116,15 +96,15 @@ export default function DefaultTimesheetInformationView() {
                             <select
                                 name="defaultLocationType"
                                 id="defaultLocationType"
-                                value={timesheetDefaultInformationFormData.locationType}
+                                value={defaultTimesheetEntryForm.locationType}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'locationType')
                                     }
                                 }
                                 className="inline-block border rounded capitalize">
-                                <option value={LocationTypeEnum.onshore}>{LocationTypeEnum.onshore}</option>
-                                <option value={LocationTypeEnum.offshore}>{LocationTypeEnum.offshore}</option>
+                                <option value={LocationType.onshore}>{LocationType.onshore}</option>
+                                <option value={LocationType.offshore}>{LocationType.offshore}</option>
                             </select>
                         </DefaultFormItem>
                         <DefaultFormItem>
@@ -133,7 +113,7 @@ export default function DefaultTimesheetInformationView() {
                             </label>
                             <textarea
                                 name="defaultComment"
-                                value={timesheetDefaultInformationFormData.comment}
+                                value={defaultTimesheetEntryForm.comment}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'comment')
@@ -149,7 +129,7 @@ export default function DefaultTimesheetInformationView() {
                             </label>
                             <select
                                 name="weekStartDay"
-                                value={timesheetDefaultInformationFormData.weekStartDay}
+                                value={defaultTimesheetEntryForm.weekStartDay}
                                 onChange={
                                     e => {
                                         handleInputChange(e, 'weekStartDay')
@@ -167,12 +147,12 @@ export default function DefaultTimesheetInformationView() {
                                     <div className="py-2">
                                         <p className="text-sm text-blue-700">
                                             <span className="font-semibold">Last Saved: </span>
-                                            <span className="font-medium italic">{timesheetDefaultInformationFormData.updatedAt}</span></p>
+                                            <span className="font-medium italic">{defaultTimesheetEntryForm.updatedAt}</span></p>
                                     </div>
                                 </div>
                                 <div>
                                     {
-                                        status == StatusEnum.submitted ? (
+                                        status == Status.submitted ? (
                                             <div className="p-4 mb-2 rounded bg-green-200">
                                                 <p className="text-sm text-green-900"><span>🎉</span><span>The Default Timesheet Information has been successfully saved</span></p>
                                             </div>
@@ -181,7 +161,7 @@ export default function DefaultTimesheetInformationView() {
                                 </div>
                             </div>
                             <div className="flex gap-x-4">
-                                <SubmitButton02 handleButtonClick={handleSubmitDefaultInformation} showLoading={status == StatusEnum.submitting} loadingText="Saving">Save Default Info</SubmitButton02>
+                                <SubmitButton02 handleButtonClick={handleSubmitDefaultTimesheetEntry} showLoading={status == Status.submitting} loadingText="Saving">Save Default Info</SubmitButton02>
 
                                 <Link href="/" className="px-8 py-2 rounded uppercase text-sm font-semibold border ">Go Back</Link>
                             </div>
@@ -192,7 +172,6 @@ export default function DefaultTimesheetInformationView() {
 
                 </footer>
             </DefaultSection>
-        </main>
-    );
+        </div>
+    )
 }
-

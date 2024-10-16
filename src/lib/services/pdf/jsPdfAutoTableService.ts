@@ -2,14 +2,14 @@ import jsPDF from "jspdf";
 import autoTable, { ColumnInput, VAlignType } from "jspdf-autotable";
 import { defaultSansProBase64, defaultSansProItalicBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64 } from '../../constants/defaultSansProBase64Font'
 import templateConfig from '../../../../main-timesheet-template'
-import { TimesheetMeta } from "../timesheet/timesheetMeta";
 import { TimesheetEntry } from "../timesheet/timesheetEntry";
-import { LocationTypeEnum, PeriodTypeEnum } from "@/lib/constants/enum";
+import { LocationType, PeriodTypeLabel } from "@/lib/constants/constant";
 import { Timesheet } from "../timesheet/timesheet";
 import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constants/defaultLogoBase64Image";
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
+import { TimesheetRecord } from "../timesheet/timesheetRecord";
 
-export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
+export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
     const doc = new jsPDF(
         {
             orientation: "landscape",
@@ -114,14 +114,9 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
     const originalImageDimension = isLogoDefinedInTemplateConfig ? templateConfig.originalImageDimension : originalDefaultImageDimension;
     const imageDimension = computeImageDimension(originalImageDimension);
 
-    let timesheetMeta: TimesheetMeta = timesheet.meta;
 
-    let groupedTimesheet: any = timesheet.timesheetEntryCollectionByWeek
-    let weeksInGroupedTimesheet: string[] = Object.keys(groupedTimesheet)
-
-    weeksInGroupedTimesheet.forEach((week, index) => {
-        let timesheetEntryCollectionForCurrentWeek = groupedTimesheet[week as any];
-        let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek?.length - 1].date;
+    timesheets.forEach((_timesheet, index) => {
+        let timesheetDateForLastDayOfCurrentWeek = _timesheet.weekEndingDate;
 
         let currentXPosition = startingPointX
         let currentYPosition = startingPointY
@@ -132,7 +127,7 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
         doc.setFontSize(smallFontSize)
         doc.setTextColor('0', `${32 / 255}`, `${96 / 255}`)
         doc.setFont(defaultFontFamily, fontStyleNormal, fontStyleBold)
-        doc.text(`${templateConfig.label.weekPrefix} ${week}`.toUpperCase(), currentXPosition, currentYPosition + 4, { align: alignRight as any });
+        doc.text(`${templateConfig.label.weekPrefix} ${_timesheet.weekNumber}`.toUpperCase(), currentXPosition, currentYPosition + 4, { align: alignRight as any });
 
         const columnDefinition: ColumnInput[] = [
             { dataKey: 'columnA' },
@@ -185,11 +180,11 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
         let nullEntryDayCounter = 0;
 
         let checkMarkPlacementCounter = 6;
-        let checkMarkRowPlacementArray = timesheetEntryCollectionForCurrentWeek.reduce((checkMarkArray: any[], currentTimesheetEntry: TimesheetEntry) => {
+        let checkMarkRowPlacementArray = _timesheet.records.reduce((checkMarkArray: any[], _record: TimesheetRecord) => {
             let updatedCheckMarkArray = [
                 ...checkMarkArray,
-                { 'rowIndex': checkMarkPlacementCounter, 'hasCheckMark': currentTimesheetEntry.isLocationTypeOnshore }, //Row 1
-                { 'rowIndex': checkMarkPlacementCounter + 1, 'hasCheckMark': currentTimesheetEntry.isLocationTypeOffshore }, //Row 2
+                { 'rowIndex': checkMarkPlacementCounter, 'hasCheckMark': _record.isLocationTypeOnshore }, //Row 1
+                { 'rowIndex': checkMarkPlacementCounter + 1, 'hasCheckMark': _record.entries[0].isLocationTypeOffshore }, //Row 2
             ]
             checkMarkPlacementCounter += 2
             return updatedCheckMarkArray
@@ -209,10 +204,10 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
             // Excel Row 4
             [
                 { content: templateConfig.staticValues.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
-                { content: timesheetMeta.personnelName.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: timesheetMeta.mobilizationDate.longFormat(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: timesheetMeta.demobilizationDate.longFormat(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: timesheetMeta.orderNumber?.toString(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
+                { content: _timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+                { content: _timesheet.mobilizationDate ? _timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+                { content: _timesheet.demobilizationDate ? _timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+                { content: _timesheet.project.orderNumber?.toString(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
             ],
             // Excel Row 5
             [
@@ -224,10 +219,10 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
             ],
             // Excel Row 6
             [
-                { content: timesheetMeta.customerName.toUpperCase(), colSpan: 6, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: timesheetMeta.siteName.toUpperCase(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: timesheetMeta.purchaseOrderNumber, colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: timesheetMeta.siteCountry.toUpperCase(), colSpan: 2, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+                { content: _timesheet.customer.name.toUpperCase(), colSpan: 6, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+                { content: _timesheet.site.name.toUpperCase(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+                { content: _timesheet.project.purchaseOrderNumber, colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+                { content: _timesheet.site.country.toUpperCase(), colSpan: 2, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
                 { content: timesheetDateForLastDayOfCurrentWeek.longFormat(), colSpan: 4, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } }
             ],
             // Excel Row 7
@@ -254,10 +249,10 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                 { content: templateConfig.staticValues.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } }
             ],
             // Excel Row 9 - 22
-            ...timesheetEntryCollectionForCurrentWeek.reduce((timesheetArrayWithPdfFormat: any[], currentTimesheetEntry: TimesheetEntry) => {
-                let lineWidthConfig = !currentTimesheetEntry.isNullEntry ? normalLineWidth : zeroLineWidth;
+            ..._timesheet.records.reduce((timesheetArrayWithPdfFormat: any[], _record: TimesheetRecord) => {
+                let lineWidthConfig = !_record.entries[0].isNullEntry ? normalLineWidth : zeroLineWidth;
                 let firstLineWidthConfig = lineWidthConfig
-                if (currentTimesheetEntry.isNullEntry) {
+                if (_record.entries[0].isNullEntry) {
                     nullEntryDayCounter += 1
                     firstLineWidthConfig = nullEntryDayCounter == 1 ? { ...lineWidthConfig, top: normalBorderWidth } : lineWidthConfig;
                 }
@@ -266,9 +261,9 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                     ...timesheetArrayWithPdfFormat,
                     //Row 1
                     [
-                        { content: currentTimesheetEntry.entryDateDayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
-                        { content: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodTypeEnum.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? currentTimesheetEntry.entryPeriod?.startTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
+                        { content: _record.entries[0].entryDateDayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
+                        { content: !_record.entries[0].isEntryPeriodStartTimeNull ? PeriodTypeLabel.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
+                        { content: !_record.entries[0].isEntryPeriodStartTimeNull ? _record.entries[0].entryPeriod?.startTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col E*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col F*/ },
@@ -276,16 +271,16 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col H*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col I*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col J*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
-                        { content: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOnshore ? currentTimesheetEntry.comment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
+                        { content: _record.entries[0].isEntryPeriodValid && _record.entries[0].isLocationTypeOnshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
+                        { content: _record.entries[0].isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
+                        { content: _record.entries[0].isEntryPeriodValid && _record.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
+                        { content: !_record.entries[0].isCommentNull && _record.entries[0].isLocationTypeOnshore ? _record.entries[0].comment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
                     ],
                     // Row 2
                     [
-                        { content: currentTimesheetEntry.entryDateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
-                        { content: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodTypeEnum.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? currentTimesheetEntry.entryPeriod?.finishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
+                        { content: _record.entries[0].entryDateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
+                        { content: !_record.entries[0].isEntryPeriodFinishTimeNull ? PeriodTypeLabel.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
+                        { content: !_record.entries[0].isEntryPeriodFinishTimeNull ? _record.entries[0].entryPeriod?.finishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col E*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col F*/ },
@@ -293,10 +288,10 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col H*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col I*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col J*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
-                        { content: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
-                        { content: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOffshore ? currentTimesheetEntry.comment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
+                        { content: _record.entries[0].isEntryPeriodValid && _record.entries[0].isLocationTypeOffshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
+                        { content: _record.entries[0].isEntryPeriodValid ? LocationType.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
+                        { content: _record.entries[0].isEntryPeriodValid && _record.entries[0].isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
+                        { content: !_record.entries[0].isCommentNull && _record.entries[0].isLocationTypeOffshore ? _record.entries[0].comment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
                     ],
                 ]
             }, []),
@@ -348,13 +343,13 @@ export const createPdfWithJsPdfAutoTable = (timesheet: Timesheet): void => {
             }
         })
 
-        if (index < weeksInGroupedTimesheet.length - 1) {
+        if (index < timesheets.length - 1) {
             doc.addPage();
         }
     });
 
     const fileNameSuffix = templateConfig.fileNameSuffix == undefined || templateConfig.fileNameSuffix == null || templateConfig.fileNameSuffix == '' || !templateConfig.fileNameSuffix ? '' : `-${templateConfig.fileNameSuffix}`
-    const timesheetFileName = `${timesheet.entryCollection[0].date.dateInMonthYearFormat}-Timesheet-${timesheet.meta.personnelName}${fileNameSuffix}`;
+    const timesheetFileName = `${timesheets[0].monthNumber}-${timesheets[0].yearNumber}-Customer_Timesheet-${timesheets[0].personnel.name}${fileNameSuffix}`;
     doc.save(`${timesheetFileName}.pdf`);
 }
 

@@ -1,8 +1,9 @@
-import { openDB, deleteDB, wrap, unwrap, IDBPDatabase } from 'idb';
-import { StorageOptionLabel } from "@/lib/constants/enum";
-import { AppOptionSchema, CustomerSchema, FieldName, IndexName, PersonnelSchema, ProjectSchema, StoreName, TimesheetCollectionSchema, timesheetDatabaseName, TimesheetSchema } from "@/lib/constants/schema";
-import { DefaultPrimitiveTimesheetEntryDataInterface as DefaultTimesheetEntryDataInterface, SiteInterface } from "@/lib/types/timesheetType";
+import { openDB, IDBPDatabase } from 'idb';
+import { StorageLabel, FieldName, IndexName, StoreName, timesheetDatabaseName } from "@/lib/constants/storage";
+import { CustomerSchema, PersonnelSchema, ProjectSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
 import { slugify } from '@/lib/helpers';
+import { PrimitiveDefaultTimesheetEntry } from '@/lib/types/primitive';
+import { SiteInterface } from '@/lib/types/meta';
 
 const databaseVersion = 1;
 const readWriteFlag = "readwrite"
@@ -10,34 +11,35 @@ const readWriteFlag = "readwrite"
 
 export const initalizeDatabase = (db: IDBDatabase | IDBPDatabase) => {
     if (!db.objectStoreNames.contains(StoreName.personnel)) {
-        const personnelObjectStore = db.createObjectStore(StoreName.personnel, { keyPath: 'id', autoIncrement: true });
+        const personnelObjectStore = db.createObjectStore(StoreName.personnel, { keyPath: FieldName.id, autoIncrement: true });
         personnelObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
         personnelObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.timesheet)) {
-        const timesheetObjectStore = db.createObjectStore(StoreName.timesheet, { keyPath: 'id', autoIncrement: true });
-        timesheetObjectStore.createIndex(IndexName.personnelIndex, FieldName.personnel, { unique: false })
-        timesheetObjectStore.createIndex(IndexName.weekEndDateIndex, FieldName.weekEndDate, { unique: false })
+        const timesheetObjectStore = db.createObjectStore(StoreName.timesheet, { keyPath: FieldName.id, autoIncrement: true });
+        timesheetObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
+        timesheetObjectStore.createIndex(IndexName.personnelSlugIndex, FieldName.personnelSlug, { unique: false })
+        timesheetObjectStore.createIndex(IndexName.weekEndingDateIndex, FieldName.weekEndingDateString, { unique: false })
     }
 
     if (!db.objectStoreNames.contains(StoreName.timesheetCollection)) {
-        db.createObjectStore(StoreName.timesheetCollection, { keyPath: 'id', autoIncrement: true });
+        db.createObjectStore(StoreName.timesheetCollection, { keyPath: FieldName.id, autoIncrement: true });
     }
 
     if (!db.objectStoreNames.contains(StoreName.customer)) {
-        const customerObjectStore = db.createObjectStore(StoreName.customer, { keyPath: 'id', autoIncrement: true });
+        const customerObjectStore = db.createObjectStore(StoreName.customer, { keyPath: FieldName.id, autoIncrement: true });
         customerObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
         customerObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.project)) {
-        const projectObjectStore = db.createObjectStore(StoreName.project, { keyPath: 'id', autoIncrement: true });
+        const projectObjectStore = db.createObjectStore(StoreName.project, { keyPath: FieldName.id, autoIncrement: true });
         projectObjectStore.createIndex(IndexName.purchaseOrderNumberIndex, FieldName.purchaseOrderNumber, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.appOption)) {
-        const appOptionObjectStore = db.createObjectStore(StoreName.appOption, { keyPath: 'id', autoIncrement: true });
+        const appOptionObjectStore = db.createObjectStore(StoreName.appOption, { keyPath: FieldName.id, autoIncrement: true });
         appOptionObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
     }
 }
@@ -139,17 +141,17 @@ export const getDataIndexDB = async (db: IDBDatabase, storeName: string, searchI
 
 } */
 
-export const createOrUpdateTimesheetEntryDefaultData = async (timesheetEntryDefaultData: DefaultTimesheetEntryDataInterface) => {
+export const createOrUpdateTimesheetEntryDefaultData = async (timesheetEntryDefaultData: PrimitiveDefaultTimesheetEntry) => {
     const _db = await useDb();
     const _transaction = _db.transaction(StoreName.appOption, readWriteFlag)
     const appOptionStoreObject = _transaction.objectStore(StoreName.appOption);
     const keyIndex = appOptionStoreObject.index("key_index");
-    const data = (await keyIndex.get(StorageOptionLabel.timesheetEntryDefaultDataLabel)) || undefined;
+    const data = (await keyIndex.get(StorageLabel.timesheetEntryDefaultDataLabel)) || undefined;
     if (data) {
         data.value = timesheetEntryDefaultData;
         await appOptionStoreObject.put(data);
     } else {
-        await appOptionStoreObject.add({ key: StorageOptionLabel.timesheetEntryDefaultDataLabel, value: timesheetEntryDefaultData });
+        await appOptionStoreObject.add({ key: StorageLabel.timesheetEntryDefaultDataLabel, value: timesheetEntryDefaultData });
     }
 
     await _transaction.done;
@@ -189,7 +191,7 @@ export const createOrUpdateAppOption = async (appOptionLabel: string, appOptionD
 
 export const getTimesheetEntryDefaultData = async () => {
     const _db = await useDb();
-    const data = await _db.getFromIndex(StoreName.appOption, "key_index", StorageOptionLabel.timesheetEntryDefaultDataLabel);
+    const data = await _db.getFromIndex(StoreName.appOption, "key_index", StorageLabel.timesheetEntryDefaultDataLabel);
     return data;
 }
 
@@ -210,7 +212,12 @@ export const updateDataInStore = async (dataToBeUpdated: any, dataKey: number, s
     }
 }
 
-export const getByIndexInStore = async (storeName: string, indexName: string, query: any) => {
+export const deleteDataInStore = async (dataKey: number, storeName: string) => {
+    const _db = await useDb();
+    await _db.delete(storeName, dataKey);
+}
+
+export const getFromIndexInStore = async (storeName: string, indexName: string, query: any) => {
     const _db = await useDb();
     const data = await _db.getFromIndex(storeName, indexName, query);
     return data;
@@ -225,6 +232,12 @@ export const getInStore = async (dataKey: any, storeName: string) => {
 export const getAllInStore = async (storeName: string) => {
     const _db = await useDb();
     const data = await _db.getAll(storeName);
+    return data;
+}
+
+export const getAllFromIndexInStore = async (storeName: string, indexName: string, query: any) => {
+    const _db = await useDb();
+    const data = await _db.getAllFromIndex(storeName, indexName, query);
     return data;
 }
 

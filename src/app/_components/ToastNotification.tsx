@@ -1,4 +1,4 @@
-import { ToastStatus } from "@/lib/constants/enum";
+import { ToastStatus } from "@/lib/constants/constant";
 
 type ToastNotificationPropsType = {
     toastType: ToastStatus,

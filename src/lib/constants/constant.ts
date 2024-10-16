@@ -1,23 +1,9 @@
-export enum LocalStorageLabelEnum {
-    timesheetDefaultInformationLabel = "DEFAULT_TIMESHEET_INFORMATION",
-    currentTimesheetMetaLabel = "CURRENT_TIMESHEET_META",
-    generatedTimesheetLabel = "GENERATED_TIMESHEET",
-    personnelCollectionLabel = "PERSONNEL_COLLECTION",
+export enum ComponentType {
+    timesheet = "timesheet",
+    timesheetCollection = "collection"
 }
 
-export enum StorageOptionLabel {
-    timesheetEntryDefaultDataLabel = "TIMESHEET_ENTRY_DEFAULT_DATA",
-    activeTimesheetCollectionIdLabel = "ACTIVE_TIMESHEET_COLLECTION_ID",
-    activeTimesheetIdLabel = "ACTIVE_TIMESHEET_ID",
-    activeComponentType = "ACTIVE_COMPONENT_TYPE" // the value here tells us if a timesheet collection is the active component or the regular timesheet, I might not need this later sha.
-}
-
-export enum ActiveComponentType {
-    timesheet = "TIMESHEET",
-    timesheetCollection = "TIMESHEET_COLLECTION"
-}
-
-export enum StatusEnum {
+export enum Status {
     enteringData = "ENTERING_DATA",
     inProgress = "IN_PROGRESS",
     pending = "PENDING",
@@ -33,26 +19,27 @@ export enum StatusEnum {
     new = "NEW",
     default = "DEFAULT",
     displayForm = "DISPLAY_FORM",
-    hideForm = "HIDE_FORM"
+    hideForm = "HIDE_FORM",
+    start = "START"
 }
 
-export enum LocationTypeEnum {
+export enum LocationType {
     onshore = "onshore",
     offshore = "offshore"
 }
 
-export enum PeriodTypeEnum {
+export enum PeriodTypeLabel {
     start = "start",
     finish = "finish"
 }
 
-export enum EntryStateEnum {
+export enum EntryStateLabel {
     default = "DEFAULT",
     edit = "EDIT",
     recentlyUpdated = "RECENTLY_UPDATED"
 }
 
-export enum ErrorMessageEnum {
+export enum ErrorMessage {
     entryOnDateNotFound = "entry-on-date-not-found-in-timesheet",
     invalidTimesheet = "invalid-timesheet",
     projectNotFound = "project-information-not-found",
@@ -79,4 +66,31 @@ export enum ToastStatus {
     success = "success",
     danger = "danger",
     info = "info"
+}
+
+export enum SettingSection {
+    default = "default",
+    personnel = "personnel",
+    project = "project",
+    customer = "customer"
+}
+
+export enum SearchParamsLabel {
+    component = "component",
+    section = "section",
+    key = "key"
+}
+
+export enum ReportType {
+    customer = "customer-timesheet",
+    internal = "internal-timesheet"
+}
+
+export enum TemplateType {
+    classic = "classic-timesheet",
+}
+
+export enum OptionLabel {
+    mobilizationDate = "mobilization-date",
+    demobilizationDate = "demobilization-date",
 }

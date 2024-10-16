@@ -1,21 +1,21 @@
 import { Timesheet } from '../timesheet/timesheet'
 import { TimesheetDate } from '../timesheet/timesheetDate'
-import { LocationTypeEnum, PeriodTypeEnum } from '@/lib/constants/enum';
+import { LocationType, PeriodTypeLabel } from '@/lib/constants/constant';
 import { saveAs } from 'file-saver';
 
 import templateConfig from '../../../../main-timesheet-template'
 
-const sheetNameCollection = (weeksInGroupedTimesheet: any[]) => {
+const sheetNameCollection = (timesheets: Timesheet[]) => {
     let startPoint = "A"
     let startPointNumber = startPoint.charCodeAt(0);
-    let _sheetNameCollection = weeksInGroupedTimesheet.map((week, index) => {
-        return `${String.fromCharCode(startPointNumber + index)}-Week(${week})`
+    let _sheetNameCollection = timesheets.map((_timesheet, index) => {
+        return `${String.fromCharCode(startPointNumber + index)}-Week(${_timesheet.weekNumber})`
     })
     return _sheetNameCollection
 }
 
-export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: Timesheet) => {
-    let templateName = 'standard'; // just putting this for reasons I don't know
+export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]) => {
+    let templateName = 'classic';
     try {
         const ExcelJS = require('exceljs');
         const workbook = new ExcelJS.Workbook();
@@ -72,23 +72,19 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
         const fillPatternSolid = 'solid'
         const fillPatternNone = 'none'
 
+        // let groupedTimesheetEntry = timesheet.timesheetEntryCollectionByWeek
+        // let weeksInGroupedTimesheet: string[] = Object.keys(groupedTimesheetEntry)
 
+        // let timesheetMeta = timesheet.meta;
+        let sheetCollection = sheetNameCollection(timesheets);
 
-
-        let groupedTimesheetEntry = timesheet.timesheetEntryCollectionByWeek
-        let weeksInGroupedTimesheet: string[] = Object.keys(groupedTimesheetEntry)
-
-        let timesheetMeta = timesheet.meta;
-        let sheetCollection = sheetNameCollection(weeksInGroupedTimesheet);
-
-        weeksInGroupedTimesheet.forEach((week, index) => {
+        timesheets.forEach((_timesheet, index) => {
 
             const worksheet = workbook.addWorksheet(sheetCollection[index], {
                 pageSetup: { paperSize: 9, orientation: orientationLandscape, fitToPage: true, margins: { left: 0.7, right: 0.7, top: 0.75, bottom: 0.75, header: 0.3, footer: 0.3 } }
             });
 
-            let timesheetEntryCollectionForCurrentWeek = groupedTimesheetEntry[week as any];
-            let timesheetDateForLastDayOfCurrentWeek = timesheetEntryCollectionForCurrentWeek![timesheetEntryCollectionForCurrentWeek?.length - 1].date;
+            let timesheetDateForLastDayOfCurrentWeek = _timesheet.weekEndingDate
             let javascriptDateForLastDayOfCurrentWeek = timesheetDateForLastDayOfCurrentWeek.toJavascriptDate();
             let javascriptDateForLastDayOfCurrentWeekWithOffset = TimesheetDate.addTimezoneOffsetToJavascriptDate(javascriptDateForLastDayOfCurrentWeek);
 
@@ -106,7 +102,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             });
 
             const weekNumberCell = worksheet.getCell('Q1');
-            weekNumberCell.value = `${templateConfig.label.weekPrefix} ${week}`.toUpperCase()
+            weekNumberCell.value = `${templateConfig.label.weekPrefix} ${_timesheet.weekNumber}`.toUpperCase()
 
             // Row 1 - MERGES
             worksheet.mergeCells('A1:B1')
@@ -138,10 +134,10 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
                 },
                 { // Row 4 - DATA
                     column_a: templateConfig.staticValues.defaultTitle.toUpperCase(),
-                    column_e: timesheetMeta.personnelName.toUpperCase(),
-                    column_j: TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheetMeta.mobilizationDate.toJavascriptDate()),
-                    column_m: TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheetMeta.demobilizationDate.toJavascriptDate()),
-                    column_p: timesheetMeta.orderNumber
+                    column_e: _timesheet.personnel.name.toUpperCase(),
+                    column_j: _timesheet.mobilizationDate ? TimesheetDate.addTimezoneOffsetToJavascriptDate(_timesheet.mobilizationDate.toJavascriptDate()) : '',
+                    column_m: _timesheet.demobilizationDate ? TimesheetDate.addTimezoneOffsetToJavascriptDate(_timesheet.demobilizationDate.toJavascriptDate()) : '',
+                    column_p: _timesheet.project.orderNumber
                 },
                 { // Row 5 - DATA
                     column_a: templateConfig.label.customerName.toUpperCase(),
@@ -152,10 +148,10 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
                 },
 
                 { // Row 6 - DATA
-                    column_a: timesheetMeta.customerName.toUpperCase(),
-                    column_g: timesheetMeta.siteName.toUpperCase(),
-                    column_j: timesheetMeta.purchaseOrderNumber,
-                    column_m: timesheetMeta.siteCountry.toUpperCase(),
+                    column_a: _timesheet.customer.name.toUpperCase(),
+                    column_g: _timesheet.site.name.toUpperCase(),
+                    column_j: _timesheet.project.purchaseOrderNumber,
+                    column_m: _timesheet.site.country.toUpperCase(),
                     column_o: javascriptDateForLastDayOfCurrentWeekWithOffset
                 },
             ];
@@ -338,26 +334,26 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
             // Row 9 to 22 - Data
             let coreEntryRowCounter = 9;
             let coreTimesheetEntryRows: any[] = [];
-            timesheetEntryCollectionForCurrentWeek?.forEach((currentTimesheetEntry) => {
+            _timesheet.records?.forEach((_timesheetRecord) => {
                 const excelDataForCurrentDay = [
                     {
-                        column_a: currentTimesheetEntry.entryDateDayLabel.toUpperCase(),
-                        column_b: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? PeriodTypeEnum.start.toUpperCase() : '',
-                        column_c: !currentTimesheetEntry.isEntryPeriodStartTimeNull ? currentTimesheetEntry.entryPeriod?.startTime : '',
-                        column_k: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOnshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : '',
-                        column_l: currentTimesheetEntry.isEntryPeriodValid ? LocationTypeEnum.onshore.toUpperCase() : '',
-                        column_m: currentTimesheetEntry.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '',
-                        column_n: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOnshore ? currentTimesheetEntry.comment : ""
+                        column_a: _timesheetRecord.dayLabel.toUpperCase(), //day i.e Monday, Tuesday, ...
+                        column_b: _timesheetRecord.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', // start tag
+                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.entries[0].entryPeriod?.startTime : '', // working time 1 - start time
+                        column_k: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOnshore ? `${_timesheetRecord.totalHoursInString}` : '', // total hours - onshore
+                        column_l: _timesheetRecord.hasHours ? LocationType.onshore.toUpperCase() : '', //onshore / offshore
+                        column_m: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '', //onshore check mark
+                        column_n: _timesheetRecord.hasHours && _timesheetRecord.entries[0].comment && _timesheetRecord.isLocationTypeOnshore ? _timesheetRecord.entries[0].comment : "" // Comment for onshore
                     },
 
                     {
-                        column_a: currentTimesheetEntry.entryDateInDayMonthFormat,
-                        column_b: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? PeriodTypeEnum.finish.toUpperCase() : '',
-                        column_c: !currentTimesheetEntry.isEntryPeriodFinishTimeNull ? currentTimesheetEntry.entryPeriod?.finishTime : '',
-                        column_k: currentTimesheetEntry.isEntryPeriodValid && currentTimesheetEntry.isLocationTypeOffshore ? `${currentTimesheetEntry.totalEntryPeriodHours}:00` : "",
-                        column_l: !currentTimesheetEntry.isNullEntry ? LocationTypeEnum.offshore.toUpperCase() : "",
-                        column_m: currentTimesheetEntry.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '',
-                        column_n: !currentTimesheetEntry.isCommentNull && currentTimesheetEntry.isLocationTypeOffshore ? currentTimesheetEntry.comment : ""
+                        column_a: _timesheetRecord.entries[0].entryDateInDayMonthFormat, //date i.e 30-Aug, 29-Apr ...
+                        column_b: _timesheetRecord.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', //finish tag
+                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.entries[0].entryPeriod?.finishTime : '', // finish time
+                        column_k: _timesheetRecord.hasHours && _timesheetRecord.entries[0].isLocationTypeOffshore ? `${_timesheetRecord.totalHoursInString}` : "", // total hours - Offshore
+                        column_l: _timesheetRecord.hasHours ? LocationType.offshore.toUpperCase() : "", // offshore tag
+                        column_m: _timesheetRecord.hasHours && _timesheetRecord.entries[0].isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
+                        column_n: _timesheetRecord.hasHours && !_timesheetRecord.entries[0].isCommentNull && _timesheetRecord.entries[0].isLocationTypeOffshore ? _timesheetRecord.entries[0].comment : "" // Comment for offshore
                     },
                 ]
                 coreTimesheetEntryRows = [...coreTimesheetEntryRows, ...excelDataForCurrentDay]
@@ -366,7 +362,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
             // Row 9 to 22 - MERGES
             coreEntryRowCounter = 9;
-            timesheetEntryCollectionForCurrentWeek?.forEach(() => {
+            _timesheet.records?.forEach(() => {
                 worksheet.mergeCells(`N${coreEntryRowCounter}:R${coreEntryRowCounter}`);
                 worksheet.mergeCells(`N${coreEntryRowCounter + 1}:R${coreEntryRowCounter + 1}`);
                 coreEntryRowCounter += 2;
@@ -389,7 +385,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
                     dayCounterInWeek = (counter - 1) / 2
                 }
 
-                if (!timesheetEntryCollectionForCurrentWeek![dayCounterInWeek]?.isNullEntry) {
+                if (!_timesheet.records[dayCounterInWeek]?.entries[0].isNullEntry) {
                     singleRow.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
                         cell.border = borderAllThin
                     })
@@ -533,7 +529,7 @@ export const createXlsxTimesheetStandardTemplateWithExcelJs = async (timesheet: 
 
         // const workbook = createAndFillWorkbook();
         const fileNameSuffix = templateConfig.fileNameSuffix == undefined || templateConfig.fileNameSuffix == null || templateConfig.fileNameSuffix == '' || !templateConfig.fileNameSuffix ? '' : `-${templateConfig.fileNameSuffix}`
-        const timesheetFileName = `${timesheet.entryCollection[0].date.dateInMonthYearFormat}-Timesheet-${timesheet.meta.personnelName}${fileNameSuffix}`;
+        const timesheetFileName = `${timesheets[0].monthNumber}-${timesheets[0].yearNumber}-Customer_Timesheet-${timesheets[0].personnel.name}${fileNameSuffix}`;
         // return workbook.xlsx.writeFile(filename);
 
         const xlsxBuffer = workbook.xlsx.writeBuffer();

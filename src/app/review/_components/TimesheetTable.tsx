@@ -1,8 +1,8 @@
-import { EntryStateEnum, LocationTypeEnum } from "@/lib/constants/enum";
+import { EntryStateLabel, LocationType } from "@/lib/constants/constant";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
-import { PrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheetType";
+import { PrimitiveTimesheetEntryDataInterface } from "@/lib/types/timesheet";
 import { useEffect, useState } from "react";
 
 export type TimesheetTableProps = {
@@ -14,11 +14,11 @@ export type TimesheetTableProps = {
 export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpdate }: TimesheetTableProps) {
 
     const [editableTimesheetCollection, setEditableTimesheetCollection] = useState(timesheetData?.entries.map((entry: any) => {
-        return { ...entry, 'startTime': entry.entryPeriod.startTime, 'finishTime': entry.entryPeriod.finishTime, state: EntryStateEnum.default, updatedAt: null } as PrimitiveTimesheetEntryDataInterface
+        return { ...entry, 'startTime': entry.entryPeriod.startTime, 'finishTime': entry.entryPeriod.finishTime, state: EntryStateLabel.default, updatedAt: null } as PrimitiveTimesheetEntryDataInterface
     }) as PrimitiveTimesheetEntryDataInterface[]);
 
 
-    const updateEditableTimsheetEntryState = (timesheetEntryId: number, entryState: EntryStateEnum) => {
+    const updateEditableTimsheetEntryState = (timesheetEntryId: number, entryState: EntryStateLabel) => {
         setEditableTimesheetCollection(editableTimesheetCollection.map((editableTimesheetEntry: PrimitiveTimesheetEntryDataInterface) => {
             if (editableTimesheetEntry.id == timesheetEntryId) {
                 return { ...editableTimesheetEntry, state: entryState };
@@ -28,11 +28,11 @@ export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpda
     }
 
     function handleEditButtonClick(e: any, timesheetEntryId: number) {
-        updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.edit);
+        updateEditableTimsheetEntryState(timesheetEntryId, EntryStateLabel.edit);
     }
 
     function handleBackButtonClick(e: any, timesheetEntryId: number) {
-        updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.default);
+        updateEditableTimsheetEntryState(timesheetEntryId, EntryStateLabel.default);
     }
 
     function handleInputChange(e: any, timesheetEntryId: number, entryItemKey: string,) {
@@ -49,9 +49,9 @@ export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpda
         try {
             let entry = selectedEditableTimesheetEntry(timesheetEntryId);
             handleTimesheetEntryUpdate({ id: entry.id, startTime: entry.startTime, finishTime: entry.finishTime, locationType: entry.locationType, comment: entry.comment });
-            updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.recentlyUpdated);
+            updateEditableTimsheetEntryState(timesheetEntryId, EntryStateLabel.recentlyUpdated);
             setTimeout(() => {
-                updateEditableTimsheetEntryState(timesheetEntryId, EntryStateEnum.default);
+                updateEditableTimsheetEntryState(timesheetEntryId, EntryStateLabel.default);
             }, 5000)
         } catch (e) {
 
@@ -62,7 +62,7 @@ export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpda
 
     function isEntryInEditState(timesheetEntryId: number) {
         let entry = selectedEditableTimesheetEntry(timesheetEntryId);
-        if (entry.state == EntryStateEnum.edit) return true
+        if (entry.state == EntryStateLabel.edit) return true
         return false
     }
 
@@ -170,8 +170,8 @@ export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpda
                                         onChange={(e) => handleInputChange(e, timesheetEntry.id, 'locationType')} name={`location-${timesheetEntry.id}`}
                                         id={`location-${timesheetEntry.id}`} title="Location"
                                         className="text-xs">
-                                        <option value={LocationTypeEnum.onshore}>Onshore</option>
-                                        <option value={LocationTypeEnum.offshore}>Offshore</option>
+                                        <option value={LocationType.onshore}>Onshore</option>
+                                        <option value={LocationType.offshore}>Offshore</option>
                                     </select>
                                 </span>
                             }
@@ -212,7 +212,7 @@ export default function TimesheetTable({ timesheetData, handleTimesheetEntryUpda
                             {!isEntryInEditState(timesheetEntry.id) ?
                                 <div className="inline-flex gap-1.5 items-center relative">
                                     <button type="button" onClick={(e) => handleEditButtonClick(e, timesheetEntry.id)} className="px-3 py-1 rounded text-sm text-white bg-blue-600">Edit</button>
-                                    {editableTimesheetCollection.filter((entry) => entry.id == timesheetEntry.id)[0].state == EntryStateEnum.recentlyUpdated ?
+                                    {editableTimesheetCollection.filter((entry) => entry.id == timesheetEntry.id)[0].state == EntryStateLabel.recentlyUpdated ?
                                         <p className="inline-block absolute -right-8 text-xs text-green-700">
                                             <span className="inline-block bg-green-200 px-2 py-1 rounded font-semibold">✔</span>
                                         </p>

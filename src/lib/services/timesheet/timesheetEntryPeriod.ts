@@ -1,7 +1,7 @@
-import { TimesheetEntryPeriodInterface } from "@/lib/types/timesheetType";
+import { TimesheetEntryPeriodInterface } from "@/lib/types/timesheet";
 import moment from "moment";
 import { TimesheetHour } from "./timesheetHour";
-import { ErrorMessageEnum } from "@/lib/constants/enum";
+import { ErrorMessage } from "@/lib/constants/constant";
 import { Timesheet } from "./timesheet";
 
 export class TimesheetEntryPeriod implements TimesheetEntryPeriodInterface {
@@ -50,17 +50,17 @@ export class TimesheetEntryPeriod implements TimesheetEntryPeriodInterface {
 
     private totalTimeInMinutes(): number {
         try {
-            if (!this.finishTime || !this.startTime) throw new Error(ErrorMessageEnum.timeNotDefined); // Time not defined
+            if (!this.finishTime || !this.startTime) throw new Error(ErrorMessage.timeNotDefined); // Time not defined
             if (this.finishTime._isValidTime && this.startTime._isValidTime) {
-                if (!this.startTime.isEarlierThan(this.finishTime)) throw new Error(ErrorMessageEnum.wrongTimeOrder); // time order is wrong
+                if (!this.startTime.isEarlierThan(this.finishTime)) throw new Error(ErrorMessage.wrongTimeOrder); // time order is wrong
 
                 let totalTimeInMinutes = moment(this.finishTime.time, 'HH:mm').diff(moment(this.startTime.time, 'HH:mm'), 'minutes') ?? 0;
 
                 let totalBreakTimeInMinutes = 0;
                 if (this.breakTimeFinish && this.breakTimeStart) {
-                    if (this.breakTimeStart.isEarlierThan(this.startTime)) throw new Error(ErrorMessageEnum.wrongBreakStartAndStartTimeOrder); // Break Time cannot start before Main Start Time
+                    if (this.breakTimeStart.isEarlierThan(this.startTime)) throw new Error(ErrorMessage.wrongBreakStartAndStartTimeOrder); // Break Time cannot start before Main Start Time
 
-                    if (!this.breakTimeStart.isEarlierThan(this.breakTimeFinish) || this.breakTimeStart.isEqualTo(this.breakTimeFinish)) throw new Error(ErrorMessageEnum.wrongBreakTimeOrder); // Invalid Break Time
+                    if (!this.breakTimeStart.isEarlierThan(this.breakTimeFinish) || this.breakTimeStart.isEqualTo(this.breakTimeFinish)) throw new Error(ErrorMessage.wrongBreakTimeOrder); // Invalid Break Time
 
                     totalBreakTimeInMinutes = moment(this.breakTimeFinish.time, 'HH:mm').diff(moment(this.breakTimeStart.time, 'HH:mm'), 'minutes') ?? 0;
                     totalBreakTimeInMinutes = !!totalBreakTimeInMinutes ? totalBreakTimeInMinutes : 0
@@ -132,6 +132,20 @@ export class TimesheetEntryPeriod implements TimesheetEntryPeriodInterface {
             }
         }
         return false
+    }
+
+    static convertPrimitiveToEntryPeriod(entryPeriodStartTime: string, entryPeriodFinishTime: string, breakPeriodStartTime: string, breakPeriodFinishTime: string) {
+        let _breakTimeStart = !!breakPeriodStartTime ? new TimesheetHour(breakPeriodStartTime) : undefined;
+        let _breakTimeFinish = !!breakPeriodFinishTime ? new TimesheetHour(breakPeriodFinishTime) : undefined;
+        if (!_breakTimeStart || !_breakTimeFinish) {
+            _breakTimeStart = undefined
+            _breakTimeFinish = undefined
+        }
+        const _startTime = !!entryPeriodStartTime ? new TimesheetHour(entryPeriodStartTime) : undefined;
+        const _finishTime = !!entryPeriodFinishTime ? new TimesheetHour(entryPeriodFinishTime) : undefined;
+
+        const _entryPeriod: TimesheetEntryPeriod = new TimesheetEntryPeriod({ startTime: _startTime, finishTime: _finishTime, breakTimeStart: _breakTimeStart, breakTimeFinish: _breakTimeFinish })
+        return _entryPeriod
     }
 
 }

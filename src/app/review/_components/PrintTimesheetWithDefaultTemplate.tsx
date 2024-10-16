@@ -1,4 +1,4 @@
-import { LocationTypeEnum } from "@/lib/constants/enum";
+import { LocationType } from "@/lib/constants/constant";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetMeta } from "@/lib/services/timesheet/timesheetMeta";
 import templateConfig from '../../../../main-timesheet-template';
@@ -298,11 +298,11 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                                         </div>
                                         <div className={`col-span-4 ${cellPaddingForTimesheetTable} border-black ${!timesheetEntry.isNullEntry ? 'border-b border-l' : darkerGrayBackground} ${verticallyCenteredContentClass} ${horizontallyCenteredContentClass}`}>
                                             {/* cols - M */}
-                                            {!timesheetEntry.isNullEntry ? <p className={`${xsTextFontClass} text-center`}>{timesheetEntry.locationType == LocationTypeEnum.onshore ? '✔' : ''}</p> : ''}
+                                            {!timesheetEntry.isNullEntry ? <p className={`${xsTextFontClass} text-center`}>{timesheetEntry.locationType == LocationType.onshore ? '✔' : ''}</p> : ''}
                                         </div>
                                         <div className={`col-span-42 ${cellPaddingForTimesheetTable} border-r border-black ${!timesheetEntry.isNullEntry ? 'border-b border-l' : darkerGrayBackground} ${verticallyCenteredContentClass}`}>
                                             {/* cols - N, O, P, Q, R */}
-                                            {!timesheetEntry.isNullEntry ? <p className={`${smallTextFontClass}`}>{timesheetEntry.locationType == LocationTypeEnum.onshore ? timesheetEntry.comment : ''}</p> : ''}
+                                            {!timesheetEntry.isNullEntry ? <p className={`${smallTextFontClass}`}>{timesheetEntry.locationType == LocationType.onshore ? timesheetEntry.comment : ''}</p> : ''}
                                         </div>
                                     </div>
                                     <div className={`timesheet-row grid ${gridColsForTimesheetTable}`}>
@@ -356,11 +356,11 @@ export default function PrintTimesheetWithDefaultTemplate({ currentWeek, grouped
                                         </div>
                                         <div className={`col-span-4 border-black ${cellPaddingForTimesheetTable} ${!timesheetEntry.isNullEntry ? 'border-b border-l' : darkerGrayBackground} ${verticallyCenteredContentClass} ${horizontallyCenteredContentClass}`}>
                                             {/* cols - M */}
-                                            {!timesheetEntry.isNullEntry ? <p className={` ${xsTextFontClass} text-center`}>{timesheetEntry.locationType == LocationTypeEnum.offshore ? '✔' : ''}</p> : ''}
+                                            {!timesheetEntry.isNullEntry ? <p className={` ${xsTextFontClass} text-center`}>{timesheetEntry.locationType == LocationType.offshore ? '✔' : ''}</p> : ''}
                                         </div>
                                         <div className={`col-span-42 border-r border-black ${!timesheetEntry.isNullEntry ? 'border-b border-l' : darkerGrayBackground} ${verticallyCenteredContentClass} ${horizontallyCenteredContentClass}`}>
                                             {/* cols - N, O, P, Q, R */}
-                                            {!timesheetEntry.isNullEntry ? <p className={` ${xsTextFontClass}`}>{timesheetEntry.locationType == LocationTypeEnum.offshore ? timesheetEntry.comment : ''}</p> : ''}
+                                            {!timesheetEntry.isNullEntry ? <p className={` ${xsTextFontClass}`}>{timesheetEntry.locationType == LocationType.offshore ? timesheetEntry.comment : ''}</p> : ''}
                                         </div>
                                     </div>
                                 </div>)}

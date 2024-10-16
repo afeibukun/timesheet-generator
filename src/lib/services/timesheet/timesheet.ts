@@ -1,52 +1,58 @@
-import { defaultTimesheetEntryType } from "@/lib/constants/defaultData";
+import { defaultTimesheetEntryType } from "@/lib/constants/default";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
-import { CustomerInterface, DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetEntryInterface, PrimitiveTimesheetInterface, ProjectInterface, SiteInterface, TimesheetCollectionByMonthInterface, TimesheetCollectionInterface, TimesheetInterface, TimesheetOptionInterface } from "@/lib/types/timesheetType";
-import { Personnel } from "../personnel";
+import { TimesheetCollectionByMonthInterface, TimesheetCollection, TimesheetInterface, TimesheetOptionInterface } from "@/lib/types/timesheet";
+import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getByIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
-import { CustomerSchema, IndexName, PersonnelSchema, StoreName, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/constants/schema";
-import { ActiveComponentType, ErrorMessageEnum, StorageOptionLabel } from "@/lib/constants/enum";
-import { PersonnelInterface } from "@/lib/types/personnelType";
+import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
+import { CustomerSchema, PersonnelSchema, ProjectSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
+import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType } from "@/lib/constants/constant";
 import { TimesheetHour } from "./timesheetHour";
+import { TimesheetRecord } from "./timesheetRecord";
+import { getUniqueIDBasedOnTime, slugify } from "@/lib/helpers";
+import { StorageLabel, IndexName, StoreName } from "@/lib/constants/storage";
+import { Customer } from "../meta/customer";
+import { Site } from "../meta/site";
+import { Project } from "../meta/project";
+import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheet, PrimitiveTimesheetEntryError, PrimitiveTimesheetOption } from "@/lib/types/primitive";
+import { CustomerInterface, ProjectInterface, SiteInterface } from "@/lib/types/meta";
+import { createXlsxTimesheetClassicTemplate } from "../xlsx/excelJsService";
+import { createPdfWithJsPdfAutoTable } from "../pdf/jsPdfAutoTableService";
 
+/**
+ * class: Timesheet
+ * An object of class Timesheet refers to a week of recorded work informatiomn
+ */
 export class Timesheet implements TimesheetInterface {
-    id: number;
+    id?: number;
+    key: number;
     personnel: Personnel;
     weekEndingDate: TimesheetDate;
-    customer: CustomerInterface;
-    site: SiteInterface;
-    project: ProjectInterface;
+    customer: Customer;
+    site: Site;
+    project: Project;
     options: TimesheetOptionInterface[];
-    entries: TimesheetEntry[];
+    records: TimesheetRecord[];
     comment: string;
 
-    constructor(timesheet: TimesheetInterface) {
-        this.id = timesheet.id ?? 0;
-        this.personnel = timesheet.personnel;
-        this.customer = timesheet.customer;
-        this.site = timesheet.site;
-        this.project = timesheet.project;
-        this.weekEndingDate = timesheet.weekEndingDate;
-        this.options = timesheet.options;
-        this.entries = timesheet.entries;
-        this.comment = timesheet.comment;
-    }
-
-    // might not be necessary, timesheet is already been grouped by week
-    get timesheetEntriesByWeek() {
-        let flatTimesheetCollection = this.entries;
-        const groupedTimesheet = Object.groupBy(flatTimesheetCollection, ({ date }) => {
-            return new TimesheetDate(date).weekNumber;
-        });
-        return groupedTimesheet;
+    constructor(iTimesheet: TimesheetInterface) {
+        this.id = iTimesheet.id;
+        this.key = iTimesheet.key
+        this.personnel = iTimesheet.personnel;
+        this.customer = iTimesheet.customer;
+        this.site = iTimesheet.site;
+        this.project = iTimesheet.project;
+        this.weekEndingDate = iTimesheet.weekEndingDate;
+        this.options = iTimesheet.options;
+        this.records = iTimesheet.records;
+        this.comment = iTimesheet.comment;
     }
 
     get totalHours(): TimesheetHour {
-        let hours = this.entries.reduce((accumulator, timesheetEntry) => {
-            accumulator = TimesheetHour.sumTimesheetHours(timesheetEntry.totalEntryPeriodHours, accumulator)
+        let hours = this.records.reduce((accumulator, _record) => {
+            accumulator = TimesheetHour.sumTimesheetHours(_record.totalHours, accumulator)
             return accumulator
-        }, {} as TimesheetHour);
+        }, new TimesheetHour("00:00"));
         return hours;
     }
 
@@ -55,22 +61,26 @@ export class Timesheet implements TimesheetInterface {
     }
 
     get totalDays(): number {
-        const entryDateInDefaultFormat = this.entries.map((currentEntry) => currentEntry.date.defaultFormat());
+        const entryDateInDefaultFormat = this.records.map((_record) => _record.date.defaultFormat());
         const uniqueEntryDateInDefaultFormat = new Set(entryDateInDefaultFormat);
         return uniqueEntryDateInDefaultFormat.size;
     }
 
     get weekNumber(): number {
-        return this.entries[0].weekNumber;
+        return this.records[0].weekNumber;
     }
 
     get monthNumber(): number {
         // A Timesheet spans a week, but never overlaps a month
-        return this.entries[0].monthNumber;
+        return this.records[0].monthNumber;
+    }
+    get yearNumber(): number {
+        // A Timesheet spans a week, but never overlaps a month
+        return this.records[0].yearNumber;
     }
 
     get month(): string {
-        return this.entries[0].month;
+        return this.records[0].month;
     }
 
     get isNull(): Boolean {
@@ -79,65 +89,169 @@ export class Timesheet implements TimesheetInterface {
     }
 
     hasEntryOnDate(date: TimesheetDate): Boolean {
-        return this.entries.some((entry) => date.isEqual(entry.date))
+        return this.records.some((_record) => _record.date.isEqual(date) && _record.hasEntry())
     }
 
     getTotalHoursOnADay(date: TimesheetDate) {
         const nullHour = new TimesheetHour("00:00");
 
         if (!this.hasEntryOnDate(date)) return nullHour
+        let _totalHoursForDay = nullHour;
+        const _recordForDay = this.records.filter(_record => date.isEqual(_record.date))[0];
+        if (_recordForDay) _totalHoursForDay = _recordForDay.totalHours;
+        return _totalHoursForDay
+    }
 
-        const entriesInDay = this.entries.filter(entry => date.isEqual(entry.date));
+    getEntriesWithOverlappingPeriodInDay(date: TimesheetDate) {
+        if (!this.hasEntryOnDate(date)) throw Error(ErrorMessage.entryOnDateNotFound);
+        const _recordForDay = this.records.filter(_record => date.isEqual(_record.date))[0];
+        const _overlappingEntries = _recordForDay.getEntriesWithOverlappingPeriod();
+        return _overlappingEntries
+    }
 
-        let totalHoursInDay: TimesheetHour = entriesInDay[0].totalEntryPeriodHours;
-        for (let i = 1; i < entriesInDay.length; i++) {
-            totalHoursInDay = TimesheetHour.sumTimesheetHours(entriesInDay[i].totalEntryPeriodHours, totalHoursInDay);
+    doesDayHaveOverlappingTimeEntries(date: TimesheetDate) {
+        const _recordForDay = this.records.filter(_record => date.isEqual(_record.date))[0];
+        return _recordForDay.hasEntriesWithOverlappingPeriod();
+    }
+
+    convertToSchema() {
+        let _timesheetSchema: TimesheetSchema = { id: this.id, key: this.key, personnel: this.personnel.convertToSchema(), personnelSlug: this.personnel.slug, project: this.project, customer: this.customer, site: this.site, records: this.records, options: this.options, weekEndingDate: this.weekEndingDate.date, comment: this.comment }
+        return _timesheetSchema;
+    }
+
+    convertToPrimitive() {
+        if (!this.project.id) throw Error(ErrorMessage.projectNotFound);
+        const _projectId = this.project.id
+        const _primitiveTimesheet: PrimitiveTimesheet = {
+            id: this.id,
+            key: this.key,
+            customerSlug: this.customer.slug,
+            siteSlug: this.site.slug,
+            projectId: _projectId,
+            options: this.options as PrimitiveTimesheetOption[], // they have the same structure
+            comment: this.comment,
+            records: this.records.map((_record: TimesheetRecord) => {
+                const _primitiveRecord = _record.convertToPrimitive();
+                return _primitiveRecord
+            })
         }
-        return totalHoursInDay
+        return _primitiveTimesheet;
     }
 
-    entriesWithOverlappingPeriodInDay(date: TimesheetDate) {
-        if (!this.hasEntryOnDate(date)) throw Error(ErrorMessageEnum.entryOnDateNotFound);
+    generateTimesheetErrors = (existingEntryErrors: PrimitiveTimesheetEntryError[]) => {
+        const defaultErrorObject = { error: false, message: "" }
+        let entryErrors: PrimitiveTimesheetEntryError[] = [];
+        this.records.forEach((_records) => {
+            const _entriesInRecord = _records.entries.map((_entry) => {
+                let _entryTypeError = defaultErrorObject
+                if (!_entry.entryType) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
 
-        const entriesInDay = this.entries.filter(entry => date.isEqual(entry.date));
-        let _cursorEntries = [...entriesInDay];
-        let overlappingEntries: TimesheetEntry[] = [];
-        let _countMain = _cursorEntries.length - 1;
-        let _countSub = 0;
-        while (_countMain !== 0) {
-            const overlapChecker = TimesheetEntryPeriod.doesPeriodOverlap(_cursorEntries[_countMain].entryPeriod, _cursorEntries[_countSub].entryPeriod)
-            if (overlapChecker) {
-                overlappingEntries = [...overlappingEntries, _cursorEntries[_countMain], _cursorEntries[_countSub]]
-            }
-            _countSub++
-            if (_countSub >= _cursorEntries.length - 1) {
-                _cursorEntries.pop();
-                _countSub = 0;
-                _countMain = _cursorEntries.length - 1;
-            }
+                let startTimeError = Timesheet.errorOnEntryTime(_entry, this, 'start');
+                let _entryStartTimeError = defaultErrorObject
+                if (startTimeError.error) _entryStartTimeError = startTimeError
+
+                let finishTimeError = Timesheet.errorOnEntryTime(_entry, this, 'finish');
+                let _entryFinishTimeError = defaultErrorObject
+                if (finishTimeError.error) _entryFinishTimeError = finishTimeError
+
+                let breakStartTimeError = _entry.entryPeriod.errorOnBreakStartTime()
+                let _entryBreakStartTimeError = defaultErrorObject
+                if (breakStartTimeError.error) _entryBreakStartTimeError = breakStartTimeError
+
+                let breakFinishTimeError = _entry.entryPeriod.errorOnBreakFinishTime()
+                let _entryBreakFinishTimeError = defaultErrorObject
+                if (breakFinishTimeError.error) _entryBreakFinishTimeError = breakFinishTimeError
+
+                let entryError: PrimitiveTimesheetEntryError = existingEntryErrors.filter((e) => e.id === _entry.id)[0];
+                if (entryError) entryError = { ...entryError, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError }
+                else entryError = { id: _entry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
+                return entryError
+            })
+            entryErrors = [...entryErrors, ..._entriesInRecord]
+        })
+        return entryErrors
+    }
+
+    get mobilizationDate() {
+        try {
+            return new TimesheetDate(this.options.filter((_option) => _option.key === OptionLabel.mobilizationDate)[0].value)
+        } catch (e) {
         }
-        return overlappingEntries
+        return undefined
     }
 
-    doesEntryWithinDayOverlap(date: TimesheetDate) {
-        const overlappingEntries = this.entriesWithOverlappingPeriodInDay(date);
-        if (overlappingEntries.length > 0) return true
-        return false
+    get demobilizationDate() {
+        try {
+            return new TimesheetDate(this.options.filter((_option) => _option.key === OptionLabel.demobilizationDate)[0].value)
+        } catch (e) {
+        }
+        return undefined
     }
 
-
-    static doesPrimitiveTimesheetHaveEntryOnPrimitiveDate(primitiveTimesheet: PrimitiveTimesheetInterface, primitiveDate: string) {
-        return primitiveTimesheet.entries.some((entry) => entry.date === primitiveDate)
+    async updateTimesheetInDb() {
+        if (!this.id) throw Error(ErrorMessage.invalidTimesheet) //Invalid-Timesheet (We can't update what's not existing)
+        let _timesheetSchema: TimesheetSchema = this.convertToSchema();
+        const newTimesheet = await updateDataInStore(_timesheetSchema, this.id, StoreName.timesheet);
+        return newTimesheet;
     }
 
-    static async hasUpdatedDefaultInformation() {
-        let defaultData = await TimesheetEntry.defaultInformation();
-        if (defaultData.updatedAt == '' || defaultData.updatedAt == undefined || defaultData.updatedAt == null) return false;
-        return true
+    exportXlsxTimesheet(reportType: ReportType, templateType: TemplateType) {
+        if (reportType == ReportType.customer && templateType === TemplateType.classic) {
+            createXlsxTimesheetClassicTemplate([this]);
+        }
     }
 
-    static async createTimesheetCollectionFromMobilizationPeriod(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate, personnel: Personnel, customer: CustomerInterface, site: SiteInterface, project: ProjectInterface) {
-        let defaultData: DefaultPrimitiveTimesheetEntryDataInterface = await TimesheetEntry.defaultInformation();
+    exportPdfTimesheet(reportType: ReportType, templateType: TemplateType) {
+        if (reportType == ReportType.customer && templateType === TemplateType.classic) {
+            createPdfWithJsPdfAutoTable([this])
+        }
+    }
+
+    static async createTimesheet(weekData: string, personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false) {
+        let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+        TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
+
+        const { year, week } = TimesheetDate.extractWeekDataFromPrimitiveWeek(weekData);
+        const _lastDayOfTheSelectedWeek = TimesheetDate.getLastDayOfWeekFromWeekNumber(week, year)
+
+        let _dateCount = 0;
+        let _monthCount = 0;
+
+        const _defaultEntryTypeSlug = "working-time";
+        const getDefaultEntryType = () => defaultTimesheetEntryType.filter((entryType) => entryType.slug == _defaultEntryTypeSlug)[0];
+
+        const getDefaultEntryPeriod = () => new TimesheetEntryPeriod({ startTime: new TimesheetHour(defaultData.startTime), finishTime: new TimesheetHour(defaultData.finishTime) })
+
+        let _records: TimesheetRecord[] = []
+        if (shouldPopulateEntry) {
+            const _weekDays = await TimesheetDate.getWeekDays(_lastDayOfTheSelectedWeek)
+            _records = _weekDays.map(_date => {
+                const _newEntry = new TimesheetEntry({
+                    id: TimesheetEntry.createId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
+                });
+                const _newRecord = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _date, entries: [_newEntry] });
+                return _newRecord
+            });
+        }
+
+        let _key = getUniqueIDBasedOnTime();
+        while (!await Timesheet.isKeyUnique(_key)) _key = getUniqueIDBasedOnTime();
+
+        const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, customer: customer, site: site, project: project, options: [], records: _records, comment: '' });
+
+        let _timesheetSchema: TimesheetSchema = { key: _key, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _newTimesheet.records, options: _newTimesheet.options, weekEndingDate: _newTimesheet.weekEndingDate.date, comment: _newTimesheet.comment }
+        const _stringifiedTimesheet = JSON.stringify(_timesheetSchema)
+        const _returnedTimesheet = await createTimesheet(JSON.parse(_stringifiedTimesheet));
+
+        if (_returnedTimesheet.id) {
+            await createOrUpdateAppOption(StorageLabel.activeTimesheetIdLabel, _returnedTimesheet.id);
+            await createOrUpdateAppOption(StorageLabel.activeComponentType, ComponentType.timesheet);
+        }
+        return _returnedTimesheet;
+    }
+
+    static async createTimesheetCollectionFromMobilizationPeriod(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate, personnel: Personnel, customer: Customer, site: Site, project: Project) {
+        let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
         const _mobDate = mobilizationDate; // the date you got to the site
         const _demobDate = demobilizationDate; // the date you left the site
@@ -146,7 +260,9 @@ export class Timesheet implements TimesheetInterface {
 
         const monthCollection = TimesheetDate.getMonthsWithinATimePeriod(_preMobTravelDate, _postDemobTravelDate);
         const timesheetCollectionByMonth: Array<Timesheet[]> = new Array(monthCollection.length).fill([]);
-        let timesheetCollection: TimesheetCollectionInterface = { collection: [] };
+        let _timesheetCollectionKey = getUniqueIDBasedOnTime();
+        while (!await Timesheet.isKeyUniqueForCollection(_timesheetCollectionKey)) _timesheetCollectionKey = getUniqueIDBasedOnTime();
+        let timesheetCollection: TimesheetCollection = { key: _timesheetCollectionKey, collection: [] };
 
         let _cursorDate = _preMobTravelDate;
         let _dateCount = 0;
@@ -175,22 +291,25 @@ export class Timesheet implements TimesheetInterface {
         let _cursorTimesheet;
         let _startNewTimesheet = true;
 
+
         while (isDateSameOrBeforeAnotherDate(_cursorDate, _postDemobTravelDate)) {
             // if (!timesheetCollection[_monthCount][_timesheetCount]) {
             if (_startNewTimesheet) {
-                _cursorTimesheet = new Timesheet({ personnel: personnel, weekEndingDate: _cursorWeekEndingDate, customer: customer, site: site, project: project, options: [], entries: [], comment: '' });
+                let _timesheetKey = getUniqueIDBasedOnTime();
+                while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
+                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, customer: customer, site: site, project: project, options: [], records: [], comment: '' });
                 timesheetCollectionByMonth[_monthCount] = [...timesheetCollectionByMonth[_monthCount], _cursorTimesheet];
                 _startNewTimesheet = false;
             } else {
                 _cursorTimesheet = timesheetCollectionByMonth[_monthCount][_timesheetCount];
             }
 
-            const timesheetEntryForCurrentDate = new TimesheetEntry({
-                id: Date.now(), date: _cursorDate, entryType: getEntryType(_cursorDate), entryPeriod: getEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
+            const _entryForCurrentDate = new TimesheetEntry({
+                id: TimesheetEntry.createId(), date: _cursorDate, entryType: getEntryType(_cursorDate), entryPeriod: getEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
             });
-
-            _cursorTimesheet.entries = [..._cursorTimesheet.entries, timesheetEntryForCurrentDate]
-            timesheetCollectionByMonth[_monthCount][_timesheetCount].entries = _cursorTimesheet.entries;
+            const _entryGroupForCurrentDate = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _cursorDate, entries: [_entryForCurrentDate] });
+            _cursorTimesheet.records = [..._cursorTimesheet.records, _entryGroupForCurrentDate]
+            timesheetCollectionByMonth[_monthCount][_timesheetCount].records = _cursorTimesheet.records;
 
             _entriesCount += 1;
 
@@ -212,9 +331,11 @@ export class Timesheet implements TimesheetInterface {
 
             if (_startNewTimesheet) {
                 // PERSIST IN INDEX DB before starting a new timesheet
-                let timesheetForDb: TimesheetSchema = { customer: customer, personnel: personnel, project: project, site: site, entries: _cursorTimesheet.entries, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate, comment: _cursorTimesheet.comment }
+                let _timesheetKey = getUniqueIDBasedOnTime();
+                while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
+                let _timesheetSchema: TimesheetSchema = { key: _timesheetKey, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.date, comment: _cursorTimesheet.comment }
 
-                const stringifiedTimesheet = JSON.stringify(timesheetForDb)
+                const stringifiedTimesheet = JSON.stringify(_timesheetSchema)
                 const timesheet = await createTimesheet(JSON.parse(stringifiedTimesheet));
                 timesheetCollection.collection = [...timesheetCollection.collection, timesheet];
             }
@@ -225,133 +346,120 @@ export class Timesheet implements TimesheetInterface {
         }
 
         const timesheetIdCollection = timesheetCollection.collection.map((timesheet) => timesheet.id).filter(t => t != undefined)
-        const timesheetCollectionFromDb: TimesheetCollectionInterface = await createTimesheetCollection({ timesheetIdCollection: timesheetIdCollection });
+        const timesheetCollectionFromDb: TimesheetCollection = await createTimesheetCollection({ key: timesheetCollection.key, timesheetIdCollection: timesheetIdCollection });
 
         if (timesheetCollectionFromDb.id) {
-            await createOrUpdateAppOption(StorageOptionLabel.activeTimesheetCollectionIdLabel, timesheetCollectionFromDb.id);
-            await createOrUpdateAppOption(StorageOptionLabel.activeComponentType, ActiveComponentType.timesheetCollection);
+            await createOrUpdateAppOption(StorageLabel.activeTimesheetCollectionIdLabel, timesheetCollectionFromDb.id);
+            await createOrUpdateAppOption(StorageLabel.activeComponentType, ComponentType.timesheetCollection);
         }
 
         return { timesheetCollection: timesheetCollectionFromDb, timesheetCollectionByMonth: timesheetCollectionByMonth };
     }
 
-    static async updateTimesheetInDb(timesheet: Timesheet | TimesheetInterface) {
-        if (!timesheet.id) throw Error(ErrorMessageEnum.invalidTimesheet) //Invalid-Timesheet
-
-        const _stringifiedUpdatedTimesheet = JSON.stringify(timesheet);
-        const _timesheetSchema: TimesheetSchema = JSON.parse(_stringifiedUpdatedTimesheet);
-        // delete _timesheetSchema.id
-
-        const newTimesheet = await updateDataInStore(_timesheetSchema, timesheet.id, StoreName.timesheet);
-        return newTimesheet;
+    static doesPrimitiveTimesheetHaveEntryOnPrimitiveDate(primitiveTimesheet: PrimitiveTimesheet, primitiveDate: string) {
+        return primitiveTimesheet.records.some((_primitiveRecord) => _primitiveRecord.date === primitiveDate)
     }
 
-    static convertTimesheetToPrimitive(timesheet: Timesheet) {
-        if (!timesheet.project.id) throw Error(ErrorMessageEnum.projectNotFound);
-        const _projectId = timesheet.project.id
-
-        const _primitiveTimesheet: PrimitiveTimesheetInterface = {
-            id: timesheet.id,
-            customerSlug: timesheet.customer.slug,
-            siteSlug: timesheet.site.slug,
-            projectId: _projectId,
-            options: timesheet.options,
-            comment: timesheet.comment,
-            entries: timesheet.entries.map((entry: TimesheetEntry) => {
-                const _breakStartTime = entry?.entryPeriod?.breakTimeStart?.time;
-                const _breakFinishTime = entry?.entryPeriod?.breakTimeFinish?.time;
-
-                if (!entry.entryPeriod?.startTime) throw Error(ErrorMessageEnum.invalidStartTime) // invalid starttime
-                const _entryPeriodStartTime = entry.entryPeriod.startTime.time
-
-                if (!entry.entryPeriod?.finishTime?.time) throw Error(ErrorMessageEnum.invalidFinishTime)
-                const _entryPeriodFinishTime = entry.entryPeriod?.finishTime?.time
-
-                const _primitiveTimesheetEntry: PrimitiveTimesheetEntryInterface = { id: entry.id, date: entry.date.defaultFormat(), entryTypeSlug: entry.entryType.slug, hasPremium: entry.hasPremium, entryPeriodStartTime: _entryPeriodStartTime, entryPeriodFinishTime: _entryPeriodFinishTime, locationType: entry.locationType, comment: entry.comment, breakPeriodStartTime: _breakStartTime ? _breakStartTime : '', breakPeriodFinishTime: _breakFinishTime ? _breakFinishTime : '' }
-                return _primitiveTimesheetEntry
-            })
-        }
-        return _primitiveTimesheet;
+    static async hasUpdatedDefaultInformation() {
+        let defaultData = await TimesheetEntry.defaultInformation();
+        if (defaultData.updatedAt == '' || defaultData.updatedAt == undefined || defaultData.updatedAt == null) return false;
+        return true
     }
 
-    static convertSchemaToTimesheet(timesheetDBData: TimesheetSchema) {
-        // const personnelDbData: PersonnelSchema = await getByIndexInStore(StoreName.personnel, IndexName.slugIndex, timesheetDBData.personnelSlug);
-        // const _personnel = Personnel.convertPersonnelSchemaToPersonnel(personnelDbData);
-        const personnelData: PersonnelInterface = timesheetDBData.personnel;
-        const _personnel = new Personnel(personnelData);
+    static async convertSchemaToTimesheet(timesheetSchema: TimesheetSchema) {
+        const _personnelSchema: PersonnelSchema = await getFromIndexInStore(StoreName.personnel, IndexName.slugIndex, timesheetSchema.personnelSlug);
+        const _personnel = Personnel.convertPersonnelSchemaToPersonnel(_personnelSchema);
 
-        // const customerDbData: CustomerSchema = await getByIndexInStore(StoreName.customer, IndexName.slugIndex, timesheetDBData.customerSlug);
-        /* if (!customerDbData.id) throw Error(ErrorMessageEnum.customerNotFound) //Customer not found or something
-        const _customer: CustomerInterface = { ...customerDbData, id: customerDbData.id }; */
-        const _customer: CustomerInterface = timesheetDBData.customer;
+        const _customerInterface: CustomerInterface = timesheetSchema.customer;
+        const _customer = new Customer(_customerInterface)
 
-        /* if (customerDbData.sites.length == 0) throw Error(ErrorMessageEnum.customerSitesNotFound); //There are no sites for the selected customer, not right  
-        const _site: SiteInterface = customerDbData.sites.filter(s => s.slug == timesheetDBData.siteSlug)[0];
-        if (!_site) throw Error(ErrorMessageEnum.siteNotValid); // there are sites for the customer, but the one saved on the timesheet Data is not on the site list */
-        const _site: SiteInterface = timesheetDBData.site;
+        const _siteInterface: SiteInterface = timesheetSchema.site;
+        const _site: Site = new Site(_siteInterface);
 
-        // const _project: ProjectInterface = await getInStore(timesheetDBData.projectId, StoreName.project);
-        const _project: ProjectInterface = timesheetDBData.project;
+        const _projectInterface: ProjectInterface = timesheetSchema.project;
+        const _project: Project = new Project(_projectInterface);
 
-        const _weekEndingDate = new TimesheetDate(timesheetDBData.weekEndingDate);
+        const _weekEndingDate = new TimesheetDate(timesheetSchema.weekEndingDate);
 
         let _options: TimesheetOptionInterface[] = [];
-        if (timesheetDBData.options) _options = timesheetDBData.options
+        if (timesheetSchema.options) _options = timesheetSchema.options
 
-        if (!timesheetDBData.entries) throw Error(ErrorMessageEnum.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
-        const timesheetEntries = timesheetDBData.entries.map((entry) => {
-            return new TimesheetEntry(entry)
+        if (!timesheetSchema.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
+        const _timesheetRecord = timesheetSchema.records.map((_recordAsInterface) => {
+            return new TimesheetRecord(_recordAsInterface)
         });
 
-
+        if (!timesheetSchema.id) throw new Error("Cannot Change Timesheet Schema to Timesheet Object");
         const timesheet = new Timesheet({
-            id: timesheetDBData.id, personnel: _personnel, customer: _customer, site: _site, project: _project,
-            weekEndingDate: _weekEndingDate, options: _options, entries: timesheetEntries, comment: timesheetDBData.comment
+            id: timesheetSchema.id, key: timesheetSchema.key, personnel: _personnel, customer: _customer, site: _site, project: _project, weekEndingDate: _weekEndingDate, options: _options, records: _timesheetRecord, comment: timesheetSchema.comment
         });
         return timesheet
     }
 
-    static async convertPrimitiveToSchema(primitiveTimesheet: PrimitiveTimesheetInterface, personnel: PersonnelInterface, weekEndingDate: TimesheetDate) {
-        const customerDbData: CustomerSchema = await getByIndexInStore(StoreName.customer, IndexName.slugIndex, primitiveTimesheet.customerSlug);
-        if (!customerDbData.id) throw Error(ErrorMessageEnum.customerNotFound) //Customer not found
-        const _customer: CustomerInterface = { ...customerDbData, id: customerDbData.id };
+    static async convertPrimitiveToTimesheet(primitiveTimesheet: PrimitiveTimesheet, personnel: Personnel, weekEndingDate: TimesheetDate) {
+        const _customer: Customer = await Customer.getCustomerBySlug(primitiveTimesheet.customerSlug);
 
-        if (customerDbData.sites.length == 0) throw Error(ErrorMessageEnum.customerSitesNotFound); //There are no sites for the selected customer, not right  
-        const _site: SiteInterface = customerDbData.sites.filter(s => s.slug == primitiveTimesheet.siteSlug)[0];
-        if (!_site) throw Error(ErrorMessageEnum.siteNotValid); // there are sites for the customer, but the one saved on the timesheet Data is not on the site list
+        if (!_customer.sites) throw new Error("Sites Not Found");
+        const _site: Site = Site.getSite(_customer.sites, primitiveTimesheet.siteSlug);
 
-        const _project: ProjectInterface = await getInStore(primitiveTimesheet.projectId, StoreName.project);
+
+        const _project: Project = await Project.getProjectById(primitiveTimesheet.projectId);
 
         let _options: TimesheetOptionInterface[] = [];
         if (primitiveTimesheet.options) _options = primitiveTimesheet.options
 
-        if (!primitiveTimesheet.entries) throw Error(ErrorMessageEnum.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
-        const timesheetEntries = primitiveTimesheet.entries.map((primitiveEntry) => TimesheetEntry.convertPrimitiveToTimesheetEntryInterface(primitiveEntry));
+        if (!primitiveTimesheet.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
+        const _records = primitiveTimesheet.records.map((_primitiveRecord) => TimesheetRecord.convertPrimitiveToRecord(_primitiveRecord));
 
-        const timesheetSchema: TimesheetSchema = {
-            id: primitiveTimesheet.id, personnel: personnel, customer: _customer, site: _site, project: _project,
-            weekEndingDate: weekEndingDate, options: _options, entries: timesheetEntries, comment: primitiveTimesheet.comment
-        };
-        return timesheetSchema
-    }
+        // before storing _customer on timesheet list, we don't need the sites here
+        _customer.removeSites();
 
-    static async convertPrimitiveToTimesheet(primitiveTimesheet: PrimitiveTimesheetInterface, personnel: PersonnelInterface, weekEndingDate: TimesheetDate) {
-        const _timesheetSchema = await Timesheet.convertPrimitiveToSchema(primitiveTimesheet, personnel, weekEndingDate)
-        const _timesheet = Timesheet.convertSchemaToTimesheet(_timesheetSchema);
+        const _timesheet: Timesheet = new Timesheet({
+            id: primitiveTimesheet.id, key: primitiveTimesheet.key, personnel: personnel, customer: _customer, site: _site, project: _project, options: _options, records: _records, comment: primitiveTimesheet.comment,
+            weekEndingDate: weekEndingDate
+        });
         return _timesheet
     }
 
-    static async getTimesheetFromId(timesheetId: number) {
-        const _timesheetFromDb: TimesheetSchema = await getInStore(timesheetId, StoreName.timesheet);
-        const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetFromDb);
+    static async getTimesheetFromId(id: number) {
+        const _timesheetSchema: TimesheetSchema = await getInStore(id, StoreName.timesheet);
+        if (!_timesheetSchema) throw new Error("Timesheet Not Found");
+        const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetSchema);
         if (_timesheet) return _timesheet;
-        throw Error(ErrorMessageEnum.timesheetNotFound) // timesheet not found
+        throw Error(ErrorMessage.timesheetNotFound) // timesheet not found
     }
 
-    static async getTimesheetCollectionFromId(timesheetCollectionId: number) {
-        const timesheetCollectionFromDb: TimesheetCollectionSchema = await getInStore(timesheetCollectionId, StoreName.timesheetCollection);
-        let _timesheetCollection: TimesheetCollectionInterface = { id: timesheetCollectionFromDb.id, collection: [] }
-        await Promise.all(timesheetCollectionFromDb.timesheetIdCollection.map(async (id) => {
+    static async getTimesheetFromKey(key: number) {
+        try {
+            const _timesheetSchema: TimesheetSchema = await getFromIndexInStore(StoreName.timesheet, IndexName.keyIndex, key);
+            if (!_timesheetSchema) throw new Error("Timesheet Data Not Found using key");
+            const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetSchema);
+            if (_timesheet) return _timesheet;
+        } catch (e) {
+            throw Error(ErrorMessage.timesheetNotFound) // timesheet not found
+        }
+    }
+
+    static async getTimesheetCollectionFromId(id: number) {
+        try {
+            const _timesheetCollectionSchema: TimesheetCollectionSchema = await getInStore(id, StoreName.timesheetCollection);
+            let _timesheetCollection: TimesheetCollection = { id: _timesheetCollectionSchema.id, key: _timesheetCollectionSchema.key, collection: [] }
+            await Promise.all(_timesheetCollectionSchema.timesheetIdCollection.map(async (id) => {
+                const timesheetDbData: TimesheetSchema = (await getInStore(id, StoreName.timesheet)) || undefined;
+                const timesheet = await Timesheet.convertSchemaToTimesheet(timesheetDbData);
+                if (timesheet) _timesheetCollection.collection = [..._timesheetCollection.collection, timesheet];
+            }));
+            return _timesheetCollection
+        } catch (e) {
+            throw new Error("Timesheet Collection Not Found")
+        }
+    }
+
+    static async getTimesheetCollectionFromKey(key: number) {
+        const _timesheetCollectionSchema: TimesheetCollectionSchema = await getFromIndexInStore(StoreName.timesheetCollection, IndexName.keyIndex, key);
+        if (!_timesheetCollectionSchema) throw new Error("Timesheet Collection Not Found Using Key");
+        let _timesheetCollection: TimesheetCollection = { id: _timesheetCollectionSchema.id, key: _timesheetCollectionSchema.key, collection: [] }
+        await Promise.all(_timesheetCollectionSchema.timesheetIdCollection.map(async (id) => {
             const timesheetDbData: TimesheetSchema = (await getInStore(id, StoreName.timesheet)) || undefined;
             const timesheet = await Timesheet.convertSchemaToTimesheet(timesheetDbData);
             if (timesheet) _timesheetCollection.collection = [..._timesheetCollection.collection, timesheet];
@@ -392,9 +500,44 @@ export class Timesheet implements TimesheetInterface {
         if (errorData.error) return errorData
 
         if (entry) {
-            if (timesheet.doesEntryWithinDayOverlap(entry.date) && timesheet.entriesWithOverlappingPeriodInDay(entry.date).some(e => e.id === entry.id)) return { error: true, message: "Entry Period Overlaps with other entries." }
+            if (timesheet.doesDayHaveOverlappingTimeEntries(entry.date) && timesheet.getEntriesWithOverlappingPeriodInDay(entry.date).some(e => e.id === entry.id)) return { error: true, message: "Entry Period Overlaps with other entries." }
         }
         return { error: false, message: "" }
+    }
+
+    static async getTimesheetSchemasFromPersonnel(personnel: Personnel) {
+        const _timesheetSchemasByPersonnel: TimesheetSchema[] = await getAllFromIndexInStore(StoreName.timesheet, IndexName.personnelSlugIndex, personnel.slug);
+        return _timesheetSchemasByPersonnel
+    }
+
+    static async getTimesheetsFromPersonnel(personnel: Personnel) {
+        const _timesheetSchemas = await Timesheet.getTimesheetSchemasFromPersonnel(personnel);
+        let _timesheets: Timesheet[] = [];
+        for (let i = 0; i < _timesheetSchemas.length; i++) {
+            const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetSchemas[i]);
+            _timesheets = [..._timesheets, _timesheet];
+        }
+        return _timesheets
+    }
+
+    static convertCustomerSchemaToInterface(customerSchema: CustomerSchema) {
+        if (customerSchema.id) {
+            let _iCustomer = { id: customerSchema.id, slug: customerSchema.slug, name: customerSchema.name }
+            return _iCustomer;
+        }
+        throw new Error("Cannot Convert Customer Schema To Interface - Id is undefined");
+    }
+
+    static async isKeyUnique(key: number) {
+        const _timesheetWithCurrentIndex = await getAllFromIndexInStore(StoreName.timesheet, IndexName.keyIndex, key);
+        if (_timesheetWithCurrentIndex.length > 0) return false
+        return true
+    }
+
+    static async isKeyUniqueForCollection(key: number) {
+        const _timesheetCollectionWithCurrentIndex = await getAllFromIndexInStore(StoreName.timesheetCollection, IndexName.keyIndex, key);
+        if (_timesheetCollectionWithCurrentIndex.length > 0) return false
+        return true
     }
 }
 
