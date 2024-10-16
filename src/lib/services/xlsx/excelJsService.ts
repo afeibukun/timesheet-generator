@@ -4,6 +4,7 @@ import { LocationType, PeriodTypeLabel } from '@/lib/constants/constant';
 import { saveAs } from 'file-saver';
 
 import templateConfig from '../../../../main-timesheet-template'
+import { ClassicTemplate } from '../template/classic';
 
 const sheetNameCollection = (timesheets: Timesheet[]) => {
     let startPoint = "A"
@@ -339,7 +340,7 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
                     {
                         column_a: _timesheetRecord.dayLabel.toUpperCase(), //day i.e Monday, Tuesday, ...
                         column_b: _timesheetRecord.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', // start tag
-                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.workingTime1StartTime : '', // working time 1 - start time
+                        column_c: _timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod1(_timesheetRecord) ? ClassicTemplate.workingPeriod1(_timesheetRecord).startTime : '', // working time 1 - start time
                         column_k: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOnshore ? `${_timesheetRecord.totalHoursInString}` : '', // total hours - onshore
                         column_l: _timesheetRecord.hasHours ? LocationType.onshore.toUpperCase() : '', //onshore / offshore
                         column_m: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '', //onshore check mark
@@ -349,7 +350,7 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
                     {
                         column_a: _timesheetRecord.dateInDayMonthFormat, //date i.e 30-Aug, 29-Apr ...
                         column_b: _timesheetRecord.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', //finish tag
-                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.workingTime1FinishTime : '', // finish time
+                        column_c: _timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod1(_timesheetRecord) ? ClassicTemplate.workingPeriod1(_timesheetRecord).finishTime : '', // finish time
                         column_k: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOffshore ? `${_timesheetRecord.totalHoursInString}` : "", // total hours - Offshore
                         column_l: _timesheetRecord.hasHours ? LocationType.offshore.toUpperCase() : "", // offshore tag
                         column_m: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
@@ -527,15 +528,13 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
             })
         })
 
-        // const workbook = createAndFillWorkbook();
-        const fileNameSuffix = templateConfig.fileNameSuffix == undefined || templateConfig.fileNameSuffix == null || templateConfig.fileNameSuffix == '' || !templateConfig.fileNameSuffix ? '' : `-${templateConfig.fileNameSuffix}`
-        const timesheetFileName = `${timesheets[0].monthNumber}-${timesheets[0].yearNumber}-Customer_Timesheet-${timesheets[0].personnel.name}${fileNameSuffix}`;
+        const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheets[0].monthNumber, timesheets[0].yearNumber, timesheets[0].personnel.name);
         // return workbook.xlsx.writeFile(filename);
 
         const xlsxBuffer = workbook.xlsx.writeBuffer();
         xlsxBuffer.then((data: any) => {
             var blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-            saveAs(blob, timesheetFileName);
+            saveAs(blob, _timesheetFilename);
         });
     } catch (err) {
         console.log(err)

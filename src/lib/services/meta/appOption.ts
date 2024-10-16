@@ -1,4 +1,4 @@
-import { ProjectInterface, SiteInterface } from "@/lib/types/meta";
+import { PlainProject, PlainSite } from "@/lib/types/meta";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
 import { AppOptionSchema } from "@/lib/types/schema";
 import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";

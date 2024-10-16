@@ -1,18 +1,22 @@
-import { ProjectInterface, SiteInterface } from "@/lib/types/meta";
+import { PlainProject } from "@/lib/types/meta";
 import { ProjectSchema } from "@/lib/types/schema";
 import { getAllProjects, getInStore } from "../indexedDB/indexedDBService";
 import { StoreName } from "@/lib/constants/storage";
 
-export class Project implements ProjectInterface {
+export class Project implements PlainProject {
     id: number;
     purchaseOrderNumber: string;
     orderNumber?: string | undefined;
 
-    constructor({ id, purchaseOrderNumber, orderNumber }: ProjectInterface) {
+    constructor({ id, purchaseOrderNumber, orderNumber }: PlainProject) {
         if (!id) throw new Error("Cannot Initialize Project");
         this.id = id;
         this.purchaseOrderNumber = purchaseOrderNumber;
         this.orderNumber = orderNumber;
+    }
+
+    convertToPlain() {
+        return { id: this.id, purchaseOrderNumber: this.purchaseOrderNumber, orderNumber: this.orderNumber } as PlainProject
     }
 
     static convertSchemaToProject(projectSchemaObject: ProjectSchema) {

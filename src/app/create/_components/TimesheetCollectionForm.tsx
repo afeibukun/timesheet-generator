@@ -6,7 +6,7 @@ import { ComponentType, SearchParamsLabel, SettingSection, Status } from "@/lib/
 import { Personnel } from "@/lib/services/meta/personnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
-import { TimesheetOptionInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetOption } from "@/lib/types/timesheet";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -52,7 +52,7 @@ export default function CreateTimesheetCollectionForm({ personnels, customers, p
         let _site = customers.filter((c) => c.slug == timesheetCollectionForm.customerSlug)[0].sites?.filter((s) => s.slug == timesheetCollectionForm.siteSlug)[0];
         let _project = projects.filter((p) => p.purchaseOrderNumber == timesheetCollectionForm.projectPurchaseOrderNumber)[0];
 
-        let _options: TimesheetOptionInterface[] = [
+        let _options: PlainTimesheetOption[] = [
             { key: 'MOBILIZATION_DATE', value: timesheetCollectionForm.mobilizationDate },
             { key: 'DEMOBILIZATION_DATE', value: timesheetCollectionForm.demobilizationDate }
         ];

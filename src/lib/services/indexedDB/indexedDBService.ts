@@ -3,7 +3,7 @@ import { StorageLabel, FieldName, IndexName, StoreName, timesheetDatabaseName } 
 import { CustomerSchema, PersonnelSchema, ProjectSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
 import { slugify } from '@/lib/helpers';
 import { PrimitiveDefaultTimesheetEntry } from '@/lib/types/primitive';
-import { SiteInterface } from '@/lib/types/meta';
+import { PlainSite } from '@/lib/types/meta';
 
 const databaseVersion = 1;
 const readWriteFlag = "readwrite"
@@ -277,7 +277,7 @@ export const createCustomer = async (customerName: string) => {
     return newCustomer;
 }
 
-export const createSiteForCustomer = async (siteData: SiteInterface, customerSlug: string) => {
+export const createSiteForCustomer = async (siteData: PlainSite, customerSlug: string) => {
     const _db = await useDb();
     const customer = await _db.getFromIndex(StoreName.customer, IndexName.slugIndex, customerSlug);
     if (customer) {

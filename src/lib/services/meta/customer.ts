@@ -1,16 +1,16 @@
-import { CustomerInterface, SiteInterface } from "@/lib/types/meta";
+import { PlainCustomer } from "@/lib/types/meta";
 import { Site } from "./site";
 import { CustomerSchema } from "@/lib/types/schema";
 import { createCustomer, deleteDataInStore, getAllCustomers, getFromIndexInStore, updateDataInStore } from "../indexedDB/indexedDBService";
 import { IndexName, StoreName } from "@/lib/constants/storage";
 
-export class Customer implements CustomerInterface {
+export class Customer implements PlainCustomer {
     id: number;
     slug: string;
     name: string;
     sites?: Site[]
 
-    constructor({ id, name, slug }: CustomerInterface) {
+    constructor({ id, name, slug }: PlainCustomer) {
         this.id = id;
         this.name = name;
         this.slug = slug;
@@ -30,6 +30,10 @@ export class Customer implements CustomerInterface {
         const _sitesRaw = this.sites.map((_site) => { })
         const _customerSchema: CustomerSchema = { id: this.id, slug: this.slug, name: this.name, sites: this.sites };
         await updateDataInStore({ id: this.id, slug: this.slug, name: this.name, sites: this.sites }, this.id, StoreName.customer);
+    }
+
+    convertToPlain() {
+        return { id: this.id, slug: this.slug, name: this.name } as PlainCustomer
     }
 
     static async createCustomer(customerName: string) {

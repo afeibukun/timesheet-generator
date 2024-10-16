@@ -13,10 +13,8 @@ export const getRandomDigits = (length: number = 1) => {
 
 export const getRandomLetters = (length: number = 1) => Array(length).fill('').map(e => String.fromCharCode(Math.floor(Math.random() * 26) + 65)).join('');
 
-// const existingIDs = ['AA1111','XY1234'];
 export const generateUniqueID = () => {
     let id = getRandomLetters(3) + getRandomDigits(4);
-    // while (existingIDs.includes(id)) id = getRandomLetters(2) + getRandomDigits(4);
     return id;
 };
 

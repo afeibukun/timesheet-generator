@@ -7,7 +7,7 @@ import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timesheet/timesheetErrors";
 import { createXlsxTimesheetClassicTemplate } from "@/lib/services/xlsx/excelJsService";
 import { createPdfWithJsPdfAutoTable } from "@/lib/services/pdf/jsPdfAutoTableService";
-import { TimesheetCollection, TimesheetInterface } from "@/lib/types/timesheet";
+import { TimesheetCollection, PlainTimesheet } from "@/lib/types/timesheet";
 import { ComponentType, LocationType, SearchParamsLabel, ToastStatus } from "@/lib/constants/constant";
 import { getAppOptionData } from "@/lib/services/indexedDB/indexedDBService";
 import { AppOptionInterface } from "@/lib/types/generalType";

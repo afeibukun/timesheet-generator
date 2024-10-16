@@ -7,18 +7,19 @@ import { TimesheetEntry } from "../services/timesheet/timesheetEntry";
 import { Customer } from "../services/meta/customer";
 import { Site } from "../services/meta/site";
 import { Project } from "../services/meta/project";
+import { PlainCustomer, PlainPersonnel, PlainProject, PlainSite } from "./meta";
 
 // A timesheet refers to a week group of timesheet entries. it cannot overlap months though
-export interface TimesheetInterface {
+export interface PlainTimesheet {
     id?: number,
     key: number,
-    personnel: Personnel;
-    weekEndingDate: TimesheetDate;
-    customer: Customer;
-    site: Site;
-    project: Project;
-    options: TimesheetOptionInterface[];
-    records: TimesheetRecord[];
+    personnel: PlainPersonnel;
+    weekEndingDate: PlainTimesheetDate;
+    customer: PlainCustomer;
+    site: PlainSite;
+    project: PlainProject;
+    options: PlainTimesheetOption[];
+    records: PlainTimesheetRecord[];
     comment: string;
 }
 
@@ -30,19 +31,18 @@ export interface TimesheetCollection {
 
 export interface TimesheetCollectionByMonthInterface {
     id?: number,
-    collection: TimesheetInterface[][];
-
+    collection: PlainTimesheet[][];
 }
 
 // TIMESHEET OPTIONS examples (mobilization date, demob date)
-export interface TimesheetOptionInterface {
+export interface PlainTimesheetOption {
     id?: number,
     key: any,
     value: any,
 }
 
 // DATE
-export interface TimesheetDateInterface {
+export interface PlainTimesheetDate {
     date: string,
 }
 
@@ -52,54 +52,42 @@ export type MobilizationDateInformation = {
 }
 
 // TIMESHEET ENTRY
-export interface TimesheetEntryCollectionInterface { // to be renamed to TimesheetEntryInterface
-    user_id: number;
-    date: TimesheetDate;
-    collectionOptions: TimesheetCollectionOptionsInterface[],
-    entryCollection: TimesheetEntry[];
+export interface PlainTimesheetEntryPeriod {
+    startTime?: PlainTimesheetHour,
+    finishTime?: PlainTimesheetHour,
+    breakTimeStart?: PlainTimesheetHour,
+    breakTimeFinish?: PlainTimesheetHour
 }
 
-export interface TimesheetEntryPeriodInterface {
-    startTime?: TimesheetHourInterface,
-    finishTime?: TimesheetHourInterface,
-    breakTimeStart?: TimesheetHourInterface,
-    breakTimeFinish?: TimesheetHourInterface
-}
-
-export interface TimesheetHourInterface {
+export interface PlainTimesheetHour {
     hour?: number,
     minute?: number,
 }
 
-export interface TimesheetRecordInterface {
+export interface PlainTimesheetRecord {
     id?: number,
-    date: TimesheetDateInterface,
-    entries: TimesheetEntryInterface[],
+    date: PlainTimesheetDate,
+    entries: PlainTimesheetEntry[],
     comment?: string,
 }
 
-export interface TimesheetEntryInterface {
+export interface PlainTimesheetEntry {
     id?: number,
-    date: TimesheetDateInterface,
-    entryType: TimesheetEntryTypeInterface
-    entryPeriod: TimesheetEntryPeriodInterface,
+    date: PlainTimesheetDate,
+    entryType: PlainTimesheetEntryType
+    entryPeriod: PlainTimesheetEntryPeriod,
     locationType?: LocationType,
     hasPremium?: boolean
     comment?: string,
 }
 
-export interface TimesheetEntryTypeInterface {
+export interface PlainTimesheetEntryType {
     id?: number
     slug: string
     name: string
 }
 
-type EntryState = {
-    entryId: number,
-    state: EntryStateLabel
-}
-
-export interface TimesheetCollectionOptionsInterface {
+export interface PlainTimesheetCollectionOptions {
     key: string,
     value: any
 }

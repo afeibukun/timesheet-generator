@@ -9,7 +9,7 @@ import DefaultSectionHeader from "../../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../../_components/DefaultSectionTitle";
 import ActivePersonnel from "../../_components/ActivePersonnel";
 import { Status } from "@/lib/constants/constant";
-import { PersonnelInterface } from "@/lib/types/meta";
+import { PlainPersonnel } from "@/lib/types/meta";
 
 export default function ManagePersonnel() {
     const [personnels, setPersonnels] = useState([] as PersonnelSchema[]);
@@ -56,7 +56,7 @@ export default function ManagePersonnel() {
         if (!!newActivePersonnel.slug) {
             const _selectedPersonnelSchema = personnels.filter(p => p.slug === newActivePersonnel.slug)[0];
             if (_selectedPersonnelSchema.id) {
-                const _selectedPersonnelInterface = _selectedPersonnelSchema as PersonnelInterface
+                const _selectedPersonnelInterface = _selectedPersonnelSchema as PlainPersonnel
                 const _selectedPersonnel: Personnel = new Personnel(_selectedPersonnelInterface);
                 await Personnel.saveActivePersonnel(_selectedPersonnel)
                 setLocalActivePersonnel(_selectedPersonnel);

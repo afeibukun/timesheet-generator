@@ -132,7 +132,6 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
 
     const generateTimesheetEntryErrors = (_localTimesheet: Timesheet) => {
         let entryErrors: PrimitiveTimesheetEntryError[] = _localTimesheet.generateTimesheetErrors(localPrimitiveTimesheetEntryErrors);
-        console.log("generate Timesheet");
         if (entryErrors.length > 0) setLocalPrimitiveTimesheetEntryErrors(entryErrors);
     }
 
@@ -429,11 +428,11 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                         )}
                     </div>
 
-                    <div className="timesheet-footer">
-                        <div>
-                            <button type="button" onClick={(e) => timesheetData.exportXlsxTimesheet(ReportType.customer, TemplateType.classic)}>Export Classic Excel Report</button>
+                    <div className="timesheet-footer mt-4">
+                        <div className="flex gap-x-2">
+                            <button className="py-1 px-3 text-sm rounded shadow-sm bg-blue-700 hover:bg-blue-500 transition-all duration-500 ease-in-out text-white" type="button" onClick={(e) => timesheetData.exportXlsxTimesheet(ReportType.customer, TemplateType.classic)}>Export Classic Excel Report</button>
 
-                            <button type="button" onClick={(e) => timesheetData.exportPdfTimesheet(ReportType.customer, TemplateType.classic)}>Export Classic PDF Report</button>
+                            <button className="py-1 px-3 text-sm rounded shadow-sm bg-purple-700 hover:bg-purple-500 transition-all duration-500 ease-in-out text-white" type="button" onClick={(e) => timesheetData.exportPdfTimesheet(ReportType.customer, TemplateType.classic)}>Export Classic PDF Report</button>
                         </div>
                     </div>
                 </div>

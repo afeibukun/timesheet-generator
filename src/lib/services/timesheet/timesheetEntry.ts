@@ -1,7 +1,7 @@
 import { ErrorMessage, LocationType } from "@/lib/constants/constant";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { TimesheetEntryInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetEntry, PlainTimesheetEntryType } from "@/lib/types/timesheet";
 import { AppOptionSchema } from "@/lib/types/schema";
 import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
@@ -11,16 +11,16 @@ import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry } from "@/lib/t
 /**
  * Refers to actual timesheet activity entries, working time, travel time e.t.c.
  */
-export class TimesheetEntry implements TimesheetEntryInterface {
+export class TimesheetEntry implements PlainTimesheetEntry {
     id: number;
     date: TimesheetDate;
-    entryType: TimesheetEntryTypeInterface;
+    entryType: PlainTimesheetEntryType;
     entryPeriod: TimesheetEntryPeriod;
     locationType: LocationType;
     hasPremium: boolean;
     comment: string;
 
-    constructor(timesheetEntryInput: TimesheetEntryInterface) {
+    constructor(timesheetEntryInput: PlainTimesheetEntry) {
         this.id = timesheetEntryInput.id!;
         this.date = new TimesheetDate(timesheetEntryInput.date);
         this.entryType = timesheetEntryInput.entryType
@@ -113,9 +113,9 @@ export class TimesheetEntry implements TimesheetEntryInterface {
         return false
     }
 
-    convertToInterface(): TimesheetEntryInterface {
+    convertToPlain(): PlainTimesheetEntry {
         const _stringifiedTimesheetEntry = JSON.stringify(this)
-        const _timesheetEntryAsInterface: TimesheetEntryInterface = JSON.parse(_stringifiedTimesheetEntry)
+        const _timesheetEntryAsInterface: PlainTimesheetEntry = JSON.parse(_stringifiedTimesheetEntry)
         return _timesheetEntryAsInterface;
     }
 
@@ -148,7 +148,7 @@ export class TimesheetEntry implements TimesheetEntryInterface {
     static convertPrimitiveToTimesheetEntry(primitiveTimesheetEntry: PrimitiveTimesheetEntry) {
         const _id = primitiveTimesheetEntry.id;
         const _date: TimesheetDate = new TimesheetDate(primitiveTimesheetEntry.date);
-        const _entryType: TimesheetEntryTypeInterface = defaultTimesheetEntryType.filter((entryType) => entryType.slug == primitiveTimesheetEntry.entryTypeSlug)[0];
+        const _entryType: PlainTimesheetEntryType = defaultTimesheetEntryType.filter((entryType) => entryType.slug == primitiveTimesheetEntry.entryTypeSlug)[0];
 
         const _entryPeriod: TimesheetEntryPeriod = TimesheetEntryPeriod.convertPrimitiveToEntryPeriod(primitiveTimesheetEntry.entryPeriodStartTime, primitiveTimesheetEntry.entryPeriodFinishTime, primitiveTimesheetEntry.breakPeriodStartTime, primitiveTimesheetEntry.breakPeriodFinishTime);
 

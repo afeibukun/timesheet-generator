@@ -1,7 +1,7 @@
 import { defaultTimesheetEntryType } from "@/lib/constants/default";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
-import { TimesheetCollectionByMonthInterface, TimesheetCollection, TimesheetInterface, TimesheetOptionInterface } from "@/lib/types/timesheet";
+import { TimesheetCollectionByMonthInterface, TimesheetCollection, PlainTimesheet, PlainTimesheetOption } from "@/lib/types/timesheet";
 import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
@@ -15,7 +15,7 @@ import { Customer } from "../meta/customer";
 import { Site } from "../meta/site";
 import { Project } from "../meta/project";
 import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheet, PrimitiveTimesheetEntryError, PrimitiveTimesheetOption } from "@/lib/types/primitive";
-import { CustomerInterface, ProjectInterface, SiteInterface } from "@/lib/types/meta";
+import { PlainCustomer, PlainProject, PlainSite } from "@/lib/types/meta";
 import { createXlsxTimesheetClassicTemplate } from "../xlsx/excelJsService";
 import { createPdfWithJsPdfAutoTable } from "../pdf/jsPdfAutoTableService";
 
@@ -23,7 +23,7 @@ import { createPdfWithJsPdfAutoTable } from "../pdf/jsPdfAutoTableService";
  * class: Timesheet
  * An object of class Timesheet refers to a week of recorded work informatiomn
  */
-export class Timesheet implements TimesheetInterface {
+export class Timesheet implements PlainTimesheet {
     id?: number;
     key: number;
     personnel: Personnel;
@@ -31,21 +31,21 @@ export class Timesheet implements TimesheetInterface {
     customer: Customer;
     site: Site;
     project: Project;
-    options: TimesheetOptionInterface[];
+    options: PlainTimesheetOption[];
     records: TimesheetRecord[];
     comment: string;
 
-    constructor(iTimesheet: TimesheetInterface) {
-        this.id = iTimesheet.id;
-        this.key = iTimesheet.key
-        this.personnel = iTimesheet.personnel;
-        this.customer = iTimesheet.customer;
-        this.site = iTimesheet.site;
-        this.project = iTimesheet.project;
-        this.weekEndingDate = iTimesheet.weekEndingDate;
-        this.options = iTimesheet.options;
-        this.records = iTimesheet.records;
-        this.comment = iTimesheet.comment;
+    constructor(plainTimesheet: PlainTimesheet) {
+        this.id = plainTimesheet.id;
+        this.key = plainTimesheet.key
+        this.personnel = new Personnel(plainTimesheet.personnel);
+        this.customer = new Customer(plainTimesheet.customer);
+        this.site = new Site(plainTimesheet.site);
+        this.project = new Project(plainTimesheet.project);
+        this.weekEndingDate = new TimesheetDate(plainTimesheet.weekEndingDate);
+        this.options = plainTimesheet.options;
+        this.records = plainTimesheet.records.map((_plainRecord) => new TimesheetRecord(_plainRecord));
+        this.comment = plainTimesheet.comment;
     }
 
     get totalHours(): TimesheetHour {
@@ -115,7 +115,7 @@ export class Timesheet implements TimesheetInterface {
     }
 
     convertToSchema() {
-        let _timesheetSchema: TimesheetSchema = { id: this.id, key: this.key, personnel: this.personnel.convertToSchema(), personnelSlug: this.personnel.slug, project: this.project, customer: this.customer, site: this.site, records: this.records, options: this.options, weekEndingDate: this.weekEndingDate.date, comment: this.comment }
+        let _timesheetSchema: TimesheetSchema = { id: this.id, key: this.key, personnel: this.personnel.convertToSchema(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), site: this.site.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.date, comment: this.comment }
         return _timesheetSchema;
     }
 
@@ -370,18 +370,18 @@ export class Timesheet implements TimesheetInterface {
         const _personnelSchema: PersonnelSchema = await getFromIndexInStore(StoreName.personnel, IndexName.slugIndex, timesheetSchema.personnelSlug);
         const _personnel = Personnel.convertPersonnelSchemaToPersonnel(_personnelSchema);
 
-        const _customerInterface: CustomerInterface = timesheetSchema.customer;
+        const _customerInterface: PlainCustomer = timesheetSchema.customer;
         const _customer = new Customer(_customerInterface)
 
-        const _siteInterface: SiteInterface = timesheetSchema.site;
+        const _siteInterface: PlainSite = timesheetSchema.site;
         const _site: Site = new Site(_siteInterface);
 
-        const _projectInterface: ProjectInterface = timesheetSchema.project;
+        const _projectInterface: PlainProject = timesheetSchema.project;
         const _project: Project = new Project(_projectInterface);
 
         const _weekEndingDate = new TimesheetDate(timesheetSchema.weekEndingDate);
 
-        let _options: TimesheetOptionInterface[] = [];
+        let _options: PlainTimesheetOption[] = [];
         if (timesheetSchema.options) _options = timesheetSchema.options
 
         if (!timesheetSchema.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
@@ -405,7 +405,7 @@ export class Timesheet implements TimesheetInterface {
 
         const _project: Project = await Project.getProjectById(primitiveTimesheet.projectId);
 
-        let _options: TimesheetOptionInterface[] = [];
+        let _options: PlainTimesheetOption[] = [];
         if (primitiveTimesheet.options) _options = primitiveTimesheet.options
 
         if (!primitiveTimesheet.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.

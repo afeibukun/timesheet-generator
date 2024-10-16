@@ -8,6 +8,7 @@ import { Timesheet } from "../timesheet/timesheet";
 import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constants/defaultLogoBase64Image";
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
 import { TimesheetRecord } from "../timesheet/timesheetRecord";
+import { ClassicTemplate } from "../template/classic";
 
 export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
     const doc = new jsPDF(
@@ -263,7 +264,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
                     [
                         { content: _record.dayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
                         { content: _record.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: _record.hasHours ? _record.workingTime1StartTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
+                        { content: _record.hasHours && ClassicTemplate.hasWorkingPeriod1(_record) ? ClassicTemplate.workingPeriod1(_record).startTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col E*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col F*/ },
@@ -280,7 +281,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
                     [
                         { content: _record.dateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
                         { content: _record.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: _record.hasHours ? _record.workingTime1FinishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
+                        { content: _record.hasHours && ClassicTemplate.hasWorkingPeriod1(_record) ? ClassicTemplate.workingPeriod1(_record).finishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col E*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col F*/ },
@@ -348,9 +349,8 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
         }
     });
 
-    const fileNameSuffix = templateConfig.fileNameSuffix == undefined || templateConfig.fileNameSuffix == null || templateConfig.fileNameSuffix == '' || !templateConfig.fileNameSuffix ? '' : `-${templateConfig.fileNameSuffix}`
-    const timesheetFileName = `${timesheets[0].monthNumber}-${timesheets[0].yearNumber}-Customer_Timesheet-${timesheets[0].personnel.name}${fileNameSuffix}`;
-    doc.save(`${timesheetFileName}.pdf`);
+    const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheets[0].monthNumber, timesheets[0].yearNumber, timesheets[0].personnel.name);
+    doc.save(`${_timesheetFilename}.pdf`);
 }
 
 const computeImageDimension = (_originalImageDimension: { width: number, height: number }) => {

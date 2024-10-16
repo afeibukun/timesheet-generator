@@ -1,16 +1,16 @@
-import { TimesheetEntryPeriodInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetEntryPeriod } from "@/lib/types/timesheet";
 import moment from "moment";
 import { TimesheetHour } from "./timesheetHour";
 import { ErrorMessage } from "@/lib/constants/constant";
 import { Timesheet } from "./timesheet";
 
-export class TimesheetEntryPeriod implements TimesheetEntryPeriodInterface {
+export class TimesheetEntryPeriod implements PlainTimesheetEntryPeriod {
     startTime?: TimesheetHour;
     finishTime?: TimesheetHour;
     breakTimeStart?: TimesheetHour;
     breakTimeFinish?: TimesheetHour;
 
-    constructor(_entryPeriodInput: TimesheetEntryPeriodInterface) {
+    constructor(_entryPeriodInput: PlainTimesheetEntryPeriod) {
         this.startTime = _entryPeriodInput.startTime ? new TimesheetHour(_entryPeriodInput.startTime) : undefined;
         this.finishTime = _entryPeriodInput.finishTime ? new TimesheetHour(_entryPeriodInput.finishTime) : undefined;
         this.breakTimeStart = _entryPeriodInput.breakTimeStart ? new TimesheetHour(_entryPeriodInput.breakTimeStart) : undefined;

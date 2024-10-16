@@ -1,13 +1,13 @@
 import { ErrorMessage } from "@/lib/constants/constant";
-import { TimesheetHourInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetHour } from "@/lib/types/timesheet";
 
-export class TimesheetHour implements TimesheetHourInterface {
+export class TimesheetHour implements PlainTimesheetHour {
     hour: number; //0 - 23
     minute: number; //0 - 59
     time: string; // '08:00'
     _isValidTime?: boolean;
 
-    constructor(_timeInput: TimesheetHourInterface | String | string) {
+    constructor(_timeInput: PlainTimesheetHour | String | string) {
         if (typeof _timeInput == 'string' || _timeInput instanceof String) {
             const arr = _timeInput.split(':');
             if (arr.length > 1) {

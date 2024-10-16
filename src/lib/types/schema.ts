@@ -1,20 +1,20 @@
 import { TimesheetDate } from "../services/timesheet/timesheetDate";
 import { TimesheetEntry } from "../services/timesheet/timesheetEntry";
 import { TimesheetEntryPeriod } from "../services/timesheet/timesheetEntryPeriod";
-import { TimesheetCollectionOptionsInterface, TimesheetRecordInterface, TimesheetDateInterface, TimesheetEntryInterface, TimesheetEntryTypeInterface, TimesheetOptionInterface } from "./timesheet";
+import { PlainTimesheetCollectionOptions, PlainTimesheetRecord, PlainTimesheetDate, PlainTimesheetEntry, PlainTimesheetEntryType, PlainTimesheetOption } from "./timesheet";
 import { LocationType } from "../constants/constant";
-import { CustomerInterface, PersonnelInterface, PersonnelOptionInterface, ProjectInterface, SiteInterface } from "./meta";
+import { PlainCustomer, PlainPersonnel, PlainPersonnelOption, PlainProject, PlainSite } from "./meta";
 
 export interface TimesheetSchema {
     id?: number //because when creating a timesheet, the db autogenerates the id, but every other saved timesheet has an id.
     key: number, // also unique
     personnel: PersonnelSchema,
     personnelSlug: string,
-    project: ProjectInterface,
-    customer: CustomerInterface,
-    site: SiteInterface,
-    records?: TimesheetRecordInterface[],
-    options?: TimesheetOptionInterface[],
+    project: PlainProject,
+    customer: PlainCustomer,
+    site: PlainSite,
+    records?: PlainTimesheetRecord[],
+    options?: PlainTimesheetOption[],
     weekEndingDate: string, //also needed for indexing
     comment: string
 }
@@ -29,14 +29,14 @@ export interface PersonnelSchema {
     id?: number
     slug: string,
     name: string,
-    options?: PersonnelOptionInterface[]
+    options?: PlainPersonnelOption[]
 }
 
 export interface CustomerSchema {
     id?: number
     slug: string,
     name: string,
-    sites: SiteInterface[]
+    sites: PlainSite[]
 }
 
 export interface ProjectSchema {

@@ -1,4 +1,4 @@
-import { TimesheetRecordInterface, TimesheetDateInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetRecord, PlainTimesheetDate } from "@/lib/types/timesheet";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetHour } from "./timesheetHour";
@@ -9,13 +9,13 @@ import { PrimitiveTimesheetEntry, PrimitiveTimesheetRecord } from "@/lib/types/p
 /**
  * Refers to a daily record of timesheet entries, it holds entries within the same day together
  */
-export class TimesheetRecord implements TimesheetRecordInterface {
+export class TimesheetRecord implements PlainTimesheetRecord {
     id: number;
     date: TimesheetDate;
     entries: TimesheetEntry[];
     comment: string;
 
-    constructor(timesheetRecordInput: TimesheetRecordInterface) {
+    constructor(timesheetRecordInput: PlainTimesheetRecord) {
         this.id = timesheetRecordInput.id!;
         this.date = new TimesheetDate(timesheetRecordInput.date);
         this.entries = timesheetRecordInput.entries.map((entry) => new TimesheetEntry(entry));
@@ -95,30 +95,6 @@ export class TimesheetRecord implements TimesheetRecordInterface {
         return false
     }
 
-    get workingTime1StartTime() {
-        try {
-            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.workingTime)[0].entryPeriod?.startTime?.time
-        } catch (e) { }
-    }
-
-    get workingTime1FinishTime() {
-        try {
-            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.workingTime)[0].entryPeriod?.finishTime?.time
-        } catch (e) { }
-    }
-
-    get waitingTime1StartTime() {
-        try {
-            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.waitingTime)[0].entryPeriod?.startTime?.time
-        } catch (e) { }
-    }
-
-    get waitingTime1FinishTime() {
-        try {
-            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.waitingTime)[0].entryPeriod?.finishTime?.time
-        } catch (e) { }
-    }
-
     get consolidatedComment() {
         if (!!this.comment) return this.comment
         return this.entries[0].comment;
@@ -177,6 +153,15 @@ export class TimesheetRecord implements TimesheetRecordInterface {
             }
         }
         return _overlappingEntries
+    }
+
+    convertToPlain() {
+        const _plainEntries = this.entries.map((entry: TimesheetEntry) => {
+            const _plainTimesheetEntry = entry.convertToPlain();
+            return _plainTimesheetEntry
+        });
+        const _plainRecord: PlainTimesheetRecord = { id: this.id, date: this.date.convertToPlain(), entries: _plainEntries }
+        return _plainRecord;
     }
 
     static convertPrimitiveToRecord(primitiveRecord: PrimitiveTimesheetRecord) {

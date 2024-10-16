@@ -6,7 +6,7 @@ import DefaultLabelText from "@/app/_components/DefaultLabelText"
 import { ComponentType, SearchParamsLabel, SettingSection } from "@/lib/constants/constant";
 import { Personnel } from "@/lib/services/meta/personnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import { TimesheetOptionInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetOption } from "@/lib/types/timesheet";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -45,7 +45,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         let _site = customers.filter((c) => c.slug == timesheetForm.customerSlug)[0].sites?.filter((s) => s.slug == timesheetForm.siteSlug)[0];
         let _project = projects.filter((p) => p.purchaseOrderNumber == timesheetForm.projectPurchaseOrderNumber)[0];
 
-        let _options: TimesheetOptionInterface[] = [
+        let _options: PlainTimesheetOption[] = [
             { key: 'TIMESHEET_WEEK', value: timesheetForm.selectedWeek },
         ];
         if (!_site) throw new Error("Site Not Found");

@@ -2,16 +2,16 @@ import { StorageLabel, StoreName } from "../../constants/storage";
 import { PersonnelSchema } from "../../types/schema";
 import { AppOptionInterface } from "../../types/generalType";
 import { createOrUpdateAppOption, deleteDataInStore, getAllPersonnel, getAppOptionData } from "../indexedDB/indexedDBService";
-import { PersonnelInterface, PersonnelOptionInterface } from "@/lib/types/meta";
+import { PlainPersonnel, PlainPersonnelOption } from "@/lib/types/meta";
 
-export class Personnel implements PersonnelInterface {
+export class Personnel implements PlainPersonnel {
     id: number;
     slug: string;
     name: string;
-    options?: PersonnelOptionInterface[];
+    options?: PlainPersonnelOption[];
     isActive?: boolean
 
-    constructor({ id, name, slug, options }: PersonnelInterface) {
+    constructor({ id, name, slug, options }: PlainPersonnel) {
         this.id = id;
         this.name = name;
         this.slug = slug;
@@ -38,7 +38,7 @@ export class Personnel implements PersonnelInterface {
                 id: personnelFromSchema.id,
                 name: personnelFromSchema.name,
                 slug: personnelFromSchema.slug,
-                options: personnelFromSchema.options as PersonnelOptionInterface[]
+                options: personnelFromSchema.options as PlainPersonnelOption[]
             });
         }
         throw Error // no id, then no personnel
@@ -47,13 +47,13 @@ export class Personnel implements PersonnelInterface {
     static async getActivePersonnel() {
         const _activePersonnelOption: AppOptionInterface = await getAppOptionData(StorageLabel.activePersonnel);
         if (_activePersonnelOption) {
-            return new Personnel(_activePersonnelOption.value as PersonnelInterface)
+            return new Personnel(_activePersonnelOption.value as PlainPersonnel)
         }
         throw new Error("Active Personnel Not Found")
     }
 
     static async saveActivePersonnel(personnel: Personnel) {
-        const _personnel: PersonnelInterface = JSON.parse(JSON.stringify(personnel));
+        const _personnel: PlainPersonnel = JSON.parse(JSON.stringify(personnel));
         await createOrUpdateAppOption(StorageLabel.activePersonnel, _personnel);
         return personnel
     }

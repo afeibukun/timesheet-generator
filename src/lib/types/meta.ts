@@ -1,20 +1,20 @@
 
 // PERSONNEL
-export interface PersonnelInterface {
+export interface PlainPersonnel {
     id: number,
     slug: string,
     name: string,
-    options?: PersonnelOptionInterface[],
+    options?: PlainPersonnelOption[],
 }
 
-export interface PersonnelOptionInterface {
+export interface PlainPersonnelOption {
     id: number,
     key: string,
     value: string,
 }
 
 // SITE
-export interface SiteInterface {
+export interface PlainSite {
     id?: number,
     slug: string,
     name: string,
@@ -23,14 +23,14 @@ export interface SiteInterface {
 }
 
 // CUSTOMER
-export interface CustomerInterface {
+export interface PlainCustomer {
     id: number,
     slug: string,
     name: string,
 }
 
 // PROJECT
-export interface ProjectInterface {
+export interface PlainProject {
     id?: number
     purchaseOrderNumber: string,
     orderNumber?: string

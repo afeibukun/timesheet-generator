@@ -1,8 +1,8 @@
 import { PrimitiveDefaultTimesheetEntry } from "../types/primitive";
-import { TimesheetEntryTypeInterface } from "../types/timesheet";
+import { PlainTimesheetEntryType } from "../types/timesheet";
 import { LocationType } from "./constant";
 
-export const defaultTimesheetEntryType: TimesheetEntryTypeInterface[] = [
+export const defaultTimesheetEntryType: PlainTimesheetEntryType[] = [
     {
         id: 1,
         slug: "travel-mobilization",

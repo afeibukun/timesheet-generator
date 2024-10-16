@@ -1,15 +1,15 @@
 import moment from "moment";
 import { InvalidTimesheetDateError } from "./timesheetErrors";
-import { TimesheetDateInterface } from "@/lib/types/timesheet";
+import { PlainTimesheetDate } from "@/lib/types/timesheet";
 import { TimesheetEntry } from "./timesheetEntry";
 import { ErrorMessage } from "@/lib/constants/constant";
 import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
 
-export class TimesheetDate implements TimesheetDateInterface {
+export class TimesheetDate implements PlainTimesheetDate {
     date: string;
     _isValidTimesheetDate?: boolean;
 
-    constructor(dateObject: TimesheetDateInterface | String | string) {
+    constructor(dateObject: PlainTimesheetDate | String | string) {
         if (typeof dateObject == 'string' || dateObject instanceof String) {
             this.date = dateObject as string;
         } else {
@@ -134,6 +134,10 @@ export class TimesheetDate implements TimesheetDateInterface {
         return this.date === date.date
     }
 
+    convertToPlain() {
+        return { date: this.defaultFormat() };
+    }
+
     static initializeWeekStartDay = async () => {
         const defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay);
@@ -253,7 +257,7 @@ export class TimesheetDate implements TimesheetDateInterface {
     }
 
     static convertPrimitiveToInterface(primitiveDate: string) {
-        const _dateAsInterface: TimesheetDateInterface = { date: primitiveDate };
+        const _dateAsInterface: PlainTimesheetDate = { date: primitiveDate };
         return _dateAsInterface;
     }
     static convertPrimitiveToDate(primitiveDate: string) {
