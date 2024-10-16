@@ -94,3 +94,13 @@ export enum OptionLabel {
     mobilizationDate = "mobilization-date",
     demobilizationDate = "demobilization-date",
 }
+
+export enum TimesheetEntryType {
+    travelMobilization = "travel-mobilization",
+    travelDemobilization = "travel-demobilization",
+    workingTime = "working-time",
+    waitingTime = "waiting-time",
+    publicHolidayWork = "public-holiday-work",
+    travelTimeToSite = "travel-time-to-site",
+    travelTimeFromSite = "travel-time-from-site",
+}

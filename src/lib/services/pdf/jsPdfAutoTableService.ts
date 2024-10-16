@@ -184,7 +184,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
             let updatedCheckMarkArray = [
                 ...checkMarkArray,
                 { 'rowIndex': checkMarkPlacementCounter, 'hasCheckMark': _record.isLocationTypeOnshore }, //Row 1
-                { 'rowIndex': checkMarkPlacementCounter + 1, 'hasCheckMark': _record.entries[0].isLocationTypeOffshore }, //Row 2
+                { 'rowIndex': checkMarkPlacementCounter + 1, 'hasCheckMark': _record.isLocationTypeOffshore }, //Row 2
             ]
             checkMarkPlacementCounter += 2
             return updatedCheckMarkArray
@@ -207,7 +207,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
                 { content: _timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
                 { content: _timesheet.mobilizationDate ? _timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
                 { content: _timesheet.demobilizationDate ? _timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: _timesheet.project.orderNumber?.toString(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
+                { content: !!_timesheet.project.orderNumber ? _timesheet.project.orderNumber.toString() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
             ],
             // Excel Row 5
             [
@@ -250,9 +250,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
             ],
             // Excel Row 9 - 22
             ..._timesheet.records.reduce((timesheetArrayWithPdfFormat: any[], _record: TimesheetRecord) => {
-                let lineWidthConfig = !_record.entries[0].isNullEntry ? normalLineWidth : zeroLineWidth;
+                let lineWidthConfig = _record.hasHours ? normalLineWidth : zeroLineWidth;
                 let firstLineWidthConfig = lineWidthConfig
-                if (_record.entries[0].isNullEntry) {
+                if (!_record.hasHours) {
                     nullEntryDayCounter += 1
                     firstLineWidthConfig = nullEntryDayCounter == 1 ? { ...lineWidthConfig, top: normalBorderWidth } : lineWidthConfig;
                 }
@@ -261,9 +261,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
                     ...timesheetArrayWithPdfFormat,
                     //Row 1
                     [
-                        { content: _record.entries[0].entryDateDayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
-                        { content: !_record.entries[0].isEntryPeriodStartTimeNull ? PeriodTypeLabel.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: !_record.entries[0].isEntryPeriodStartTimeNull ? _record.entries[0].entryPeriod?.startTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
+                        { content: _record.dayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
+                        { content: _record.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
+                        { content: _record.hasHours ? _record.workingTime1StartTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col E*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col F*/ },
@@ -271,16 +271,16 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col H*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col I*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col J*/ },
-                        { content: _record.entries[0].isEntryPeriodValid && _record.entries[0].isLocationTypeOnshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
-                        { content: _record.entries[0].isEntryPeriodValid ? LocationType.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
-                        { content: _record.entries[0].isEntryPeriodValid && _record.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
-                        { content: !_record.entries[0].isCommentNull && _record.entries[0].isLocationTypeOnshore ? _record.entries[0].comment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
+                        { content: _record.hasHours && _record.isLocationTypeOnshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
+                        { content: _record.hasHours ? LocationType.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
+                        { content: _record.hasHours && _record.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
+                        { content: _record.hasHours && !!_record.consolidatedComment && _record.isLocationTypeOnshore ? _record.consolidatedComment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
                     ],
                     // Row 2
                     [
-                        { content: _record.entries[0].entryDateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
-                        { content: !_record.entries[0].isEntryPeriodFinishTimeNull ? PeriodTypeLabel.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: !_record.entries[0].isEntryPeriodFinishTimeNull ? _record.entries[0].entryPeriod?.finishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
+                        { content: _record.dateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
+                        { content: _record.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
+                        { content: _record.hasHours ? _record.workingTime1FinishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col D*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col E*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col F*/ },
@@ -288,10 +288,10 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col H*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col I*/ },
                         { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col J*/ },
-                        { content: _record.entries[0].isEntryPeriodValid && _record.entries[0].isLocationTypeOffshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
-                        { content: _record.entries[0].isEntryPeriodValid ? LocationType.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
-                        { content: _record.entries[0].isEntryPeriodValid && _record.entries[0].isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
-                        { content: !_record.entries[0].isCommentNull && _record.entries[0].isLocationTypeOffshore ? _record.entries[0].comment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
+                        { content: _record.hasHours && _record.isLocationTypeOffshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
+                        { content: _record.hasHours ? LocationType.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
+                        { content: _record.hasHours && _record.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
+                        { content: _record.hasHours && !!_record.consolidatedComment && _record.isLocationTypeOffshore ? _record.consolidatedComment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
                     ],
                 ]
             }, []),

@@ -339,21 +339,21 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
                     {
                         column_a: _timesheetRecord.dayLabel.toUpperCase(), //day i.e Monday, Tuesday, ...
                         column_b: _timesheetRecord.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', // start tag
-                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.entries[0].entryPeriod?.startTime : '', // working time 1 - start time
+                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.workingTime1StartTime : '', // working time 1 - start time
                         column_k: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOnshore ? `${_timesheetRecord.totalHoursInString}` : '', // total hours - onshore
                         column_l: _timesheetRecord.hasHours ? LocationType.onshore.toUpperCase() : '', //onshore / offshore
                         column_m: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '', //onshore check mark
-                        column_n: _timesheetRecord.hasHours && _timesheetRecord.entries[0].comment && _timesheetRecord.isLocationTypeOnshore ? _timesheetRecord.entries[0].comment : "" // Comment for onshore
+                        column_n: _timesheetRecord.hasHours && !!_timesheetRecord.consolidatedComment && _timesheetRecord.isLocationTypeOnshore ? _timesheetRecord.consolidatedComment : "" // Comment for onshore
                     },
 
                     {
-                        column_a: _timesheetRecord.entries[0].entryDateInDayMonthFormat, //date i.e 30-Aug, 29-Apr ...
+                        column_a: _timesheetRecord.dateInDayMonthFormat, //date i.e 30-Aug, 29-Apr ...
                         column_b: _timesheetRecord.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', //finish tag
-                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.entries[0].entryPeriod?.finishTime : '', // finish time
-                        column_k: _timesheetRecord.hasHours && _timesheetRecord.entries[0].isLocationTypeOffshore ? `${_timesheetRecord.totalHoursInString}` : "", // total hours - Offshore
+                        column_c: _timesheetRecord.hasHours ? _timesheetRecord.workingTime1FinishTime : '', // finish time
+                        column_k: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOffshore ? `${_timesheetRecord.totalHoursInString}` : "", // total hours - Offshore
                         column_l: _timesheetRecord.hasHours ? LocationType.offshore.toUpperCase() : "", // offshore tag
-                        column_m: _timesheetRecord.hasHours && _timesheetRecord.entries[0].isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
-                        column_n: _timesheetRecord.hasHours && !_timesheetRecord.entries[0].isCommentNull && _timesheetRecord.entries[0].isLocationTypeOffshore ? _timesheetRecord.entries[0].comment : "" // Comment for offshore
+                        column_m: _timesheetRecord.hasHours && _timesheetRecord.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
+                        column_n: _timesheetRecord.hasHours && !!_timesheetRecord.consolidatedComment && _timesheetRecord.isLocationTypeOffshore ? _timesheetRecord.consolidatedComment : "" // Comment for offshore
                     },
                 ]
                 coreTimesheetEntryRows = [...coreTimesheetEntryRows, ...excelDataForCurrentDay]

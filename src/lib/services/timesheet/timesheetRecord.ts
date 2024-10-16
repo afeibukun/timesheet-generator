@@ -2,7 +2,7 @@ import { TimesheetRecordInterface, TimesheetDateInterface } from "@/lib/types/ti
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetHour } from "./timesheetHour";
-import { ErrorMessage, LocationType } from "@/lib/constants/constant";
+import { ErrorMessage, LocationType, TimesheetEntryType } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { PrimitiveTimesheetEntry, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
 
@@ -89,6 +89,41 @@ export class TimesheetRecord implements TimesheetRecordInterface {
         if (this.locationType == LocationType.onshore) return true
         return false
     }
+
+    get isLocationTypeOffshore(): Boolean {
+        if (this.locationType == LocationType.offshore) return true
+        return false
+    }
+
+    get workingTime1StartTime() {
+        try {
+            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.workingTime)[0].entryPeriod?.startTime?.time
+        } catch (e) { }
+    }
+
+    get workingTime1FinishTime() {
+        try {
+            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.workingTime)[0].entryPeriod?.finishTime?.time
+        } catch (e) { }
+    }
+
+    get waitingTime1StartTime() {
+        try {
+            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.waitingTime)[0].entryPeriod?.startTime?.time
+        } catch (e) { }
+    }
+
+    get waitingTime1FinishTime() {
+        try {
+            return this.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.waitingTime)[0].entryPeriod?.finishTime?.time
+        } catch (e) { }
+    }
+
+    get consolidatedComment() {
+        if (!!this.comment) return this.comment
+        return this.entries[0].comment;
+    }
+
 
     hasEntry(): Boolean {
         return this.entries.some((entry) => this.date.isEqual(entry.date))

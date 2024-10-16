@@ -1,26 +1,13 @@
 'use client'
 import Link from "next/link";
 import DefaultSection from "../_components/DefaultSection";
-import DefaultSectionHeader from "../_components/DefaultSectionHeader";
-import DefaultSectionTitle from "../_components/DefaultSectionTitle";
-import InfoLabel from "./_components/InfoLabel";
-import TimesheetTable from "./_components/TimesheetTable";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { useEffect, useState } from "react";
 import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timesheet/timesheetErrors";
-import { createXlsxTimesheetClassicTemplate } from "@/lib/services/xlsx/excelJsService";
-import { createPdfWithJsPdfAutoTable } from "@/lib/services/pdf/jsPdfAutoTableService";
-import { TimesheetCollection, TimesheetInterface } from "@/lib/types/timesheet";
-import { ComponentType, LocationType, SearchParamsLabel, ToastStatus } from "@/lib/constants/constant";
-import { getAppOptionData } from "@/lib/services/indexedDB/indexedDBService";
-import { AppOptionInterface } from "@/lib/types/generalType";
-import TimesheetUpdateView from "./_components/TimesheetUpdateView";
-import { TimesheetSchema } from "@/lib/types/schema";
-import ToastNotification from "../_components/ToastNotification";
+import { TimesheetCollection } from "@/lib/types/timesheet";
+import { ComponentType, SearchParamsLabel, ToastStatus } from "@/lib/constants/constant";
 import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
-import { StorageLabel } from "@/lib/constants/storage";
 import { useSearchParams } from "next/navigation";
 import TimesheetView from "./_components/TimesheetView";
 import TimesheetCollectionView from "./_components/TimesheetCollectionView";
@@ -64,7 +51,6 @@ export default function Preview() {
             } else {
                 if (key) {
                     const _timesheet = await Timesheet.getTimesheetFromKey(key);
-                    console.log("Timesheet - ", _timesheet)
                     if (_timesheet) setTimesheet(_timesheet);
                 }
             }
@@ -85,45 +71,6 @@ export default function Preview() {
             setGroupedTimesheet(updatedTimesheet.timesheetEntryCollectionByWeek); */
             // return true;
         } catch (e) { }
-        throw Error;
-    }
-
-    async function handleUpdateTimesheet(updatedTimesheet: Timesheet) {
-        try {
-            // const originalCorrespondingTimesheet = timesheetCollection.collection.filter((t) => t.id === updatedTimesheet.id)[0];
-            // const updatedTimesheetSchema = await Timesheet.convertPrimitiveToSchema(updatedPrimitiveTimesheet, originalCorrespondingTimesheet.personnel, originalCorrespondingTimesheet.weekEndingDate);
-            if (updatedTimesheet) {
-                await updatedTimesheet.updateTimesheetInDb();
-                const updatedCorrespondingTimesheet = new Timesheet(updatedTimesheet);
-                setTimesheetCollection({
-                    ...timesheetCollection, collection: timesheetCollection.collection.map((t) => {
-                        if (t.id === updatedTimesheet.id) return updatedCorrespondingTimesheet
-                        else return t
-                    })
-                })
-                setShowNotification({ display: true, text: "Timesheet Data Saved Successfully", status: ToastStatus.success });
-            } else {
-                setShowNotification({ display: true, text: "Correct The Timesheet Errors First", status: ToastStatus.danger });
-            }
-
-            setTimeout(() => {
-                setShowNotification({ display: false, text: "", status: undefined });
-            }, 3000)
-            return
-
-            /* let updatedTimesheetEntryCollection: TimesheetEntry[] = timesheet.entryCollection.map((timesheetEntry: TimesheetEntry) => {
-                if (timesheetEntry.id == updatedTimesheetEntryFormData.id) {
-                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType as LocationTypeEnum, comment: updatedTimesheetEntryFormData.comment })
-                }
-                return timesheetEntry;
-            });
-            let updatedTimesheet = new Timesheet({ meta: timesheet.meta, entryCollection: updatedTimesheetEntryCollection })
-            setTimesheet(updatedTimesheet);
-            setGroupedTimesheet(updatedTimesheet.timesheetEntryCollectionByWeek); */
-            // return true;
-        } catch (e) {
-            console.log(e)
-        }
         throw Error;
     }
 

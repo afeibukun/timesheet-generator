@@ -1,4 +1,5 @@
-import { DefaultPrimitiveTimesheetEntryDataInterface, PrimitiveTimesheetMetaInterface, TimesheetEntryTypeInterface } from "../types/timesheet";
+import { PrimitiveDefaultTimesheetEntry } from "../types/primitive";
+import { TimesheetEntryTypeInterface } from "../types/timesheet";
 import { LocationType } from "./constant";
 
 export const defaultTimesheetEntryType: TimesheetEntryTypeInterface[] = [
@@ -34,7 +35,7 @@ export const defaultTimesheetEntryType: TimesheetEntryTypeInterface[] = [
     }
 ];
 
-export const defaultTimesheetEntryData: DefaultPrimitiveTimesheetEntryDataInterface = {
+export const defaultTimesheetEntryData: PrimitiveDefaultTimesheetEntry = {
     startTime: '06:00',
     finishTime: '18:00',
     locationType: LocationType.onshore,
@@ -42,18 +43,6 @@ export const defaultTimesheetEntryData: DefaultPrimitiveTimesheetEntryDataInterf
     weekStartDay: "monday",
     updatedAt: '',
     timesheetEntryType: defaultTimesheetEntryType.filter((entryType) => entryType.slug == "working-time")[0]
-}
-
-export const initialTimesheetMeta: PrimitiveTimesheetMetaInterface = {
-    id: null,
-    personnelName: "",
-    mobilizationDate: "",
-    demobilizationDate: "",
-    customerName: "",
-    siteName: "",
-    siteCountry: "",
-    purchaseOrderNumber: "",
-    orderNumber: "",
 }
 
 export const possibleWeekStartDays = [

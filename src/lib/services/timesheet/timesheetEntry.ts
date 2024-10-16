@@ -1,7 +1,7 @@
 import { ErrorMessage, LocationType } from "@/lib/constants/constant";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { TimesheetDateInterface, TimesheetEntryInterface, TimesheetEntryPeriodInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheet";
+import { TimesheetEntryInterface, TimesheetEntryTypeInterface } from "@/lib/types/timesheet";
 import { AppOptionSchema } from "@/lib/types/schema";
 import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
