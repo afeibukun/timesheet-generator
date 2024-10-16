@@ -1,7 +1,7 @@
 import { defaultTimesheetEntryType } from "@/lib/constants/default";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
-import { TimesheetCollectionByMonthInterface, TimesheetCollection, PlainTimesheet, PlainTimesheetOption } from "@/lib/types/timesheet";
+import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption } from "@/lib/types/timesheet";
 import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
@@ -31,7 +31,7 @@ export class Timesheet implements PlainTimesheet {
     customer: Customer;
     site: Site;
     project: Project;
-    options: PlainTimesheetOption[];
+    options: TimesheetOption[];
     records: TimesheetRecord[];
     comment: string;
 
@@ -207,7 +207,7 @@ export class Timesheet implements PlainTimesheet {
         }
     }
 
-    static async createTimesheet(weekData: string, personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false) {
+    static async createTimesheet(weekData: string, personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false, timesheetOptions: TimesheetOption[] = []) {
         let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
 
@@ -297,7 +297,7 @@ export class Timesheet implements PlainTimesheet {
             if (_startNewTimesheet) {
                 let _timesheetKey = getUniqueIDBasedOnTime();
                 while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
-                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, customer: customer, site: site, project: project, options: [], records: [], comment: '' });
+                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, customer: customer, site: site, project: project, options: [{ key: OptionLabel.mobilizationDate, value: _mobDate }, { key: OptionLabel.demobilizationDate, value: _demobDate }, { key: OptionLabel.timesheetCollectionKey, value: _timesheetCollectionKey }], records: [], comment: '' });
                 timesheetCollectionByMonth[_monthCount] = [...timesheetCollectionByMonth[_monthCount], _cursorTimesheet];
                 _startNewTimesheet = false;
             } else {
@@ -333,6 +333,7 @@ export class Timesheet implements PlainTimesheet {
                 // PERSIST IN INDEX DB before starting a new timesheet
                 let _timesheetKey = getUniqueIDBasedOnTime();
                 while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
+
                 let _timesheetSchema: TimesheetSchema = { key: _timesheetKey, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.date, comment: _cursorTimesheet.comment }
 
                 const stringifiedTimesheet = JSON.stringify(_timesheetSchema)
@@ -381,7 +382,7 @@ export class Timesheet implements PlainTimesheet {
 
         const _weekEndingDate = new TimesheetDate(timesheetSchema.weekEndingDate);
 
-        let _options: PlainTimesheetOption[] = [];
+        let _options: TimesheetOption[] = [];
         if (timesheetSchema.options) _options = timesheetSchema.options
 
         if (!timesheetSchema.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
@@ -405,7 +406,7 @@ export class Timesheet implements PlainTimesheet {
 
         const _project: Project = await Project.getProjectById(primitiveTimesheet.projectId);
 
-        let _options: PlainTimesheetOption[] = [];
+        let _options: TimesheetOption[] = [];
         if (primitiveTimesheet.options) _options = primitiveTimesheet.options
 
         if (!primitiveTimesheet.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
@@ -469,7 +470,7 @@ export class Timesheet implements PlainTimesheet {
 
     static async getTimesheetCollectionGroupedMonthlyFromId(timesheetCollectionId: number) {
         const timesheetCollectionFromDb: TimesheetCollectionSchema = await getInStore(timesheetCollectionId, StoreName.timesheetCollection);
-        let _timesheetCollectionByMonth: TimesheetCollectionByMonthInterface = { id: timesheetCollectionFromDb.id, collection: [[]] }
+        let _timesheetCollectionByMonth: TimesheetCollectionByMonth = { id: timesheetCollectionFromDb.id, collection: [[]] }
 
         let _monthCount = 0;
         let _currentMonthNumber: number;

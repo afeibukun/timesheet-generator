@@ -1,7 +1,7 @@
 import { TimesheetDate } from "../services/timesheet/timesheetDate";
 import { TimesheetEntry } from "../services/timesheet/timesheetEntry";
 import { TimesheetEntryPeriod } from "../services/timesheet/timesheetEntryPeriod";
-import { PlainTimesheetCollectionOptions, PlainTimesheetRecord, PlainTimesheetDate, PlainTimesheetEntry, PlainTimesheetEntryType, PlainTimesheetOption } from "./timesheet";
+import { TimesheetCollectionOptions, PlainTimesheetRecord, PlainTimesheetDate, PlainTimesheetEntry, PlainTimesheetEntryType, TimesheetOption } from "./timesheet";
 import { LocationType } from "../constants/constant";
 import { PlainCustomer, PlainPersonnel, PlainPersonnelOption, PlainProject, PlainSite } from "./meta";
 
@@ -14,7 +14,7 @@ export interface TimesheetSchema {
     customer: PlainCustomer,
     site: PlainSite,
     records?: PlainTimesheetRecord[],
-    options?: PlainTimesheetOption[],
+    options?: TimesheetOption[],
     weekEndingDate: string, //also needed for indexing
     comment: string
 }

@@ -35,7 +35,6 @@ export default function Home() {
 
         if (_activePersonnel) {
           const _timesheetsFromActivePersonnel = await Timesheet.getTimesheetsFromPersonnel(_activePersonnel);
-          console.log(_timesheetsFromActivePersonnel);
           setTimesheetsFromActivePersonnel(_timesheetsFromActivePersonnel);
         }
       } catch (e) {
@@ -50,7 +49,6 @@ export default function Home() {
       try {
         if (localActivePersonnel) {
           const _timesheetsFromActivePersonnel = await Timesheet.getTimesheetsFromPersonnel(localActivePersonnel);
-          console.log(_timesheetsFromActivePersonnel);
           setTimesheetsFromActivePersonnel(_timesheetsFromActivePersonnel);
         }
       } catch (e) { }
@@ -58,13 +56,6 @@ export default function Home() {
     sideEffect();
   }, [localActivePersonnel]);
 
-  const handleCreateTimesheet = () => {
-    console.log(primitiveCreateTimesheetForm)
-
-    if (localActivePersonnel && primitiveCreateTimesheetForm.selectedWeek) {
-
-    }
-  }
   // const getTimesheetsFrom
   return (
     <main className="container mx-auto">
@@ -115,7 +106,7 @@ export default function Home() {
               <ul className="flex flex-col gap-y-2">
                 {timesheetsFromActivePersonnel.map((_timesheet) =>
                   <li key={_timesheet.id} className="bg-stone-100 rounded cursor-pointer">
-                    <div className="timesheet-row px-4 py-2 flex items-center justify-between">
+                    <Link href={`/review?${SearchParamsLabel.component}=${ComponentType.timesheet}&${SearchParamsLabel.key}=${_timesheet.key}`} className="timesheet-row px-4 py-2 flex items-center justify-between">
                       <div className="lhs-column flex items-center">
                         <div className="time-info flex flex-col p-3 border rounded items-center">
                           <h3 className="time-info-hours leading-none inline-flex flex-col items-center">
@@ -174,7 +165,7 @@ export default function Home() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </li>
                 )}
               </ul>

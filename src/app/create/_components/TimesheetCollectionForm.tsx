@@ -6,7 +6,7 @@ import { ComponentType, SearchParamsLabel, SettingSection, Status } from "@/lib/
 import { Personnel } from "@/lib/services/meta/personnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
-import { PlainTimesheetOption } from "@/lib/types/timesheet";
+import { TimesheetOption } from "@/lib/types/timesheet";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -52,7 +52,7 @@ export default function CreateTimesheetCollectionForm({ personnels, customers, p
         let _site = customers.filter((c) => c.slug == timesheetCollectionForm.customerSlug)[0].sites?.filter((s) => s.slug == timesheetCollectionForm.siteSlug)[0];
         let _project = projects.filter((p) => p.purchaseOrderNumber == timesheetCollectionForm.projectPurchaseOrderNumber)[0];
 
-        let _options: PlainTimesheetOption[] = [
+        let _options: TimesheetOption[] = [
             { key: 'MOBILIZATION_DATE', value: timesheetCollectionForm.mobilizationDate },
             { key: 'DEMOBILIZATION_DATE', value: timesheetCollectionForm.demobilizationDate }
         ];
@@ -93,7 +93,10 @@ export default function CreateTimesheetCollectionForm({ personnels, customers, p
                     <DefaultFormGroupTitle>Mobilization Date Information</DefaultFormGroupTitle>
                     <DefaultFormItem>
                         <label htmlFor="mobilizationDate">
-                            <DefaultLabelText>Personnel Mobilization Date</DefaultLabelText>
+                            <DefaultLabelText>
+                                <span>Personnel Mobilization Date</span>
+                                <small className="text-red-600 italic">Compulsory</small>
+                            </DefaultLabelText>
                         </label>
                         <input type="date"
                             value={timesheetCollectionForm.mobilizationDate}
@@ -102,7 +105,10 @@ export default function CreateTimesheetCollectionForm({ personnels, customers, p
                     </DefaultFormItem>
                     <DefaultFormItem>
                         <label htmlFor="demobilizationDate">
-                            <DefaultLabelText>Personnel Demob Date</DefaultLabelText>
+                            <DefaultLabelText>
+                                <span>Personnel Demob Date</span>
+                                <small className="text-red-600 italic">Compulsory</small>
+                            </DefaultLabelText>
                         </label>
                         <input type="date"
                             name="demobilizationDate"

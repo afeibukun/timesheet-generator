@@ -3,10 +3,10 @@ import DefaultFormGroup from "@/app/_components/DefaultFormGroup";
 import DefaultFormGroupTitle from "@/app/_components/DefaultFormGroupTitle";
 import DefaultFormItem from "@/app/_components/DefaultFormItem"
 import DefaultLabelText from "@/app/_components/DefaultLabelText"
-import { ComponentType, SearchParamsLabel, SettingSection } from "@/lib/constants/constant";
+import { ComponentType, OptionLabel, SearchParamsLabel, SettingSection } from "@/lib/constants/constant";
 import { Personnel } from "@/lib/services/meta/personnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import { PlainTimesheetOption } from "@/lib/types/timesheet";
+import { TimesheetOption } from "@/lib/types/timesheet";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -27,7 +27,9 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         siteSlug: '',
         projectPurchaseOrderNumber: '',
         selectedWeek: '',
-        autoPopulateEntry: false
+        autoPopulateEntry: false,
+        mobilizationDate: '',
+        demobilizationDate: '',
     });
 
     function handleInputChange(e: any, metaKey: string) {
@@ -45,11 +47,13 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         let _site = customers.filter((c) => c.slug == timesheetForm.customerSlug)[0].sites?.filter((s) => s.slug == timesheetForm.siteSlug)[0];
         let _project = projects.filter((p) => p.purchaseOrderNumber == timesheetForm.projectPurchaseOrderNumber)[0];
 
-        let _options: PlainTimesheetOption[] = [
-            { key: 'TIMESHEET_WEEK', value: timesheetForm.selectedWeek },
+        let _options: TimesheetOption[] = [
+            { key: OptionLabel.timesheetWeek, value: timesheetForm.selectedWeek },
+            { key: OptionLabel.mobilizationDate, value: timesheetForm.mobilizationDate },
+            { key: OptionLabel.demobilizationDate, value: timesheetForm.demobilizationDate },
         ];
         if (!_site) throw new Error("Site Not Found");
-        const _timesheet = await Timesheet.createTimesheet(timesheetForm.selectedWeek, _personnel, _customer, _site, _project, timesheetForm.autoPopulateEntry);
+        const _timesheet = await Timesheet.createTimesheet(timesheetForm.selectedWeek, _personnel, _customer, _site, _project, timesheetForm.autoPopulateEntry, _options);
 
         router.push(`/review?${SearchParamsLabel.component}=${ComponentType.timesheet}&${SearchParamsLabel.key}=${_timesheet.key}`);
     }
@@ -90,6 +94,33 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                             </div>
                         </div>
                     </div>
+                </DefaultFormGroup>
+                <DefaultFormGroup>
+                    <DefaultFormGroupTitle>Mobilization Date Information</DefaultFormGroupTitle>
+                    <DefaultFormItem>
+                        <label htmlFor="mobilizationDate">
+                            <DefaultLabelText>
+                                <span>Personnel Mobilization Date </span>
+                                <small className="text-blue-600 italic">Optional</small></DefaultLabelText>
+                        </label>
+                        <input type="date"
+                            value={timesheetForm.mobilizationDate}
+                            onChange={(e) => handleInputChange(e, 'mobilizationDate')}
+                            name="mobilizationDate" id="mobilizationDate" className="border rounded" />
+                    </DefaultFormItem>
+                    <DefaultFormItem>
+                        <label htmlFor="demobilizationDate">
+                            <DefaultLabelText>
+                                <span>Personnel Demob Date </span>
+                                <small className="text-blue-600 italic">Optional</small></DefaultLabelText>
+                        </label>
+                        <input type="date"
+                            name="demobilizationDate"
+                            id="demobilizationDate"
+                            value={timesheetForm.demobilizationDate}
+                            onChange={e => handleInputChange(e, 'demobilizationDate')}
+                            className="border rounded" />
+                    </DefaultFormItem>
                 </DefaultFormGroup>
                 <DefaultFormGroup>
                     <DefaultFormGroupTitle>Customer Information</DefaultFormGroupTitle>

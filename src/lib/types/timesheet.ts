@@ -18,7 +18,7 @@ export interface PlainTimesheet {
     customer: PlainCustomer;
     site: PlainSite;
     project: PlainProject;
-    options: PlainTimesheetOption[];
+    options: TimesheetOption[];
     records: PlainTimesheetRecord[];
     comment: string;
 }
@@ -29,13 +29,13 @@ export interface TimesheetCollection {
     collection: Timesheet[];
 }
 
-export interface TimesheetCollectionByMonthInterface {
+export interface TimesheetCollectionByMonth {
     id?: number,
     collection: PlainTimesheet[][];
 }
 
 // TIMESHEET OPTIONS examples (mobilization date, demob date)
-export interface PlainTimesheetOption {
+export interface TimesheetOption {
     id?: number,
     key: any,
     value: any,
@@ -87,7 +87,7 @@ export interface PlainTimesheetEntryType {
     name: string
 }
 
-export interface PlainTimesheetCollectionOptions {
+export interface TimesheetCollectionOptions {
     key: string,
     value: any
 }

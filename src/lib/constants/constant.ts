@@ -93,6 +93,8 @@ export enum TemplateType {
 export enum OptionLabel {
     mobilizationDate = "mobilization-date",
     demobilizationDate = "demobilization-date",
+    timesheetWeek = "timesheet-week",
+    timesheetCollectionKey = "timesheet-collection-key"
 }
 
 export enum TimesheetEntryType {

@@ -11,36 +11,37 @@ const readWriteFlag = "readwrite"
 
 export const initalizeDatabase = (db: IDBDatabase | IDBPDatabase) => {
     if (!db.objectStoreNames.contains(StoreName.personnel)) {
-        const personnelObjectStore = db.createObjectStore(StoreName.personnel, { keyPath: FieldName.id, autoIncrement: true });
-        personnelObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
-        personnelObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
+        const _personnelObjectStore = db.createObjectStore(StoreName.personnel, { keyPath: FieldName.id, autoIncrement: true });
+        _personnelObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
+        _personnelObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.timesheet)) {
-        const timesheetObjectStore = db.createObjectStore(StoreName.timesheet, { keyPath: FieldName.id, autoIncrement: true });
-        timesheetObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
-        timesheetObjectStore.createIndex(IndexName.personnelSlugIndex, FieldName.personnelSlug, { unique: false })
-        timesheetObjectStore.createIndex(IndexName.weekEndingDateIndex, FieldName.weekEndingDateString, { unique: false })
+        const _timesheetObjectStore = db.createObjectStore(StoreName.timesheet, { keyPath: FieldName.id, autoIncrement: true });
+        _timesheetObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
+        _timesheetObjectStore.createIndex(IndexName.personnelSlugIndex, FieldName.personnelSlug, { unique: false })
+        _timesheetObjectStore.createIndex(IndexName.weekEndingDateIndex, FieldName.weekEndingDateString, { unique: false })
     }
 
     if (!db.objectStoreNames.contains(StoreName.timesheetCollection)) {
-        db.createObjectStore(StoreName.timesheetCollection, { keyPath: FieldName.id, autoIncrement: true });
+        const _timesheetCollectionObjectStore = db.createObjectStore(StoreName.timesheetCollection, { keyPath: FieldName.id, autoIncrement: true });
+        _timesheetCollectionObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.customer)) {
-        const customerObjectStore = db.createObjectStore(StoreName.customer, { keyPath: FieldName.id, autoIncrement: true });
-        customerObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
-        customerObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
+        const _customerObjectStore = db.createObjectStore(StoreName.customer, { keyPath: FieldName.id, autoIncrement: true });
+        _customerObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
+        _customerObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.project)) {
-        const projectObjectStore = db.createObjectStore(StoreName.project, { keyPath: FieldName.id, autoIncrement: true });
-        projectObjectStore.createIndex(IndexName.purchaseOrderNumberIndex, FieldName.purchaseOrderNumber, { unique: true })
+        const _projectObjectStore = db.createObjectStore(StoreName.project, { keyPath: FieldName.id, autoIncrement: true });
+        _projectObjectStore.createIndex(IndexName.purchaseOrderNumberIndex, FieldName.purchaseOrderNumber, { unique: true })
     }
 
     if (!db.objectStoreNames.contains(StoreName.appOption)) {
-        const appOptionObjectStore = db.createObjectStore(StoreName.appOption, { keyPath: FieldName.id, autoIncrement: true });
-        appOptionObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
+        const _appOptionObjectStore = db.createObjectStore(StoreName.appOption, { keyPath: FieldName.id, autoIncrement: true });
+        _appOptionObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
     }
 }
 
