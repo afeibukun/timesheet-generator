@@ -8,6 +8,7 @@ import DefaultSectionHeader from "@/app/_components/DefaultSectionHeader";
 import DefaultSectionTitle from "@/app/_components/DefaultSectionTitle";
 import ToastNotification from "@/app/_components/ToastNotification";
 import TimesheetUpdateView from "./TimesheetUpdateView";
+import Link from "next/link";
 
 type NotificationType = {
     display: boolean,
@@ -63,20 +64,13 @@ export default function TimesheetView({ timesheet, setTimesheet }: TimesheetView
                     <div className="print:hidden">
                         <DefaultSectionHeader>
                             <div>
-                                <div className="preview-header-group main-title group-1 mb-4">
-                                    <DefaultSectionTitle>Timesheet Preview</DefaultSectionTitle>
-                                    {/* {timesheet.meta != undefined ?
-                                        <div className="timesheet-period">
-                                            <p className="text-base font-medium italic">
-                                                {timesheet.meta.mobilizationDate != undefined && timesheet?.meta.mobilizationDate != null ?
-                                                    <span>{new TimesheetDate(timesheet?.meta.mobilizationDate).simpleFormat()}</span>
-                                                    : ''}
-                                                <span className="px-3">-</span>
-                                                {timesheet?.meta.demobilizationDate != undefined && timesheet?.meta.demobilizationDate != null ?
-                                                    <span>{new TimesheetDate(timesheet?.meta.demobilizationDate!).simpleFormat()}</span> : ''}
-                                            </p>
-                                        </div> : ''} */}
-
+                                <div className="flex items-center justify-between">
+                                    <div className="preview-header-group main-title group-1 mb-4">
+                                        <DefaultSectionTitle>Timesheet Preview</DefaultSectionTitle>
+                                    </div>
+                                    <div>
+                                        <Link href="/" className="inline-block px-8 py-2 rounded border">Go Home</Link>
+                                    </div>
                                 </div>
                                 <div className="preview-header-group group-2 flex justify-between">
                                     <div className="timesheet-owner-group  ">

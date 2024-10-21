@@ -1,5 +1,7 @@
-import { TimesheetEntryType } from "@/lib/constants/constant"
+import { DateDisplayExportOption, EntryTypeExportOption, TimesheetEntryType } from "@/lib/constants/constant"
 import { TimesheetRecord } from "../timesheet/timesheetRecord"
+import { ExportOptions } from "@/lib/types/timesheet";
+import { TimesheetHour } from "../timesheet/timesheetHour";
 
 export class ClassicTemplate {
     static workingPeriods(timesheetRecord: TimesheetRecord) {
@@ -11,8 +13,10 @@ export class ClassicTemplate {
 
     static workingPeriod1(timesheetRecord: TimesheetRecord) {
         const index = 0
-        const _workingEntry = timesheetRecord.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.workingTime)[index];
-        return { startTime: _workingEntry.entryPeriodStartTime, finishTime: _workingEntry.entryPeriodFinishTime }
+        const _workingEntryFilter = timesheetRecord.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.workingTime);
+        const _workingEntry = _workingEntryFilter.length > 0 ? _workingEntryFilter[0] : undefined;
+        if (_workingEntry) return { startTime: _workingEntry.entryPeriodStartTime, finishTime: _workingEntry.entryPeriodFinishTime }
+        throw Error("No working Time");
     }
 
     static hasWorkingPeriod1(timesheetRecord: TimesheetRecord) {
@@ -61,6 +65,10 @@ export class ClassicTemplate {
         return false
     }
 
+    static hasWorkingPeriod(timesheetRecord: TimesheetRecord) {
+        return (ClassicTemplate.hasWorkingPeriod1(timesheetRecord) || ClassicTemplate.hasWorkingPeriod2(timesheetRecord) || ClassicTemplate.hasWorkingPeriod3(timesheetRecord) || ClassicTemplate.hasWorkingPeriod4(timesheetRecord))
+    }
+
     static waitingPeriods(timesheetRecord: TimesheetRecord) {
         const _waitingTimeList = timesheetRecord.entries.filter((_entry) => _entry.entryType.slug === TimesheetEntryType.waitingTime).map((_waitingTimeEntry) => {
             return { startTime: _waitingTimeEntry.entryPeriodStartTime, finishTime: _waitingTimeEntry.entryPeriodFinishTime }
@@ -92,6 +100,10 @@ export class ClassicTemplate {
             return !!ClassicTemplate.waitingPeriod2(timesheetRecord).startTime && !!ClassicTemplate.waitingPeriod2(timesheetRecord).finishTime
         } catch (e) { }
         return false
+    }
+
+    static hasWaitingPeriod(timesheetRecord: TimesheetRecord) {
+        return (ClassicTemplate.hasWaitingPeriod1(timesheetRecord) || ClassicTemplate.hasWaitingPeriod2(timesheetRecord))
     }
 
     static travelPeriods(timesheetRecord: TimesheetRecord) {
@@ -127,6 +139,10 @@ export class ClassicTemplate {
         return false
     }
 
+    static hasTravelPeriod(timesheetRecord: TimesheetRecord) {
+        return (ClassicTemplate.hasTravelPeriod1(timesheetRecord) || ClassicTemplate.hasTravelPeriod2(timesheetRecord))
+    }
+
     /**
      * Notes on the Working Time, Waiting Time and Travel Time
      * I could adapt this structure to be a rule on the timesheet.
@@ -142,4 +158,82 @@ export class ClassicTemplate {
         return timesheetFileName
     }
 
+    static isValid(timesheetRecord: TimesheetRecord, exportOptions: ExportOptions) {
+        // if timesheet has hours it is valid
+        // however there are edge cases - 
+        /***
+         * if it has hours, 
+         * but the export option says we should not include travel time or waiting time, 
+         * and the timesheet record does not have a working period at
+         * it only has either a travel time or waiting waiting time
+         * thus it should be treated as invalid 
+         * */
+        return !(timesheetRecord.hasHours && exportOptions.entryTypeDisplay === EntryTypeExportOption.showOnlyWorkingTime && !ClassicTemplate.hasWorkingPeriod(timesheetRecord));
+    }
+
+    static getFilteredTimesheetRecord(timesheetRecord: TimesheetRecord, filter: EntryTypeFilter) {
+        const _plainRecord = timesheetRecord.convertToPlain();
+        let _referenceRecord: TimesheetRecord
+        if (filter === EntryTypeFilter.workingTime) {
+            _referenceRecord = new TimesheetRecord({ ..._plainRecord, entries: _plainRecord.entries.filter((_entry) => _entry.entryType.slug == TimesheetEntryType.workingTime) });
+        } else if (filter === EntryTypeFilter.waitingTime) {
+            _referenceRecord = new TimesheetRecord({ ..._plainRecord, entries: _plainRecord.entries.filter((_entry) => (_entry.entryType.slug == TimesheetEntryType.workingTime || _entry.entryType.slug === TimesheetEntryType.waitingTime)) });
+        } else if (filter === EntryTypeFilter.travelTime) {
+            _referenceRecord = new TimesheetRecord({ ..._plainRecord, entries: _plainRecord.entries.filter((_entry) => (_entry.entryType.slug == TimesheetEntryType.workingTime || _entry.entryType.slug === TimesheetEntryType.travelMobilization || _entry.entryType.slug === TimesheetEntryType.travelDemobilization || _entry.entryType.slug === TimesheetEntryType.travelTimeToSite || _entry.entryType.slug === TimesheetEntryType.travelTimeFromSite)) });
+        } else {
+            _referenceRecord = new TimesheetRecord({ ..._plainRecord, entries: _plainRecord.entries.filter((_entry) => (_entry.entryType.slug == TimesheetEntryType.workingTime || _entry.entryType.slug === TimesheetEntryType.travelMobilization || _entry.entryType.slug === TimesheetEntryType.travelDemobilization || _entry.entryType.slug === TimesheetEntryType.travelTimeToSite || _entry.entryType.slug === TimesheetEntryType.travelTimeFromSite || _entry.entryType.slug === TimesheetEntryType.waitingTime)) });
+        }
+        return _referenceRecord;
+    }
+    /**
+     * Calculates totalHours for a timesheet record, to be used on the exported classic timesheet
+     * @param timesheetRecord TimesheetRecord
+     * @param exportOptions ExportOptions
+     */
+    static getTotalHours(timesheetRecord: TimesheetRecord, exportOptions: ExportOptions): string {
+        const _initialHours: TimesheetHour = new TimesheetHour("00:00");
+        if (!ClassicTemplate.isValid(timesheetRecord, exportOptions)) return _initialHours.time
+
+        let _referenceRecord: TimesheetRecord
+
+        if (exportOptions.entryTypeDisplay === EntryTypeExportOption.showOnlyWorkingTime) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.workingTime)
+
+        } else if (exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelTimeInReport) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.travelTime)
+
+        } else if (exportOptions.entryTypeDisplay === EntryTypeExportOption.includeWaitingTimeInReport) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.waitingTime)
+        } else if (exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.all)
+        } else {
+            _referenceRecord = timesheetRecord
+        }
+        return _referenceRecord.totalHours.time;
+    }
+
+    static getComment(timesheetRecord: TimesheetRecord, exportOptions: ExportOptions) {
+        if (!ClassicTemplate.isValid(timesheetRecord, exportOptions)) return ''
+        let _referenceRecord: TimesheetRecord
+        if (exportOptions.entryTypeDisplay === EntryTypeExportOption.showOnlyWorkingTime) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.workingTime)
+
+        } else if (exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelTimeInReport) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.travelTime)
+        } else if (exportOptions.entryTypeDisplay === EntryTypeExportOption.includeWaitingTimeInReport) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.waitingTime)
+        } else if (exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport) {
+            _referenceRecord = ClassicTemplate.getFilteredTimesheetRecord(timesheetRecord, EntryTypeFilter.all)
+        } else {
+            _referenceRecord = timesheetRecord
+        }
+        return _referenceRecord.consolidatedComment;
+    }
+}
+
+enum EntryTypeFilter {
+    workingTime = 'working-time',
+    waitingTime = 'waiting-time',
+    travelTime = 'travel-time',
+    all = 'all'
 }

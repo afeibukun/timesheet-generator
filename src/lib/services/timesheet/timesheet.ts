@@ -1,12 +1,12 @@
 import { defaultTimesheetEntryType } from "@/lib/constants/default";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
-import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption } from "@/lib/types/timesheet";
+import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption, ExportOptions } from "@/lib/types/timesheet";
 import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
 import { CustomerSchema, PersonnelSchema, ProjectSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
-import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType } from "@/lib/constants/constant";
+import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType, DateDisplayExportOption, EntryTypeExportOption } from "@/lib/constants/constant";
 import { TimesheetHour } from "./timesheetHour";
 import { TimesheetRecord } from "./timesheetRecord";
 import { getUniqueIDBasedOnTime, slugify } from "@/lib/helpers";
@@ -72,6 +72,7 @@ export class Timesheet implements PlainTimesheet {
 
     get monthNumber(): number {
         // A Timesheet spans a week, but never overlaps a month
+        // zero index
         return this.records[0].monthNumber;
     }
     get yearNumber(): number {
@@ -195,9 +196,15 @@ export class Timesheet implements PlainTimesheet {
         return newTimesheet;
     }
 
-    exportXlsxTimesheet(reportType: ReportType, templateType: TemplateType) {
+    async exportXlsxTimesheet(reportType: ReportType, templateType: TemplateType) {
+        await TimesheetDate.initializeWeekStartDay();
+        const exportOption: ExportOptions = {
+            dateDisplay: DateDisplayExportOption.showOnlyDatesWithEntry,
+            entryTypeDisplay: EntryTypeExportOption.showOnlyWorkingTime,
+            allowMultipleTimeEntries: false
+        }
         if (reportType == ReportType.customer && templateType === TemplateType.classic) {
-            createXlsxTimesheetClassicTemplate([this]);
+            createXlsxTimesheetClassicTemplate([this], exportOption);
         }
     }
 
@@ -224,7 +231,7 @@ export class Timesheet implements PlainTimesheet {
 
         let _records: TimesheetRecord[] = []
         if (shouldPopulateEntry) {
-            const _weekDays = await TimesheetDate.getWeekDays(_lastDayOfTheSelectedWeek)
+            const _weekDays = TimesheetDate.getWeekDays(_lastDayOfTheSelectedWeek)
             _records = _weekDays.map(_date => {
                 const _newEntry = new TimesheetEntry({
                     id: TimesheetEntry.createId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment

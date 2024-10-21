@@ -35,10 +35,10 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
 
     useEffect(() => {
         const initializer = async () => {
-            const _weekDays = await TimesheetDate.getWeekDays(timesheetData.weekEndingDate)
+            await TimesheetDate.initializeWeekStartDay();
+            const _weekDays = TimesheetDate.getWeekDays(timesheetData.weekEndingDate)
             setDaysInCurrentTimesheetWeek(_weekDays);
         }
-
         initializer();
 
         try {

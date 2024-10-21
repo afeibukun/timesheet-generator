@@ -244,9 +244,8 @@ export class TimesheetDate implements PlainTimesheetDate {
         } else throw Error(ErrorMessage.dateSelectionMismatch)
     }
 
-    static async getWeekDays(referenceDate: TimesheetDate) {
+    static getWeekDays(referenceDate: TimesheetDate) {
         let weekDays: TimesheetDate[] = [];
-        await TimesheetDate.initializeWeekStartDay();
         const firstDayOfTheWeek = referenceDate.getFirstDayOfTheWeek;
         let _currentDay = firstDayOfTheWeek;
         for (var i = 0; i < 7; i++) {

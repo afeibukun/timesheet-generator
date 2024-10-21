@@ -106,3 +106,16 @@ export enum TimesheetEntryType {
     travelTimeToSite = "travel-time-to-site",
     travelTimeFromSite = "travel-time-from-site",
 }
+
+export enum DateDisplayExportOption {
+    showAllDatesInTimesheet = "show-all-dates-in-week",
+    hideDatesWithoutTimesheetRecordButRetainSlot = "hide-the-dates-retain-slot-if-no-entry-for-date",
+    showOnlyDatesWithEntry = "show-only-dates-with-entry",
+}
+
+export enum EntryTypeExportOption {
+    includeTravelTimeInReport = "include-only-travel-time-in-report",
+    includeWaitingTimeInReport = "include-only-waiting-time-in-report",
+    includeTravelAndWaitingTimeInReport = "include-travel-and-waiting-time-in-report",
+    showOnlyWorkingTime = "default"
+}

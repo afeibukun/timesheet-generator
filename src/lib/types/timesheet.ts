@@ -1,4 +1,4 @@
-import { EntryStateLabel, LocationType } from "../constants/constant"
+import { DateDisplayExportOption, EntryStateLabel, EntryTypeExportOption, LocationType } from "../constants/constant"
 import { Personnel } from "../services/meta/personnel";
 import { Timesheet } from "../services/timesheet/timesheet";
 import { TimesheetRecord } from "../services/timesheet/timesheetRecord";
@@ -90,4 +90,10 @@ export interface PlainTimesheetEntryType {
 export interface TimesheetCollectionOptions {
     key: string,
     value: any
+}
+
+export type ExportOptions = {
+    dateDisplay: DateDisplayExportOption,
+    entryTypeDisplay: EntryTypeExportOption,
+    allowMultipleTimeEntries: boolean
 }

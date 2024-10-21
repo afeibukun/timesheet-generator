@@ -97,7 +97,12 @@ export class TimesheetRecord implements PlainTimesheetRecord {
 
     get consolidatedComment() {
         if (!!this.comment) return this.comment
-        return this.entries[0].comment;
+        const _comment = this.entries.reduce((accumulator, _currentValue) => {
+
+            return `${accumulator} ${accumulator !== '' ? ',' : ''} ${_currentValue.comment}`
+        }, '')
+        // return this.entries[0].comment;
+        return _comment;
     }
 
 

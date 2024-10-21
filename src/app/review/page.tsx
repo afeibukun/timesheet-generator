@@ -40,9 +40,6 @@ export default function Preview() {
     useEffect(() => {
         var retrievedTimesheet;
         const initializer = async () => {
-            // const _timesheetComponentTypeAppOption: AppOptionInterface = await getAppOptionData(StorageLabel.activeComponentType);
-            // const _timesheetComponentType: ComponentType = _timesheetComponentTypeAppOption.value;
-            // setTimesheetComponentType(_timesheetComponentType ?? ComponentType.timesheet);
             if (component == ComponentType.timesheetCollection) {
                 if (key) {
                     const _timesheetCollection = await Timesheet.getTimesheetCollectionFromKey(key);
@@ -57,28 +54,6 @@ export default function Preview() {
         }
         initializer();
     }, []);
-
-    function updateTimesheetEntryCollection(weekNumber: number, updatedTimesheetEntryFormData: PrimitiveDefaultTimesheetEntry) {
-        try {
-            /* let updatedTimesheetEntryCollection: TimesheetEntry[] = timesheet.entryCollection.map((timesheetEntry: TimesheetEntry) => {
-                if (timesheetEntry.id == updatedTimesheetEntryFormData.id) {
-                    return new TimesheetEntry({ ...timesheetEntry, entryPeriod: new TimesheetEntryPeriod({ startTime: updatedTimesheetEntryFormData.startTime, finishTime: updatedTimesheetEntryFormData.finishTime }), locationType: updatedTimesheetEntryFormData.locationType as LocationTypeEnum, comment: updatedTimesheetEntryFormData.comment })
-                }
-                return timesheetEntry;
-            });
-            let updatedTimesheet = new Timesheet({ meta: timesheet.meta, entryCollection: updatedTimesheetEntryCollection })
-            setTimesheet(updatedTimesheet);
-            setGroupedTimesheet(updatedTimesheet.timesheetEntryCollectionByWeek); */
-            // return true;
-        } catch (e) { }
-        throw Error;
-    }
-
-    useEffect(() => {
-        if ('meta' in timesheet && 'entryCollection' in timesheet) {
-            TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(timesheet);
-        }
-    }, [timesheet])
 
     function handleResetEverythingButton(e: any) {
         setTimesheet({} as Timesheet);
@@ -97,13 +72,6 @@ export default function Preview() {
                         : <div>Data Not found </div>
                 }
             </div>
-            <DefaultSection>
-                <div>
-                    <div>
-                        <Link href="/" className="inline-block px-8 py-2 rounded border">Go Home</Link>
-                    </div>
-                </div>
-            </DefaultSection>
         </main>
     );
 }

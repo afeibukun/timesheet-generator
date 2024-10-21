@@ -78,15 +78,19 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
         throw Error;
     }
 
-
     return (
         <div>
             <DefaultSection>
                 <div className="print:hidden">
                     <DefaultSectionHeader>
                         <div>
-                            <div className="preview-header-group main-title group-1 mb-4">
-                                <DefaultSectionTitle>Timesheet Collection Preview</DefaultSectionTitle>
+                            <div className="flex items-center justify-between">
+                                <div className="preview-header-group main-title group-1 mb-4">
+                                    <DefaultSectionTitle>Timesheet Collection Preview</DefaultSectionTitle>
+                                </div>
+                                <div>
+                                    <Link href="/" className="inline-block px-8 py-2 rounded border">Go Home</Link>
+                                </div>
                             </div>
                             <div className="preview-header-group group-2 flex justify-between">
                                 {timesheetCollection?.collection ?
