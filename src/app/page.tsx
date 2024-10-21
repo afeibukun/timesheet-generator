@@ -16,13 +16,8 @@ import ActivePersonnel from "./_components/ActivePersonnel";
 
 
 export default function Home() {
-  let isTimesheetEmpty: boolean = true;
   const [localActivePersonnel, setLocalActivePersonnel] = useState({} as Personnel);
   const [timesheetsFromActivePersonnel, setTimesheetsFromActivePersonnel] = useState([] as Timesheet[]);
-  const [primitiveCreateTimesheetForm, setPrimitiveCreateTimesheetForm] = useState({
-    selectedWeek: "",
-    shouldAutoPopulateEntry: false
-  });
 
   useEffect(() => {
     const initializer = async () => {

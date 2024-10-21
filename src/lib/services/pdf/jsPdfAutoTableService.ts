@@ -3,14 +3,16 @@ import autoTable, { ColumnInput, VAlignType } from "jspdf-autotable";
 import { defaultSansProBase64, defaultSansProItalicBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64 } from '../../constants/defaultSansProBase64Font'
 import templateConfig from '../../../../main-timesheet-template'
 import { TimesheetEntry } from "../timesheet/timesheetEntry";
-import { LocationType, PeriodTypeLabel } from "@/lib/constants/constant";
+import { DateDisplayExportOption, EntryTypeExportOption, LocationType, PeriodTypeLabel } from "@/lib/constants/constant";
 import { Timesheet } from "../timesheet/timesheet";
 import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constants/defaultLogoBase64Image";
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
 import { TimesheetRecord } from "../timesheet/timesheetRecord";
 import { ClassicTemplate } from "../template/classic";
+import { TimesheetDate } from "../timesheet/timesheetDate";
+import { ExportOptions } from "@/lib/types/timesheet";
 
-export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
+export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptions: ExportOptions): void => {
     const doc = new jsPDF(
         {
             orientation: "landscape",
@@ -59,26 +61,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
     const finishPointX = finishPointXInPt
     const startingPointY = startingPointYInPt
 
-    // I bundled a default font with this template to ensure it prints with a familiar font
-    const defaultSansFontFamily = 'default_sans_pro'
-    doc.addFileToVFS(`${defaultSansFontFamily}-normal.ttf`, defaultSansProBase64);
-    doc.addFont(`${defaultSansFontFamily}-normal.ttf`, defaultSansFontFamily, 'normal');
-
-    doc.addFileToVFS(`${defaultSansFontFamily}-italic.ttf`, defaultSansProItalicBase64);
-    doc.addFont(`${defaultSansFontFamily}-italic.ttf`, defaultSansFontFamily, 'italic');
-
-    doc.addFileToVFS(`${defaultSansFontFamily}-bold.ttf`, defaultSansProBoldBase64);
-    doc.addFont(`${defaultSansFontFamily}-bold.ttf`, defaultSansFontFamily, 'bold');
-
-    doc.addFileToVFS(`${defaultSansFontFamily}-bolditalic.ttf`, defaultSansProBoldItalicBase64);
-    doc.addFont(`${defaultSansFontFamily}-bolditalic.ttf`, defaultSansFontFamily, 'bolditalic');
-
+    const defaultFontFamily = 'default_sans_pro'
     const fontAwesomeFontFamily = "font-awesome-6-free-solid-900"
-    doc.addFileToVFS(`${fontAwesomeFontFamily}-normal.ttf`, fontAwesomeSolidBase64String);
-    doc.addFont(`${fontAwesomeFontFamily}-normal.ttf`, fontAwesomeFontFamily, 'normal');
-
-    // const defaultFontFamily = templateConfig.font.defaultFontFamily
-    const defaultFontFamily = defaultSansFontFamily
+    includeFontInPdf(doc, defaultFontFamily, fontAwesomeFontFamily);
 
     const normalBorderWidth = 0.5;
     const thickBorderWidth = 1;
@@ -100,6 +85,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
     const colorBlue = templateConfig.color.blue
     const colorBlack = templateConfig.color.black
     const colorLightGray = templateConfig.color.lightGray
+    const colorWhite = templateConfig.color.white
 
     const alignLeft = templateConfig.align.left
     const alignRight = templateConfig.align.right
@@ -117,7 +103,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
 
 
     timesheets.forEach((_timesheet, index) => {
-        let timesheetDateForLastDayOfCurrentWeek = _timesheet.weekEndingDate;
+        const _weekDays = TimesheetDate.getWeekDays(_timesheet.weekEndingDate);
 
         let currentXPosition = startingPointX
         let currentYPosition = startingPointY
@@ -178,156 +164,27 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
         const thickTopLineWidth = { top: thickBorderWidth, left: normalBorderWidth, bottom: normalBorderWidth, right: normalBorderWidth }
         const onlyTopWidth = { left: 0, right: 0, top: normalBorderWidth, bottom: 0 }
 
-        let nullEntryDayCounter = 0;
-
-        let checkMarkPlacementCounter = 6;
-        let checkMarkRowPlacementArray = _timesheet.records.reduce((checkMarkArray: any[], _record: TimesheetRecord) => {
-            let updatedCheckMarkArray = [
-                ...checkMarkArray,
-                { 'rowIndex': checkMarkPlacementCounter, 'hasCheckMark': _record.isLocationTypeOnshore }, //Row 1
-                { 'rowIndex': checkMarkPlacementCounter + 1, 'hasCheckMark': _record.isLocationTypeOffshore }, //Row 2
-            ]
-            checkMarkPlacementCounter += 2
-            return updatedCheckMarkArray
-        }, []);
-
         currentYPosition += 48;
+        const _metaRows = generatePdfMetaRows(_timesheet, fontSizeMedium, fontSizeLarge, fontStyleBold, fontStyleItalic, colorBlue, colorLightGray, thickBottomLineWidth);
 
-        const timesheetTemplateBodyRows = [
-            // Excel Row 3
-            [
-                { content: templateConfig.label.title.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeMedium, textColor: colorBlue, fontStyle: fontStyleBold } },
-                { content: templateConfig.label.personnelName.toUpperCase(), colSpan: 5, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.mobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.demobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.orderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
-            ],
-            // Excel Row 4
-            [
-                { content: templateConfig.staticValues.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
-                { content: _timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: _timesheet.mobilizationDate ? _timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: _timesheet.demobilizationDate ? _timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-                { content: !!_timesheet.project.orderNumber ? _timesheet.project.orderNumber.toString() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
-            ],
-            // Excel Row 5
-            [
-                { content: templateConfig.label.customerName.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.siteName.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.purchaseOrderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.countryName.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.weekEndingDate.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
-            ],
-            // Excel Row 6
-            [
-                { content: _timesheet.customer.name.toUpperCase(), colSpan: 6, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: _timesheet.site.name.toUpperCase(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: _timesheet.project.purchaseOrderNumber, colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: _timesheet.site.country.toUpperCase(), colSpan: 2, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-                { content: timesheetDateForLastDayOfCurrentWeek.longFormat(), colSpan: 4, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } }
-            ],
-            // Excel Row 7
-            [
-                { content: templateConfig.label.dateTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.workingTimeTitle.toUpperCase(), colSpan: 5, styles: { halign: alignLeft, fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.waitingTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } },
-                { content: '\uf00c', colSpan: 1, rowSpan: 2, styles: { halign: alignCenter, font: fontAwesomeFontFamily, fontStyle: fontStyleItalic, fontSize: fontSizeLarge } }, // check mark indicator
-                { content: templateConfig.label.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }
-            ],
-            // Excel Row 8
-            [
-                { content: templateConfig.label.periodTitle.toUpperCase(), colSpan: 1, styles: {} },
-                { content: templateConfig.staticValues.workingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: {} },
-                { content: templateConfig.staticValues.workingTimeSecondPeriodTitle.toString(), colSpan: 1 },
-                { content: templateConfig.staticValues.workingTimeThirdPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-                { content: templateConfig.staticValues.workingTimeFourthPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-                { content: templateConfig.staticValues.waitingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-                { content: templateConfig.staticValues.waitingTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-                { content: templateConfig.staticValues.travelTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-                { content: templateConfig.staticValues.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } }
-            ],
-            // Excel Row 9 - 22
-            ..._timesheet.records.reduce((timesheetArrayWithPdfFormat: any[], _record: TimesheetRecord) => {
-                let lineWidthConfig = _record.hasHours ? normalLineWidth : zeroLineWidth;
-                let firstLineWidthConfig = lineWidthConfig
-                if (!_record.hasHours) {
-                    nullEntryDayCounter += 1
-                    firstLineWidthConfig = nullEntryDayCounter == 1 ? { ...lineWidthConfig, top: normalBorderWidth } : lineWidthConfig;
-                }
+        const _entryHeaderRows = generatePdfEntryHeaderRows(fontAwesomeFontFamily, fontStyleItalic, fontStyleBoldItalic, fontSizeLarge, colorLightGray, alignLeft, alignCenter);
 
-                return [
-                    ...timesheetArrayWithPdfFormat,
-                    //Row 1
-                    [
-                        { content: _record.dayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
-                        { content: _record.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...firstLineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: _record.hasHours && ClassicTemplate.hasWorkingPeriod1(_record) ? ClassicTemplate.workingPeriod1(_record).startTime : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col C*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col D*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col E*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col F*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col G*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col H*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col I*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col J*/ },
-                        { content: _record.hasHours && _record.isLocationTypeOnshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col K*/ },
-                        { content: _record.hasHours ? LocationType.onshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: firstLineWidthConfig } /*Col L*/ },
-                        { content: _record.hasHours && _record.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: firstLineWidthConfig } /*Col M*/ },// the check mark is added elsewhere
-                        { content: _record.hasHours && !!_record.consolidatedComment && _record.isLocationTypeOnshore ? _record.consolidatedComment : "", colSpan: 5, styles: { lineWidth: { ...firstLineWidthConfig, right: normalBorderWidth } }/*Col N*/ }
-                    ],
-                    // Row 2
-                    [
-                        { content: _record.dateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
-                        { content: _record.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', colSpan: 1, styles: { lineWidth: { ...lineWidthConfig, left: normalBorderWidth } } /*Col B*/ },
-                        { content: _record.hasHours && ClassicTemplate.hasWorkingPeriod1(_record) ? ClassicTemplate.workingPeriod1(_record).finishTime : '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col C*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col D*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col E*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col F*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col G*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig } /*Col H*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col I*/ },
-                        { content: '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col J*/ },
-                        { content: _record.hasHours && _record.isLocationTypeOffshore ? `${_record.totalHoursInString}` : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col K*/ },
-                        { content: _record.hasHours ? LocationType.offshore.toUpperCase() : '', colSpan: 1, styles: { lineWidth: lineWidthConfig }/*Col L*/ },
-                        { content: _record.hasHours && _record.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: lineWidthConfig } /*Col M*/ }, // the check mark is added elsewhere
-                        { content: _record.hasHours && !!_record.consolidatedComment && _record.isLocationTypeOffshore ? _record.consolidatedComment : "", colSpan: 5, styles: { lineWidth: { ...lineWidthConfig, right: normalBorderWidth } } /*Col N*/ }
-                    ],
-                ]
-            }, []),
-            // Excel Row 23
-            [
-                { content: templateConfig.label.personnelSignature.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } },
-                { content: templateConfig.label.customerVerificationNote.toUpperCase(), colSpan: 14, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } }
-            ],
-            // Excel Row 24
-            [
-                { content: templateConfig.staticValues.personnelSignatureCertificationNote.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic } },
-                { content: templateConfig.label.customerRepresentativeName.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.customerRepresentativeTitle.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-                { content: templateConfig.label.customerRepresentativeSignature.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
-            ],
-            // Excel Row 25 and 26
-            [
-                { content: ' ', colSpan: 4, styles: { minCellHeight: signatureCellHeight } },
-                { content: ' ', colSpan: 4, },
-                { content: ' ', colSpan: 4, },
-                { content: ' ', colSpan: 6, }
-            ],
-            [
-                { content: templateConfig.staticValues.defaultAgreementStatement, colSpan: 18, styles: { fontStyle: fontStyleItalic } }
-            ],
-            [
-                { content: '', colSpan: 18, styles: { lineWidth: onlyTopWidth } }
-            ],
-            ...templateConfig.footerAddress.map((address) => {
-                return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: alignLeft } }]
-            })
+        const _entryRows = exportOptions.dateDisplay === DateDisplayExportOption.showOnlyDatesWithEntry ? generateEntryRowsAlternate(_timesheet, exportOptions, normalLineWidth, zeroLineWidth, normalBorderWidth, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, alignCenter) : generateEntryRows(_timesheet, _weekDays, exportOptions, normalLineWidth, zeroLineWidth, normalBorderWidth, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, colorWhite, alignCenter);
+
+        const _signatureRows = generateSignatureRows(fontStyleItalic, colorLightGray, thickTopLineWidth, signatureCellHeight)
+
+        const _footerRows = generateFooterRows(alignLeft);
+
+        const timesheetTemplateBodyRows: PdfTemplateRowItem[][] = [
+            ..._metaRows,
+            ..._entryHeaderRows,
+            ..._entryRows,
+            ..._signatureRows,
+            [{ content: '', colSpan: 18, styles: { lineWidth: onlyTopWidth } }],
+            ..._footerRows
         ];
 
         autoTable(doc, {
-            // head: [['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']],
             columns: columnDefinition,
             columnStyles: generalColumnStyles as any,
             body: timesheetTemplateBodyRows,
@@ -349,7 +206,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[]): void => {
         }
     });
 
-    const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheets[0].monthNumber, timesheets[0].yearNumber, timesheets[0].personnel.name);
+    const timesheetMonthWithZeroBasedIndex = timesheets[0].monthNumber;
+    const timesheetMonthWithUnityBasedIndex = timesheetMonthWithZeroBasedIndex + 1;
+    const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithUnityBasedIndex, timesheets[0].yearNumber, timesheets[0].personnel.name);
     doc.save(`${_timesheetFilename}.pdf`);
 }
 
@@ -364,4 +223,301 @@ const computeImageDimension = (_originalImageDimension: { width: number, height:
         testHeight = testWidth / imageAspectRatio;
     }
     return { width: testWidth, height: testHeight }
+}
+
+const includeFontInPdf = (doc: any, textFontFamily: string, iconFontFamily: string) => {
+    // I bundled a default font with this template to ensure it prints with a familiar font
+    const defaultSansFontFamily = textFontFamily
+    doc.addFileToVFS(`${defaultSansFontFamily}-normal.ttf`, defaultSansProBase64);
+    doc.addFont(`${defaultSansFontFamily}-normal.ttf`, defaultSansFontFamily, 'normal');
+
+    doc.addFileToVFS(`${defaultSansFontFamily}-italic.ttf`, defaultSansProItalicBase64);
+    doc.addFont(`${defaultSansFontFamily}-italic.ttf`, defaultSansFontFamily, 'italic');
+
+    doc.addFileToVFS(`${defaultSansFontFamily}-bold.ttf`, defaultSansProBoldBase64);
+    doc.addFont(`${defaultSansFontFamily}-bold.ttf`, defaultSansFontFamily, 'bold');
+
+    doc.addFileToVFS(`${defaultSansFontFamily}-bolditalic.ttf`, defaultSansProBoldItalicBase64);
+    doc.addFont(`${defaultSansFontFamily}-bolditalic.ttf`, defaultSansFontFamily, 'bolditalic');
+
+    const fontAwesomeFontFamily = iconFontFamily
+    doc.addFileToVFS(`${fontAwesomeFontFamily}-normal.ttf`, fontAwesomeSolidBase64String);
+    doc.addFont(`${fontAwesomeFontFamily}-normal.ttf`, fontAwesomeFontFamily, 'normal');
+
+    // const defaultFontFamily = templateConfig.font.defaultFontFamily
+}
+
+const generatePdfMetaRows = (timesheet: Timesheet, fontSizeMedium: number, fontSizeLarge: number, fontStyleBold: string, fontStyleItalic: string, colorBlue: string, colorLightGray: string, thickBottomLineWidth: any): PdfTemplateRowItem[][] => {
+    const timesheetDateForLastDayOfCurrentWeek = timesheet.weekEndingDate;
+    return [
+        // Excel Row 3
+        [
+            { content: templateConfig.label.title.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeMedium, textColor: colorBlue, fontStyle: fontStyleBold } },
+            { content: templateConfig.label.personnelName.toUpperCase(), colSpan: 5, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.mobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.demobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.orderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+        ],
+        // Excel Row 4
+        [
+            { content: templateConfig.staticValues.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
+            { content: timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+            { content: timesheet.mobilizationDate ? timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+            { content: timesheet.demobilizationDate ? timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
+            { content: !!timesheet.project.orderNumber ? timesheet.project.orderNumber.toString() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
+        ],
+        // Excel Row 5
+        [
+            { content: templateConfig.label.customerName.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.siteName.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.purchaseOrderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.countryName.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.weekEndingDate.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+        ],
+        // Excel Row 6
+        [
+            { content: timesheet.customer.name.toUpperCase(), colSpan: 6, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+            { content: timesheet.site.name.toUpperCase(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+            { content: timesheet.project.purchaseOrderNumber, colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+            { content: timesheet.site.country.toUpperCase(), colSpan: 2, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
+            { content: timesheetDateForLastDayOfCurrentWeek.longFormat(), colSpan: 4, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } }
+        ]
+    ]
+}
+
+const generatePdfEntryHeaderRows = (fontAwesomeFontFamily: string, fontStyleItalic: string, fontStyleBoldItalic: string, fontSizeLarge: number, colorLightGray: string, alignLeft: string, alignCenter: string): PdfTemplateRowItem[][] => {
+    return [
+        // Excel Row 7
+        [
+            { content: templateConfig.label.dateTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.workingTimeTitle.toUpperCase(), colSpan: 5, styles: { halign: alignLeft, fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.waitingTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } },
+            { content: '\uf00c', colSpan: 1, rowSpan: 2, styles: { halign: alignCenter, font: fontAwesomeFontFamily, fontStyle: fontStyleItalic, fontSize: fontSizeLarge } }, // check mark indicator
+            { content: templateConfig.label.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }
+        ],
+        // Excel Row 8
+        [
+            { content: templateConfig.label.periodTitle.toUpperCase(), colSpan: 1, styles: {} },
+            { content: templateConfig.staticValues.workingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: {} },
+            { content: templateConfig.staticValues.workingTimeSecondPeriodTitle.toString(), colSpan: 1 },
+            { content: templateConfig.staticValues.workingTimeThirdPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.staticValues.workingTimeFourthPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.staticValues.waitingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.staticValues.waitingTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.staticValues.travelTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.staticValues.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } }
+        ],
+    ]
+}
+
+const generateEntryRows = (timesheet: Timesheet, weekDays: TimesheetDate[], exportOptions: ExportOptions, normalLineWidth: PdfLineWidth, zeroLineWidth: PdfLineWidth, normalBorderWidth: number, fontAwesomeFontFamily: string, fontStyleBoldItalic: string, colorLightGray: string, colorWhite: string, alignCenter: string): PdfTemplateRowItem[][] => {
+    let counterForInvalidEntries = 0;
+    // Excel Row 9 - 22
+    const _entryRows = weekDays.reduce((timesheetArrayWithPdfFormat: PdfTemplateRowItem[][], _day: TimesheetDate) => {
+        const _timesheetRecord = timesheet.records.filter((_record) => _record.date.date === _day.date)[0];
+
+        let _updatedRow;
+        if (_timesheetRecord && ClassicTemplate.isValid(_timesheetRecord, exportOptions)) {
+            counterForInvalidEntries = 0; // reset the nu day counter
+            const _recordRows = generateFunctionalEntryRow(_timesheetRecord, exportOptions, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, normalLineWidth, normalBorderWidth, alignCenter);
+            _updatedRow = [
+                ...timesheetArrayWithPdfFormat,
+                ..._recordRows
+            ]
+
+        } else {
+            counterForInvalidEntries += 1
+            const isFirstDayOfInvalidEntry = counterForInvalidEntries == 1
+            const lineWidthForInvalidEntry = isFirstDayOfInvalidEntry ? { ...zeroLineWidth, top: normalBorderWidth } : zeroLineWidth;
+
+            if (exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet) {
+                const _emptyEntryRows = generateEmptyEntryRow(normalLineWidth, zeroLineWidth, lineWidthForInvalidEntry, normalBorderWidth, colorLightGray, colorWhite, _day.dayLabel.toUpperCase(), _day.dateInDayMonthFormat.toUpperCase());
+                _updatedRow = [...timesheetArrayWithPdfFormat, ..._emptyEntryRows]
+
+            } else {
+                const _emptyEntryRows = generateEmptyEntryRow(normalLineWidth, zeroLineWidth, lineWidthForInvalidEntry, normalBorderWidth, colorLightGray, colorWhite);
+                _updatedRow = [...timesheetArrayWithPdfFormat, ..._emptyEntryRows]
+            }
+        }
+        return _updatedRow
+
+    }, [])
+    return _entryRows;
+}
+
+/**
+ * Returns entry rows for the pdf template when only valid dates should be printed
+ * @param timesheet 
+ * @param normalLineWidth 
+ * @param zeroLineWidth 
+ * @param normalBorderWidth 
+ * @param fontAwesomeFontFamily 
+ * @param fontStyleBoldItalic 
+ * @param colorLightGray 
+ * @param alignCenter 
+ * @param exportOptions 
+ * @returns 
+ */
+const generateEntryRowsAlternate = (timesheet: Timesheet, exportOptions: ExportOptions, normalLineWidth: PdfLineWidth, zeroLineWidth: PdfLineWidth, normalBorderWidth: number, fontAwesomeFontFamily: string, fontStyleBoldItalic: string, colorLightGray: string, alignCenter: string) => {
+    // Excel Row 9 - 22
+    const _entryRows = timesheet.records.reduce((timesheetArrayWithPdfFormat: any[], _record: TimesheetRecord) => {
+        let lineWidthConfig = _record && ClassicTemplate.isValid(_record, exportOptions) ? normalLineWidth : zeroLineWidth;
+        let firstLineWidthConfig = lineWidthConfig
+
+        if (ClassicTemplate.isValid(_record, exportOptions)) {
+            const _recordRows = generateFunctionalEntryRow(_record, exportOptions, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, normalLineWidth, normalBorderWidth, alignCenter);
+            return [
+                ...timesheetArrayWithPdfFormat,
+                ..._recordRows
+            ]
+        } else {
+            return [...timesheetArrayWithPdfFormat]
+        }
+
+    }, []);
+    return _entryRows;
+}
+
+const generateFunctionalEntryRow = (timesheetRecord: TimesheetRecord, exportOptions: ExportOptions, fontAwesomeFontFamily: string, fontStyleBoldItalic: string, colorLightGray: string, normalLineWidth: PdfLineWidth, normalBorderWidth: number, alignCenter: string): PdfTemplateRowItem[][] => {
+    // a productive day, with time records, regardless of where
+    const canIncludeMultipleTimeType = exportOptions.allowMultipleTimeEntries;
+
+    const canIncludeTravelPeriod = exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelTimeInReport || exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport;
+
+    const canIncludeWaitingPeriod = exportOptions.entryTypeDisplay === EntryTypeExportOption.includeWaitingTimeInReport || exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport;
+    const _entryRow: PdfTemplateRowItem[][] = [
+        //Row 1
+        [
+            { content: timesheetRecord.dayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
+            { content: PeriodTypeLabel.start.toUpperCase(), colSpan: 1, styles: { lineWidth: { ...normalLineWidth, left: normalBorderWidth } } /*Col B*/ },
+            { content: ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col C*/ },
+            { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col D*/ },
+            { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod3(timesheetRecord) ? ClassicTemplate.workingPeriod3(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col E*/ },
+            { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod4(timesheetRecord) ? ClassicTemplate.workingPeriod4(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col F*/ },
+            { content: canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod1(timesheetRecord) ? ClassicTemplate.waitingPeriod1(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col G*/ },
+            { content: canIncludeWaitingPeriod && canIncludeMultipleTimeType && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col H*/ },
+            { content: canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod1(timesheetRecord) ? ClassicTemplate.travelPeriod1(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col I*/ },
+            { content: canIncludeTravelPeriod && canIncludeMultipleTimeType && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col J*/ },
+            { content: timesheetRecord.isLocationTypeOnshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col K - total hours */ },
+            { content: LocationType.onshore.toUpperCase(), colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col L*/ },
+            { content: timesheetRecord.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: normalLineWidth } /*Col M*/ },// the check mark is added elsewhere
+            { content: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOnshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "", colSpan: 5, styles: { lineWidth: { ...normalLineWidth, right: normalBorderWidth } }/*Col N*/ }
+        ],
+        // Row 2
+        [
+            { content: timesheetRecord.dateInDayMonthFormat, colSpan: 1, styles: {} /*Col A*/ },
+            { content: PeriodTypeLabel.finish.toUpperCase(), colSpan: 1, styles: { lineWidth: { ...normalLineWidth, left: normalBorderWidth } } /*Col B*/ },
+            { content: ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col C*/ },
+            { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col D*/ },
+            { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod3(timesheetRecord) ? ClassicTemplate.workingPeriod3(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col E*/ },
+            { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod4(timesheetRecord) ? ClassicTemplate.workingPeriod4(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col F*/ },
+            { content: canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod1(timesheetRecord) ? ClassicTemplate.waitingPeriod1(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col G*/ },
+            { content: canIncludeWaitingPeriod && canIncludeMultipleTimeType && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col H*/ },
+            { content: canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod1(timesheetRecord) ? ClassicTemplate.travelPeriod1(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col I*/ },
+            { content: canIncludeTravelPeriod && canIncludeMultipleTimeType && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col J*/ },
+            { content: timesheetRecord.isLocationTypeOffshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', colSpan: 1, styles: { lineWidth: normalLineWidth }/*Col K - total hours*/ },
+            { content: LocationType.offshore.toUpperCase(), colSpan: 1, styles: { lineWidth: normalLineWidth }/*Col L*/ },
+            { content: timesheetRecord.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: normalLineWidth } /*Col M*/ }, // the check mark is added elsewhere
+            { content: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOffshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "", colSpan: 5, styles: { lineWidth: { ...normalLineWidth, right: normalBorderWidth } } /*Col N*/ }
+        ],
+    ]
+    return _entryRow
+}
+
+const generateEmptyEntryRow = (normalLineWidth: PdfLineWidth, zeroLineWidth: PdfLineWidth, lineWidthForInvalidEntry: PdfLineWidth, normalBorderWidth: number, colorLightGray: string, colorWhite: string, dayLabel?: string, dateInMonthYearFormat?: string): PdfTemplateRowItem[][] => {
+    const _topEmptyEntryRow = [
+        { content: !!dayLabel ? dayLabel : '', colSpan: 1, styles: { lineWidth: !!dayLabel ? normalLineWidth : { ...lineWidthForInvalidEntry, left: normalBorderWidth }, fillColor: !!dayLabel ? colorLightGray : colorWhite, } /*Col A*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: !!dayLabel ? { ...lineWidthForInvalidEntry, left: normalBorderWidth } : lineWidthForInvalidEntry } /*Col B*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col C*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col D*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col E*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col F*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col G*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col H*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col I*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col J*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col K*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col L*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col M*/ },
+        { content: '', colSpan: 5, styles: { lineWidth: { ...lineWidthForInvalidEntry, right: normalBorderWidth } }/*Col N*/ }
+    ];
+    const _bottomEmptyEntryRow = [
+        { content: !!dateInMonthYearFormat ? dateInMonthYearFormat : '', colSpan: 1, styles: { lineWidth: !!dateInMonthYearFormat ? normalLineWidth : { ...zeroLineWidth, left: normalBorderWidth } } /*Col A*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: !!dateInMonthYearFormat ? { ...zeroLineWidth, left: normalBorderWidth } : zeroLineWidth } /*Col B*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col C*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col D*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col E*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col F*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col G*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col H*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col I*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col J*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col K*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col L*/ },
+        { content: '', colSpan: 1, styles: { lineWidth: zeroLineWidth } /*Col M*/ },
+        { content: '', colSpan: 5, styles: { lineWidth: { ...zeroLineWidth, right: normalBorderWidth } }/*Col N*/ }
+    ];
+    return [_topEmptyEntryRow, _bottomEmptyEntryRow];
+}
+
+const generateSignatureRows = (fontStyleItalic: string, colorLightGray: string, thickTopLineWidth: PdfLineWidth, signatureCellHeight: number): PdfTemplateRowItem[][] => {
+    return [
+        // Excel Row 23
+        [
+            { content: templateConfig.label.personnelSignature.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } },
+            { content: templateConfig.label.customerVerificationNote.toUpperCase(), colSpan: 14, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } }
+        ],
+        // Excel Row 24
+        [
+            { content: templateConfig.staticValues.personnelSignatureCertificationNote.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic } },
+            { content: templateConfig.label.customerRepresentativeName.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerRepresentativeTitle.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerRepresentativeSignature.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+        ],
+        // Excel Row 25 and 26
+        [
+            { content: ' ', colSpan: 4, styles: { minCellHeight: signatureCellHeight } },
+            { content: ' ', colSpan: 4, },
+            { content: ' ', colSpan: 4, },
+            { content: ' ', colSpan: 6, }
+        ],
+        [
+            { content: templateConfig.staticValues.defaultAgreementStatement, colSpan: 18, styles: { fontStyle: fontStyleItalic } }
+        ]
+    ]
+}
+
+const generateFooterRows = (alignLeft: string): PdfTemplateRowItem[][] => {
+    const _footerRows = templateConfig.footerAddress.map((address) => {
+        return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: alignLeft } }]
+    })
+    return _footerRows;
+}
+
+type PdfTemplateRowItem = {
+    content: any,
+    colSpan?: number,
+    rowSpan?: number,
+    styles?: PdfTemplateStyle,
+}
+
+type PdfTemplateStyle = {
+    font?: any,
+    fontSize?: any,
+    textColor?: any,
+    fontStyle?: any,
+    fillColor?: any,
+    lineWidth?: any,
+    halign?: any,
+    minCellHeight?: any
+}
+
+type PdfLineWidth = {
+    top: number,
+    left: number,
+    bottom: number,
+    right: number
 }

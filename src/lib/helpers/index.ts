@@ -24,3 +24,18 @@ export const getUniqueIDBasedOnTime = () => {
     const mergedNumbers = timestamp + randomDigits;
     return mergedNumbers;
 }
+
+export const camelCaseToWords = (s: string): string => {
+    const result = s.replace(/([A-Z])/g, ' $1');
+    return result.charAt(0).toUpperCase() + result.slice(1);
+}
+
+export const titleize = (slug: string) => {
+    var words = slug.split('-');
+
+    for (var i = 0; i < words.length; i++) {
+        var word = words[i];
+        words[i] = word.charAt(0).toUpperCase() + word.slice(1);
+    }
+    return words.join(' ');
+}

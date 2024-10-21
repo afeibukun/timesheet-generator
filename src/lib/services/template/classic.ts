@@ -1,4 +1,4 @@
-import { DateDisplayExportOption, EntryTypeExportOption, TimesheetEntryType } from "@/lib/constants/constant"
+import { EntryTypeExportOption, TimesheetEntryType } from "@/lib/constants/constant"
 import { TimesheetRecord } from "../timesheet/timesheetRecord"
 import { ExportOptions } from "@/lib/types/timesheet";
 import { TimesheetHour } from "../timesheet/timesheetHour";
@@ -168,7 +168,7 @@ export class ClassicTemplate {
          * it only has either a travel time or waiting waiting time
          * thus it should be treated as invalid 
          * */
-        return !(timesheetRecord.hasHours && exportOptions.entryTypeDisplay === EntryTypeExportOption.showOnlyWorkingTime && !ClassicTemplate.hasWorkingPeriod(timesheetRecord));
+        return !(timesheetRecord && timesheetRecord.hasHours && exportOptions.entryTypeDisplay === EntryTypeExportOption.showOnlyWorkingTime && !ClassicTemplate.hasWorkingPeriod(timesheetRecord));
     }
 
     static getFilteredTimesheetRecord(timesheetRecord: TimesheetRecord, filter: EntryTypeFilter) {

@@ -1,4 +1,4 @@
-import { defaultTimesheetEntryType } from "@/lib/constants/default";
+import { defaultExportOption, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { LocationType, ReportType, TemplateType } from "@/lib/constants/constant";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
@@ -7,6 +7,9 @@ import InfoLabel from "./InfoLabel";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
 import { PrimitiveTimesheet, PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
+import ManageExportOption from "@/app/_components/ManageExportOption";
+import { AppOption } from "@/lib/services/meta/appOption";
+import ExportUI from "./ExportUI";
 
 type TimesheetTableProps = {
     timesheetData: Timesheet,
@@ -40,11 +43,6 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
             setDaysInCurrentTimesheetWeek(_weekDays);
         }
         initializer();
-
-        try {
-        } catch (e) {
-        }
-
     }, []);
 
     const getPrimitiveEntriesForDate = (primitiveDate: string) => {
@@ -429,11 +427,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                     </div>
 
                     <div className="timesheet-footer mt-4">
-                        <div className="flex gap-x-2">
-                            <button className="py-1 px-3 text-sm rounded shadow-sm bg-blue-700 hover:bg-blue-500 transition-all duration-500 ease-in-out text-white" type="button" onClick={(e) => timesheetData.exportXlsxTimesheet(ReportType.customer, TemplateType.classic)}>Export Classic Excel Report</button>
-
-                            <button className="py-1 px-3 text-sm rounded shadow-sm bg-purple-700 hover:bg-purple-500 transition-all duration-500 ease-in-out text-white" type="button" onClick={(e) => timesheetData.exportPdfTimesheet(ReportType.customer, TemplateType.classic)}>Export Classic PDF Report</button>
-                        </div>
+                        <ExportUI timesheet={timesheetData} />
                     </div>
                 </div>
             </div>

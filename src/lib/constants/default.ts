@@ -1,6 +1,6 @@
 import { PrimitiveDefaultTimesheetEntry } from "../types/primitive";
-import { PlainTimesheetEntryType } from "../types/timesheet";
-import { LocationType } from "./constant";
+import { ExportOptions, PlainTimesheetEntryType } from "../types/timesheet";
+import { DateDisplayExportOption, EntryTypeExportOption, LocationType } from "./constant";
 
 export const defaultTimesheetEntryType: PlainTimesheetEntryType[] = [
     {
@@ -49,3 +49,9 @@ export const possibleWeekStartDays = [
     "monday",
     "sunday"
 ]
+
+export const defaultExportOption: ExportOptions = {
+    dateDisplay: DateDisplayExportOption.showAllDatesInTimesheet,
+    entryTypeDisplay: EntryTypeExportOption.showOnlyWorkingTime,
+    allowMultipleTimeEntries: false
+}

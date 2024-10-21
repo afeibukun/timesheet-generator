@@ -196,21 +196,16 @@ export class Timesheet implements PlainTimesheet {
         return newTimesheet;
     }
 
-    async exportXlsxTimesheet(reportType: ReportType, templateType: TemplateType) {
+    async exportXlsxTimesheet(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
         await TimesheetDate.initializeWeekStartDay();
-        const exportOption: ExportOptions = {
-            dateDisplay: DateDisplayExportOption.showOnlyDatesWithEntry,
-            entryTypeDisplay: EntryTypeExportOption.showOnlyWorkingTime,
-            allowMultipleTimeEntries: false
-        }
         if (reportType == ReportType.customer && templateType === TemplateType.classic) {
             createXlsxTimesheetClassicTemplate([this], exportOption);
         }
     }
 
-    exportPdfTimesheet(reportType: ReportType, templateType: TemplateType) {
+    exportPdfTimesheet(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
         if (reportType == ReportType.customer && templateType === TemplateType.classic) {
-            createPdfWithJsPdfAutoTable([this])
+            createPdfWithJsPdfAutoTable([this], exportOption)
         }
     }
 

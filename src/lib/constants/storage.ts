@@ -8,6 +8,7 @@ export enum StorageLabel {
     currentTimesheetMetaLabel = "CURRENT_TIMESHEET_META",
     generatedTimesheetLabel = "GENERATED_TIMESHEET",
     personnelCollectionLabel = "PERSONNEL_COLLECTION",
+    exportOptionLabel = "EXPORT_OPTION",
 }
 
 export const timesheetDatabaseName = "timesheet_database";

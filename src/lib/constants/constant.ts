@@ -112,6 +112,7 @@ export enum DateDisplayExportOption {
     hideDatesWithoutTimesheetRecordButRetainSlot = "hide-the-dates-retain-slot-if-no-entry-for-date",
     showOnlyDatesWithEntry = "show-only-dates-with-entry",
 }
+export type DateDisplayExportOptionKey = "showAllDatesInTimesheet" | "hideDatesWithoutTimesheetRecordButRetainSlot" | "showOnlyDatesWithEntry"
 
 export enum EntryTypeExportOption {
     includeTravelTimeInReport = "include-only-travel-time-in-report",
@@ -119,3 +120,4 @@ export enum EntryTypeExportOption {
     includeTravelAndWaitingTimeInReport = "include-travel-and-waiting-time-in-report",
     showOnlyWorkingTime = "default"
 }
+export type EntryTypeExportOptionKey = "includeTravelTimeInReport" | "includeWaitingTimeInReport" | "includeTravelAndWaitingTimeInReport" | "showOnlyWorkingTime" 

@@ -88,7 +88,7 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
             // Row 1
             includeRow1(workbook, imageExtensionPng, worksheet, _timesheet, alignRight, alignTop, colorBlue, fontDefault, fontSizeSmall);
 
-            const emptyRow = worksheet.addRow(['']); // Row 2 - Empty Row
+            worksheet.addRow(['']); // Row 2 - Empty Row
 
             // Row 3 - 6
             const timesheetMetaRowsData = metaSectionData(_timesheet)
@@ -105,6 +105,7 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
             // Row 9 to 22 - Data
             let coreEntryStartRow = 9;
             let coreTimesheetEntryRows: ExcelTemplateRow[] = timeEntrySectionData(_timesheet, _weekDays, exportOptions);
+
             let lengthOfCoreTimesheetEntry = coreTimesheetEntryRows.length;
             worksheet.addRows(coreTimesheetEntryRows);
             // timeEntrySectionMerges(worksheet, _weekDays);
@@ -133,11 +134,10 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
             footerAddressStyles(worksheet, footerAddressRows, footerStartRow, fontDefault, fontSizeSmall, alignCenter);
         })
 
-        const timesheetMonthWithZeroIndex = timesheets[0].monthNumber;
-        const timesheetMonthWithNormalIndex = timesheetMonthWithZeroIndex + 1;
-        const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithNormalIndex, timesheets[0].yearNumber, timesheets[0].personnel.name);
+        const timesheetMonthWithZeroBasedIndex = timesheets[0].monthNumber;
+        const timesheetMonthWithUnityBasedIndex = timesheetMonthWithZeroBasedIndex + 1;
+        const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithUnityBasedIndex, timesheets[0].yearNumber, timesheets[0].personnel.name);
         // return workbook.xlsx.writeFile(filename);
-
         const xlsxBuffer = workbook.xlsx.writeBuffer();
         xlsxBuffer.then((data: any) => {
             var blob = new Blob([data], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
@@ -190,33 +190,29 @@ const timeEntrySectionData = (timesheet: Timesheet, weekDays: TimesheetDate[], e
         let coreEntryRowCounter = 9;
         let coreTimesheetEntryRows: ExcelTemplateRow[] = [];
 
-        const canIncludeTravelPeriod = exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelTimeInReport || exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport;
-
-        const canIncludeWaitingPeriod = exportOptions.entryTypeDisplay === EntryTypeExportOption.includeWaitingTimeInReport || exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport;
-
-        const canIncludeMultipeEntryForATimeType = exportOptions.allowMultipleTimeEntries;
-
         if (exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet || exportOptions.dateDisplay === DateDisplayExportOption.hideDatesWithoutTimesheetRecordButRetainSlot) {
             weekDays.forEach((_day) => {
                 const _timesheetRecordForCurrentDay = timesheet.records.filter((_record) => _record.date.date === _day.date)[0];
-                let _dayTopSection: ExcelTemplateRow = {
-                    column_a: exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet ? _day.dayLabel.toUpperCase() : '', //day i.e Monday, Tuesday, ...
-                }
-                let _dayBottomSection: ExcelTemplateRow = {
-                    column_a: exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet ? _day.dateInDayMonthFormat : '', //date i.e 30-Aug, 29-Apr ...
-                }
+                let _recordRows;
                 if (_timesheetRecordForCurrentDay && ClassicTemplate.isValid(_timesheetRecordForCurrentDay, exportOptions)) {
-                    _dayTopSection = timeEntrySectionTopRowData({ column_a: _day.dayLabel.toUpperCase() }, _timesheetRecordForCurrentDay, exportOptions, canIncludeWaitingPeriod, canIncludeTravelPeriod, canIncludeMultipeEntryForATimeType)
-                    _dayBottomSection = timeEntrySectionBottomRowData({ column_a: _day.dateInDayMonthFormat, }, _timesheetRecordForCurrentDay, exportOptions, canIncludeWaitingPeriod, canIncludeTravelPeriod, canIncludeMultipeEntryForATimeType)
+                    _recordRows = timeEntrySectionRows(_timesheetRecordForCurrentDay, exportOptions);
+                } else {
+                    let _dayTopSection: ExcelTemplateRow = {
+                        column_a: exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet ? _day.dayLabel.toUpperCase() : '', //day i.e Monday, Tuesday, ...
+                    }
+                    let _dayBottomSection: ExcelTemplateRow = {
+                        column_a: exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet ? _day.dateInDayMonthFormat : '', //date i.e 30-Aug, 29-Apr ...
+                    }
+                    _recordRows = [_dayTopSection, _dayBottomSection];
                 }
-                coreTimesheetEntryRows = [...coreTimesheetEntryRows, _dayTopSection, _dayBottomSection]
+                coreTimesheetEntryRows = [...coreTimesheetEntryRows, ..._recordRows]
             })
         } else if (exportOptions.dateDisplay === DateDisplayExportOption.showOnlyDatesWithEntry) {
             timesheet.records?.forEach((_timesheetRecord) => {
+                let _recordRows;
                 if (_timesheetRecord && ClassicTemplate.isValid(_timesheetRecord, exportOptions)) {
-                    const _dayTopSection: ExcelTemplateRow = timeEntrySectionTopRowData({ column_a: _timesheetRecord.dayLabel.toUpperCase() }, _timesheetRecord, exportOptions, canIncludeWaitingPeriod, canIncludeTravelPeriod, canIncludeMultipeEntryForATimeType);
-                    const _dayBottomSection: ExcelTemplateRow = timeEntrySectionBottomRowData({ column_a: _timesheetRecord.dateInDayMonthFormat }, _timesheetRecord, exportOptions, canIncludeWaitingPeriod, canIncludeTravelPeriod, canIncludeMultipeEntryForATimeType)
-                    coreTimesheetEntryRows = [...coreTimesheetEntryRows, _dayTopSection, _dayBottomSection]
+                    _recordRows = timeEntrySectionRows(_timesheetRecord, exportOptions);
+                    coreTimesheetEntryRows = [...coreTimesheetEntryRows, ..._recordRows]
                 }
             })
         }
@@ -227,42 +223,48 @@ const timeEntrySectionData = (timesheet: Timesheet, weekDays: TimesheetDate[], e
     }
 }
 
-const timeEntrySectionTopRowData = (existingDayTopSection: ExcelTemplateRow = {}, timesheetRecord: TimesheetRecord, exportOptions: ExportOptions, canIncludeWaitingPeriod: boolean, canIncludeTravelPeriod: boolean, canIncludeMultipeTimeType: boolean) => {
+const timeEntrySectionRows = (timesheetRecord: TimesheetRecord, exportOptions: ExportOptions,) => {
+    const canIncludeMultipleTimeType = exportOptions.allowMultipleTimeEntries;
+
+    const canIncludeTravelPeriod = exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelTimeInReport || exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport;
+
+    const canIncludeWaitingPeriod = exportOptions.entryTypeDisplay === EntryTypeExportOption.includeWaitingTimeInReport || exportOptions.entryTypeDisplay === EntryTypeExportOption.includeTravelAndWaitingTimeInReport;
     const _dayTopSection = {
-        ...existingDayTopSection,
-        column_b: timesheetRecord.hasHours ? PeriodTypeLabel.start.toUpperCase() : '', // start tag
-        column_c: timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).startTime : '', // working time 1 - start time
-        column_d: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).startTime : '', // working time 2 - start time
-        column_e: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod3(timesheetRecord) ? ClassicTemplate.workingPeriod3(timesheetRecord).startTime : '', // working time 3 - start time
-        column_f: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod4(timesheetRecord) ? ClassicTemplate.workingPeriod4(timesheetRecord).startTime : '', // working time 4 - start time
-        column_g: timesheetRecord.hasHours && canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod1(timesheetRecord) ? ClassicTemplate.waitingPeriod1(timesheetRecord).startTime : '', column_h: canIncludeMultipeTimeType && timesheetRecord.hasHours && canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).startTime : '',
-        column_i: timesheetRecord.hasHours && canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod1(timesheetRecord) ? ClassicTemplate.travelPeriod1(timesheetRecord).startTime : '', column_j: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).startTime : '',
-        column_k: timesheetRecord.hasHours && timesheetRecord.isLocationTypeOnshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', // total hours - onshore
-        column_l: timesheetRecord.hasHours ? LocationType.onshore.toUpperCase() : '', //onshore / offshore
-        column_m: timesheetRecord.hasHours && timesheetRecord.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '', //onshore check mark
-        column_n: timesheetRecord.hasHours && !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOnshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "" // Comment for onshore
+        column_a: timesheetRecord.dayLabel.toUpperCase(),
+        column_b: PeriodTypeLabel.start.toUpperCase(), // start tag
+        column_c: ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).startTime : '', // working time 1 - start time
+        column_d: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).startTime : '', // working time 2 - start time
+        column_e: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod3(timesheetRecord) ? ClassicTemplate.workingPeriod3(timesheetRecord).startTime : '', // working time 3 - start time
+        column_f: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod4(timesheetRecord) ? ClassicTemplate.workingPeriod4(timesheetRecord).startTime : '', // working time 4 - start time
+        column_g: canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod1(timesheetRecord) ? ClassicTemplate.waitingPeriod1(timesheetRecord).startTime : '',
+        column_h: canIncludeMultipleTimeType && canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).startTime : '',
+        column_i: canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod1(timesheetRecord) ? ClassicTemplate.travelPeriod1(timesheetRecord).startTime : '',
+        column_j: canIncludeMultipleTimeType && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).startTime : '',
+        column_k: timesheetRecord.isLocationTypeOnshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', // total hours - onshore
+        column_l: LocationType.onshore.toUpperCase(), //onshore / offshore
+        column_m: timesheetRecord.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '', //onshore check mark
+        column_n: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOnshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "" // Comment for onshore
     }
-    return _dayTopSection;
-}
-const timeEntrySectionBottomRowData = (existingDayTopSection: ExcelTemplateRow = {}, timesheetRecord: TimesheetRecord, exportOptions: ExportOptions, canIncludeWaitingPeriod: boolean, canIncludeTravelPeriod: boolean, canIncludeMultipeTimeType: boolean) => {
     const _dayBottomSection: ExcelTemplateRow = {
-        ...existingDayTopSection,
-        column_b: timesheetRecord.hasHours ? PeriodTypeLabel.finish.toUpperCase() : '', //finish tag
-        column_c: timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).finishTime : '', // working time 1 - finish time
-        column_d: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).finishTime : '', // working time 2 - finish time
-        column_e: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod3(timesheetRecord) ? ClassicTemplate.workingPeriod3(timesheetRecord).finishTime : '', // working time 3 - finish
-        column_f: canIncludeMultipeTimeType && timesheetRecord.hasHours && ClassicTemplate.hasWorkingPeriod4(timesheetRecord) ? ClassicTemplate.workingPeriod4(timesheetRecord).finishTime : '', // working time 4 - start time
-        column_g: timesheetRecord.hasHours && canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).finishTime : '',
-        column_h: canIncludeMultipeTimeType && timesheetRecord.hasHours && canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).finishTime : '',
-        column_i: timesheetRecord.hasHours && canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod1(timesheetRecord) ? ClassicTemplate.travelPeriod1(timesheetRecord).finishTime : '',
-        column_j: canIncludeMultipeTimeType && timesheetRecord.hasHours && canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).finishTime : '',
-        column_k: timesheetRecord.hasHours && timesheetRecord.isLocationTypeOffshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : "", // total hours - Offshore
-        column_l: timesheetRecord.hasHours ? LocationType.offshore.toUpperCase() : "", // offshore tag
-        column_m: timesheetRecord.hasHours && timesheetRecord.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
-        column_n: timesheetRecord.hasHours && !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOffshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "" // Comment for offshore
+        column_a: timesheetRecord.dateInDayMonthFormat,
+        column_b: PeriodTypeLabel.finish.toUpperCase(), //finish tag
+        column_c: ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).finishTime : '', // working time 1 - finish time
+        column_d: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).finishTime : '', // working time 2 - finish time
+        column_e: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod3(timesheetRecord) ? ClassicTemplate.workingPeriod3(timesheetRecord).finishTime : '', // working time 3 - finish
+        column_f: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod4(timesheetRecord) ? ClassicTemplate.workingPeriod4(timesheetRecord).finishTime : '', // working time 4 - start time
+        column_g: canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).finishTime : '',
+        column_h: canIncludeMultipleTimeType && canIncludeWaitingPeriod && ClassicTemplate.hasWaitingPeriod2(timesheetRecord) ? ClassicTemplate.waitingPeriod2(timesheetRecord).finishTime : '',
+        column_i: canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod1(timesheetRecord) ? ClassicTemplate.travelPeriod1(timesheetRecord).finishTime : '',
+        column_j: canIncludeMultipleTimeType && canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).finishTime : '',
+        column_k: timesheetRecord.isLocationTypeOffshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : "", // total hours - Offshore
+        column_l: LocationType.offshore.toUpperCase(), // offshore tag
+        column_m: timesheetRecord.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
+        column_n: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOffshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "" // Comment for offshore
     }
-    return _dayBottomSection;
+
+    return [_dayTopSection, _dayBottomSection];
 }
+
 const timeEntrySectionMergesAlternate = (worksheet: any, weekDays: TimesheetDate[]) => {
     // Row 9 to 22 - MERGES
     // might not get to 22
