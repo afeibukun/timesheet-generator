@@ -50,13 +50,6 @@ export default function TimesheetView({ timesheet, setTimesheet }: TimesheetView
         throw Error;
     }
 
-    useEffect(() => {
-        if ('meta' in timesheet && 'entryCollection' in timesheet) {
-            TimesheetLocalStorage.setGeneratedTimesheetInLocalStorage(timesheet);
-        }
-    }, [timesheet])
-
-
     return (
         <main>
             <div>

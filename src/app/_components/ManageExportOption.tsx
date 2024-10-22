@@ -1,14 +1,17 @@
-import { DateDisplayExportOption, DateDisplayExportOptionKey, EntryTypeExportOption, EntryTypeExportOptionKey } from "@/lib/constants/constant"
+import { DateDisplayExportOption, DateDisplayExportOptionKey, EntryTypeExportOption, EntryTypeExportOptionKey, FormState, Status } from "@/lib/constants/constant"
 import { defaultExportOption } from "@/lib/constants/default"
 import { camelCaseToWords, titleize } from "@/lib/helpers"
 import { AppOption } from "@/lib/services/meta/appOption"
 import { useEffect, useState } from "react"
 
 type ManageExportOptionProps = {
-    updateParentExportOption: Function
+    updateParentExportOption: Function,
+    closeExportOption?: Function
 }
-export default function ManageExportOption({ updateParentExportOption }: any) {
+export default function ManageExportOption({ updateParentExportOption, closeExportOption }: any) {
     const [primitiveExportOption, setPrimitiveExportOption] = useState(defaultExportOption);
+    const _initialFormState = { status: FormState.default, message: '' }
+    const [exportOptionFormNotice, setExportOptionFormNotice] = useState(_initialFormState);
 
     useEffect(() => {
         const initializer = async () => {
@@ -20,18 +23,28 @@ export default function ManageExportOption({ updateParentExportOption }: any) {
         initializer();
     }, []);
 
-
     const handleSaveExportOption = (e: any) => {
         e.preventDefault();
         if (primitiveExportOption.allowMultipleTimeEntries !== undefined && primitiveExportOption.dateDisplay && primitiveExportOption.entryTypeDisplay) {
             AppOption.saveExportOption(primitiveExportOption);
             updateParentExportOption(primitiveExportOption);
+            setExportOptionFormNotice({ status: FormState.success, message: 'Export Option Saved Successfully' })
+            resetFormNotice(2000)
         }
+    }
+
+    const resetFormNotice = (resetTime: number = 1000) => {
+        setTimeout(() => {
+            setExportOptionFormNotice(_initialFormState)
+        }, resetTime);
     }
 
     return (
         <div className="py-2">
             <div>
+                <div className="mb-2">
+                    <h3 className="text-xl font-bold">Manage Export Options</h3>
+                </div>
                 <div className="flex gap-x-2 items-center">
                     <label htmlFor="allow-multiple-time-entries-for-same-time-type">Allow Multiple Time entries</label>
                     <input type="checkbox" name="allow-multiple-time-entries-for-same-time-type" id="allow-multiple-time-entries-for-same-time-type" checked={primitiveExportOption.allowMultipleTimeEntries} onChange={(e) => setPrimitiveExportOption({ ...primitiveExportOption, allowMultipleTimeEntries: e.target.checked })} />
@@ -52,8 +65,21 @@ export default function ManageExportOption({ updateParentExportOption }: any) {
                         )}
                     </select>
                 </div>
-                <div>
-                    <button type="button" className="px-3 py-1 bg-slate-500 rounded" onClick={(e) => handleSaveExportOption(e)}>Save</button>
+                <div className="mt-3">
+                    <div className="flex gap-x-2">
+                        <button type="button" className="px-3 py-1 bg-slate-500 rounded" onClick={(e) => handleSaveExportOption(e)}>Save</button>
+                        <>{!!closeExportOption ?
+                            <button type="button" className="px-3 py-1 bg-red-500 rounded" onClick={(e) => closeExportOption(e)}>Close</button>
+                            : ''}
+                        </>
+                        {exportOptionFormNotice.status === FormState.success ?
+                            <div className="inline-block">
+                                <div className="inline-block px-2 py-1 rounded bg-green-50">
+                                    <p className="text-sm text-green-900">{exportOptionFormNotice.message} ✅</p>
+                                </div>
+                            </div>
+                            : ''}
+                    </div>
                 </div>
             </div>
 

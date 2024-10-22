@@ -9,7 +9,7 @@ import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
 import { PrimitiveTimesheet, PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
 import ManageExportOption from "@/app/_components/ManageExportOption";
 import { AppOption } from "@/lib/services/meta/appOption";
-import ExportUI from "./ExportUI";
+import TimesheetExportUI from "./TimesheetExportUI";
 
 type TimesheetTableProps = {
     timesheetData: Timesheet,
@@ -427,7 +427,7 @@ export default function TimesheetUpdateView({ timesheetData, handleSaveTimesheet
                     </div>
 
                     <div className="timesheet-footer mt-4">
-                        <ExportUI timesheet={timesheetData} />
+                        <TimesheetExportUI timesheet={timesheetData} />
                     </div>
                 </div>
             </div>

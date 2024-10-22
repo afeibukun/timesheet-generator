@@ -175,7 +175,6 @@ export default function Home() {
           )}
         </div>
         <div className="mt-4">
-          <Link href="/preview" className="inline-block px-8 py-2 rounded border">Sample Preview</Link>
         </div>
       </DefaultSection>
     </main>

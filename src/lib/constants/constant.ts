@@ -68,6 +68,14 @@ export enum ToastStatus {
     info = "info"
 }
 
+export enum FormState {
+    default = "default",
+    loading = "loading",
+    completed = "completed",
+    error = "error", // also completed, but with error
+    success = "success", // successfully completed
+}
+
 export enum SettingSection {
     default = "default",
     personnel = "personnel",
