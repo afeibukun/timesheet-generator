@@ -1,7 +1,7 @@
 'use client'
-import { CustomerSchema, PersonnelSchema, ProjectSchema } from "@/lib/types/schema";
+import { ProjectSchema } from "@/lib/types/schema";
 import { useEffect, useState } from "react";
-import { createProject, deleteDataInStore, getAllCustomers, getAllPersonnel, getAllProjects } from "@/lib/services/indexedDB/indexedDBService";
+import { createProject, deleteDataInStore, getAllProjects } from "@/lib/services/indexedDB/indexedDBService";
 import DefaultSection from "../../_components/DefaultSection";
 import DefaultSectionHeader from "../../_components/DefaultSectionHeader";
 import DefaultSectionTitle from "../../_components/DefaultSectionTitle";
@@ -30,7 +30,6 @@ export default function ManageProjects() {
         const initializer = async () => {
             try {
                 let _projects: ProjectSchema[] = await getAllProjects();
-                console.log("projects: ", _projects)
                 setProjects(_projects);
 
             } catch (e) { }

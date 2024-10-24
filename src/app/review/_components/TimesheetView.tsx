@@ -1,6 +1,5 @@
 'use client'
-import { useEffect, useState } from "react";
-import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
+import { useState } from "react";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { ToastStatus } from "@/lib/constants/constant";
 import DefaultSection from "@/app/_components/DefaultSection";
@@ -105,7 +104,7 @@ export default function TimesheetView({ timesheet, setTimesheet }: TimesheetView
                                     <div className="shrink-0 w-full transition ease-in-out duration-500">
                                         {timesheet.records ?
                                             <div className="timesheet-table text-left">
-                                                <TimesheetUpdateView timesheetData={timesheet} handleSaveTimesheet={(e: any, updatedTimesheet: Timesheet) => { handleUpdateTimesheet(updatedTimesheet) }} />
+                                                <TimesheetUpdateView timesheet={timesheet} handleSaveTimesheet={(e: any, updatedTimesheet: Timesheet) => { handleUpdateTimesheet(updatedTimesheet) }} />
                                             </div> : ''
                                         }
                                         {/* updateTimesheetEntryCollection(timesheet.weekNumber, e) */}

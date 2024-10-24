@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from "react";
-import { deleteDataInStore, updateDataInStore } from "@/lib/services/indexedDB/indexedDBService";
+import { updateDataInStore } from "@/lib/services/indexedDB/indexedDBService";
 import { Status } from "@/lib/constants/constant";
 import DefaultLabelText from "@/app/_components/DefaultLabelText";
 import { StoreName } from "@/lib/constants/storage";

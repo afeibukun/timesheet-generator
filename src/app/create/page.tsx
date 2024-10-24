@@ -14,6 +14,7 @@ import { Project } from "@/lib/services/meta/project";
 export default function Create() {
     const router = useRouter();
     const searchParams = useSearchParams();
+
     const component = searchParams.get(SearchParamsLabel.component) === ComponentType.timesheetCollection ? ComponentType.timesheetCollection : ComponentType.timesheet;
 
     const [personnels, setPersonnels] = useState([] as Personnel[]);
@@ -28,7 +29,6 @@ export default function Create() {
 
     useEffect(() => {
         const initializer = async () => {
-            var retrievedTimesheet
             try {
                 const _personnels: Personnel[] = await Personnel.getAllPersonnel();
                 setPersonnels(_personnels);
@@ -37,10 +37,6 @@ export default function Create() {
                 const _projects: Project[] = await Project.getAllProjects();
                 setProjects(_projects);
             } catch (e) { }
-
-            if (retrievedTimesheet != undefined) {
-                // setViewState(StateEnum.updating);
-            }
         }
         initializer();
     }, []);

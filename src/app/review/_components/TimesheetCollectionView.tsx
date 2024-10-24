@@ -1,20 +1,9 @@
 'use client'
 import Link from "next/link";
-import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { useEffect, useState } from "react";
-import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import { CannotParsePrimitiveDataToTimesheetError } from "@/lib/services/timesheet/timesheetErrors";
-import { createXlsxTimesheetClassicTemplate } from "@/lib/services/xlsx/excelJsService";
-import { createPdfWithJsPdfAutoTable } from "@/lib/services/pdf/jsPdfAutoTableService";
-import { TimesheetCollection, PlainTimesheet } from "@/lib/types/timesheet";
-import { ComponentType, LocationType, SearchParamsLabel, ToastStatus } from "@/lib/constants/constant";
-import { getAppOptionData } from "@/lib/services/indexedDB/indexedDBService";
-import { AppOptionInterface } from "@/lib/types/generalType";
-import { TimesheetSchema } from "@/lib/types/schema";
-import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
-import { StorageLabel } from "@/lib/constants/storage";
-import { useSearchParams } from "next/navigation";
+import { TimesheetCollection } from "@/lib/types/timesheet";
+import { ToastStatus } from "@/lib/constants/constant";
 import DefaultSection from "@/app/_components/DefaultSection";
 import DefaultSectionHeader from "@/app/_components/DefaultSectionHeader";
 import DefaultSectionTitle from "@/app/_components/DefaultSectionTitle";
@@ -147,7 +136,7 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                                         <div className="shrink-0 w-full transition ease-in-out duration-500" key={timesheet.id} style={{ transform: `translateX(-${activeTimesheetIndexInCollection * 100}%)` }}>
                                             {timesheet?.records ?
                                                 <div className="timesheet-table text-left">
-                                                    <TimesheetUpdateView timesheetData={timesheet} handleSaveTimesheet={(e: any, updatedTimesheet: Timesheet) => { handleUpdateTimesheet(updatedTimesheet) }} />
+                                                    <TimesheetUpdateView timesheet={timesheet} handleSaveTimesheet={(e: any, updatedTimesheet: Timesheet) => { handleUpdateTimesheet(updatedTimesheet) }} />
                                                 </div> : ''
                                             }
                                         </div>

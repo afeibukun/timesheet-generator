@@ -16,6 +16,7 @@ export interface TimesheetSchema {
     records?: PlainTimesheetRecord[],
     options?: TimesheetOption[],
     weekEndingDate: string, //also needed for indexing
+    month: number,
     comment: string
 }
 

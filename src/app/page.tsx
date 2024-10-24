@@ -5,12 +5,7 @@ import DefaultSectionHeader from "./_components/DefaultSectionHeader";
 import { defaultLogoBase64 } from "@/lib/constants/defaultLogoBase64Image";
 import { useEffect, useState } from "react";
 import { Personnel } from "@/lib/services/meta/personnel";
-import { PersonnelSchema } from "@/lib/types/schema";
-import { getAllPersonnel } from "@/lib/services/indexedDB/indexedDBService";
-import AddPersonnel from "./_components/AddPersonnel";
-import ManagePersonnel from "./settings/_components/ManagePersonnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import moment from "moment";
 import { ComponentType, SearchParamsLabel } from "@/lib/constants/constant";
 import ActivePersonnel from "./_components/ActivePersonnel";
 

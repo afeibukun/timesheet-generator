@@ -73,53 +73,53 @@ export class TimesheetEntryPeriod implements PlainTimesheetEntryPeriod {
         return 0;
     }
 
-    errorOnStartTime = () => {
-        if (!this.startTime || !this.startTime._isValidTime) return { error: true, message: "Start Time Not Found" }
-        if (this.isTimeOrderWrong()) return { error: true, message: "Wrong Time Order" } // time order is wrong
+    static isTimeOrderWrong = (entryPeriod: TimesheetEntryPeriod) => {
+        // only applies to entry period not break period
+        return (entryPeriod.startTime && entryPeriod.startTime._isValidTime && entryPeriod.finishTime && entryPeriod.finishTime._isValidTime && (entryPeriod.finishTime.isEarlierThan(entryPeriod.startTime) || entryPeriod.finishTime.isEqualTo(entryPeriod.startTime)))
+    }
+
+    static errorOnStartTime = (entryPeriod: TimesheetEntryPeriod) => {
+        if (!entryPeriod.startTime || !entryPeriod.startTime._isValidTime) return { error: true, message: "Start Time Not Found" }
+        if (TimesheetEntryPeriod.isTimeOrderWrong(entryPeriod)) return { error: true, message: "Wrong Time Order" } // time order is wrong
         return { error: false, message: "" }
     }
 
-    errorOnFinishTime = () => {
-        if (!this.finishTime || !this.finishTime._isValidTime) return { error: true, message: "Finish Time Not Found" }
-        if (this.isTimeOrderWrong()) return { error: true, message: "Wrong Time Order" } // time order is wrong
+    static errorOnFinishTime = (entryPeriod: TimesheetEntryPeriod) => {
+        if (!entryPeriod.finishTime || !entryPeriod.finishTime._isValidTime) return { error: true, message: "Finish Time Not Found" }
+        if (TimesheetEntryPeriod.isTimeOrderWrong(entryPeriod)) return { error: true, message: "Wrong Time Order" } // time order is wrong
         return { error: false, message: "" }
     }
 
-    errorOnBreakStartTime = () => {
-        if (this.breakTimeStart && this.breakTimeStart._isValidTime && this.startTime && this.startTime._isValidTime && this.breakTimeStart.isEarlierThan(this.startTime)) {
+    static errorOnBreakStartTime = (entryPeriod: TimesheetEntryPeriod) => {
+        if (entryPeriod.breakTimeStart && entryPeriod.breakTimeStart._isValidTime && entryPeriod.startTime && entryPeriod.startTime._isValidTime && entryPeriod.breakTimeStart.isEarlierThan(entryPeriod.startTime)) {
             return { error: true, message: "Wrong order on Break Start Time and Entry Start Time" }; // Break Time cannot start before Main Start Time
         }
 
-        if (this.breakTimeStart && this.breakTimeStart._isValidTime && this.finishTime && this.finishTime._isValidTime && this.finishTime.isEarlierThan(this.breakTimeStart)) {
+        if (entryPeriod.breakTimeStart && entryPeriod.breakTimeStart._isValidTime && entryPeriod.finishTime && entryPeriod.finishTime._isValidTime && entryPeriod.finishTime.isEarlierThan(entryPeriod.breakTimeStart)) {
             return { error: true, message: "Wrong order with Break Start Time and Entry Finish Time" }; // Break Time cannot start after Main Finish Time
         }
 
-        if (this.breakTimeStart && this.breakTimeStart._isValidTime && this.breakTimeFinish && this.breakTimeFinish._isValidTime && (this.breakTimeFinish.isEarlierThan(this.breakTimeStart) || this.breakTimeFinish.isEqualTo(this.breakTimeStart))) {
+        if (entryPeriod.breakTimeStart && entryPeriod.breakTimeStart._isValidTime && entryPeriod.breakTimeFinish && entryPeriod.breakTimeFinish._isValidTime && (entryPeriod.breakTimeFinish.isEarlierThan(entryPeriod.breakTimeStart) || entryPeriod.breakTimeFinish.isEqualTo(entryPeriod.breakTimeStart))) {
             return { error: true, message: "Invalid Break Time" }; // Invalid Break Time
         }
 
         return { error: false, message: "" };
     }
 
-    errorOnBreakFinishTime = () => {
-        if (this.breakTimeFinish && this.breakTimeFinish._isValidTime && this.finishTime && this.finishTime._isValidTime && this.finishTime.isEarlierThan(this.breakTimeFinish)) {
+    static errorOnBreakFinishTime = (entryPeriod: TimesheetEntryPeriod) => {
+        if (entryPeriod.breakTimeFinish && entryPeriod.breakTimeFinish._isValidTime && entryPeriod.finishTime && entryPeriod.finishTime._isValidTime && entryPeriod.finishTime.isEarlierThan(entryPeriod.breakTimeFinish)) {
             return { error: true, message: "Wrong order on Break Finish Time and Entry Finish Time" }; // Break Time cannot end after Main Finish Time
         }
 
-        if (this.breakTimeFinish && this.breakTimeFinish._isValidTime && this.startTime && this.startTime._isValidTime && this.breakTimeFinish.isEarlierThan(this.startTime)) {
+        if (entryPeriod.breakTimeFinish && entryPeriod.breakTimeFinish._isValidTime && entryPeriod.startTime && entryPeriod.startTime._isValidTime && entryPeriod.breakTimeFinish.isEarlierThan(entryPeriod.startTime)) {
             return { error: true, message: "Wrong order with Break Finish Time and Entry Start Time" }; // Break Time cannot finish before Main Start Time
         }
 
-        if (this.breakTimeStart && this.breakTimeStart._isValidTime && this.breakTimeFinish && this.breakTimeFinish._isValidTime && (this.breakTimeFinish.isEarlierThan(this.breakTimeStart) || this.breakTimeFinish.isEqualTo(this.breakTimeStart))) {
+        if (entryPeriod.breakTimeStart && entryPeriod.breakTimeStart._isValidTime && entryPeriod.breakTimeFinish && entryPeriod.breakTimeFinish._isValidTime && (entryPeriod.breakTimeFinish.isEarlierThan(entryPeriod.breakTimeStart) || entryPeriod.breakTimeFinish.isEqualTo(entryPeriod.breakTimeStart))) {
             return { error: true, message: "Invalid Break Time" }; // Invalid Break Time
         }
 
         return { error: false, message: "" };
-    }
-
-    isTimeOrderWrong = () => {
-        // only applies to entry period not break period
-        return (this.startTime && this.startTime._isValidTime && this.finishTime && this.finishTime._isValidTime && (this.finishTime.isEarlierThan(this.startTime) || this.finishTime.isEqualTo(this.startTime)))
     }
 
     static doesPeriodOverlap(period1: TimesheetEntryPeriod, period2: TimesheetEntryPeriod) {

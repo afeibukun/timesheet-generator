@@ -15,6 +15,7 @@ export interface PlainTimesheet {
     key: number,
     personnel: PlainPersonnel;
     weekEndingDate: PlainTimesheetDate;
+    month: number;
     customer: PlainCustomer;
     site: PlainSite;
     project: PlainProject;

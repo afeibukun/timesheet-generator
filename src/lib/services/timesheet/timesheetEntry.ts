@@ -6,7 +6,7 @@ import { AppOptionSchema } from "@/lib/types/schema";
 import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
 import { TimesheetHour } from "./timesheetHour";
-import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry } from "@/lib/types/primitive";
+import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError } from "@/lib/types/primitive";
 
 /**
  * Refers to actual timesheet activity entries, working time, travel time e.t.c.
@@ -164,4 +164,19 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         const id = randomCode.toString() + Date.now().toString();
         return Number(id);
     }
+
+    static getTotalHoursInPrimitiveTimesheetEntry(primitiveTimesheetEntry: PrimitiveTimesheetEntry) {
+        const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(primitiveTimesheetEntry);
+        return _entry.totalHoursInString;
+    }
+
+    /**
+     * Timesheet Entry Rules
+     * - entry type cannot be null
+     * - location type should be either onshore or offshore
+     * - hasPremium should be boolean
+     * - start time should happen before finish time
+     * - break time should be within start time and finish time.
+     * - a 0 hr entry is invalid, and should not be saved at all
+     */
 }

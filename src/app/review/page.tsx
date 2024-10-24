@@ -1,13 +1,8 @@
 'use client'
-import Link from "next/link";
-import DefaultSection from "../_components/DefaultSection";
-import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { useEffect, useState } from "react";
-import { TimesheetLocalStorage } from "@/lib/services/timesheet/timesheetLocalStorage";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetCollection } from "@/lib/types/timesheet";
 import { ComponentType, SearchParamsLabel, ToastStatus } from "@/lib/constants/constant";
-import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
 import { useSearchParams } from "next/navigation";
 import TimesheetView from "./_components/TimesheetView";
 import TimesheetCollectionView from "./_components/TimesheetCollectionView";

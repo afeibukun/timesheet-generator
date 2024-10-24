@@ -14,7 +14,7 @@ import { StorageLabel, IndexName, StoreName } from "@/lib/constants/storage";
 import { Customer } from "../meta/customer";
 import { Site } from "../meta/site";
 import { Project } from "../meta/project";
-import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheet, PrimitiveTimesheetEntryError, PrimitiveTimesheetOption } from "@/lib/types/primitive";
+import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheet, PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError, PrimitiveTimesheetOption } from "@/lib/types/primitive";
 import { PlainCustomer, PlainProject, PlainSite } from "@/lib/types/meta";
 import { createXlsxTimesheetClassicTemplate } from "../xlsx/excelJsService";
 import { createPdfWithJsPdfAutoTable } from "../pdf/jsPdfAutoTableService";
@@ -27,6 +27,11 @@ export class Timesheet implements PlainTimesheet {
     id?: number;
     key: number;
     personnel: Personnel;
+    /**
+     * Assigned month for the timesheet
+     * Since a single Timesheet cannot have entries that span different months
+     */
+    month: number;
     weekEndingDate: TimesheetDate;
     customer: Customer;
     site: Site;
@@ -43,6 +48,7 @@ export class Timesheet implements PlainTimesheet {
         this.site = new Site(plainTimesheet.site);
         this.project = new Project(plainTimesheet.project);
         this.weekEndingDate = new TimesheetDate(plainTimesheet.weekEndingDate);
+        this.month = plainTimesheet.month;
         this.options = plainTimesheet.options;
         this.records = plainTimesheet.records.map((_plainRecord) => new TimesheetRecord(_plainRecord));
         this.comment = plainTimesheet.comment;
@@ -67,7 +73,7 @@ export class Timesheet implements PlainTimesheet {
     }
 
     get weekNumber(): number {
-        return this.records[0].weekNumber;
+        return this.weekEndingDate.weekNumber;
     }
 
     get monthNumber(): number {
@@ -80,13 +86,21 @@ export class Timesheet implements PlainTimesheet {
         return this.records[0].yearNumber;
     }
 
-    get month(): string {
-        return this.records[0].month;
+    get monthLabel(): string {
+        try {
+            return this.records[0].month;
+        } catch (e) { }
+        return ''
     }
 
     get isNull(): Boolean {
         if (this == null || this == undefined || !('entries' in this) || !('personnel' in this)) return true;
         return false;
+    }
+
+    get hasRecords(): Boolean {
+        if (this && this.records && this.records.length > 0) return true
+        return false
     }
 
     hasEntryOnDate(date: TimesheetDate): Boolean {
@@ -103,20 +117,8 @@ export class Timesheet implements PlainTimesheet {
         return _totalHoursForDay
     }
 
-    getEntriesWithOverlappingPeriodInDay(date: TimesheetDate) {
-        if (!this.hasEntryOnDate(date)) throw Error(ErrorMessage.entryOnDateNotFound);
-        const _recordForDay = this.records.filter(_record => date.isEqual(_record.date))[0];
-        const _overlappingEntries = _recordForDay.getEntriesWithOverlappingPeriod();
-        return _overlappingEntries
-    }
-
-    doesDayHaveOverlappingTimeEntries(date: TimesheetDate) {
-        const _recordForDay = this.records.filter(_record => date.isEqual(_record.date))[0];
-        return _recordForDay.hasEntriesWithOverlappingPeriod();
-    }
-
     convertToSchema() {
-        let _timesheetSchema: TimesheetSchema = { id: this.id, key: this.key, personnel: this.personnel.convertToSchema(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), site: this.site.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.date, comment: this.comment }
+        let _timesheetSchema: TimesheetSchema = { id: this.id, key: this.key, personnel: this.personnel.convertToSchema(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), site: this.site.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.date, month: this.month, comment: this.comment }
         return _timesheetSchema;
     }
 
@@ -137,40 +139,6 @@ export class Timesheet implements PlainTimesheet {
             })
         }
         return _primitiveTimesheet;
-    }
-
-    generateTimesheetErrors = (existingEntryErrors: PrimitiveTimesheetEntryError[]) => {
-        const defaultErrorObject = { error: false, message: "" }
-        let entryErrors: PrimitiveTimesheetEntryError[] = [];
-        this.records.forEach((_records) => {
-            const _entriesInRecord = _records.entries.map((_entry) => {
-                let _entryTypeError = defaultErrorObject
-                if (!_entry.entryType) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
-
-                let startTimeError = Timesheet.errorOnEntryTime(_entry, this, 'start');
-                let _entryStartTimeError = defaultErrorObject
-                if (startTimeError.error) _entryStartTimeError = startTimeError
-
-                let finishTimeError = Timesheet.errorOnEntryTime(_entry, this, 'finish');
-                let _entryFinishTimeError = defaultErrorObject
-                if (finishTimeError.error) _entryFinishTimeError = finishTimeError
-
-                let breakStartTimeError = _entry.entryPeriod.errorOnBreakStartTime()
-                let _entryBreakStartTimeError = defaultErrorObject
-                if (breakStartTimeError.error) _entryBreakStartTimeError = breakStartTimeError
-
-                let breakFinishTimeError = _entry.entryPeriod.errorOnBreakFinishTime()
-                let _entryBreakFinishTimeError = defaultErrorObject
-                if (breakFinishTimeError.error) _entryBreakFinishTimeError = breakFinishTimeError
-
-                let entryError: PrimitiveTimesheetEntryError = existingEntryErrors.filter((e) => e.id === _entry.id)[0];
-                if (entryError) entryError = { ...entryError, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError }
-                else entryError = { id: _entry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
-                return entryError
-            })
-            entryErrors = [...entryErrors, ..._entriesInRecord]
-        })
-        return entryErrors
     }
 
     get mobilizationDate() {
@@ -209,15 +177,20 @@ export class Timesheet implements PlainTimesheet {
         }
     }
 
-    static async createTimesheet(weekData: string, personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false, timesheetOptions: TimesheetOption[] = []) {
+    static async createTimesheet(personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false, timesheetOptions: TimesheetOption[] = [], week?: number, year?: number, month?: number) {
         let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
 
-        const { year, week } = TimesheetDate.extractWeekDataFromPrimitiveWeek(weekData);
-        const _lastDayOfTheSelectedWeek = TimesheetDate.getLastDayOfWeekFromWeekNumber(week, year)
+        const _currentWeek = TimesheetDate.getCurrentWeekNumber();
+        const _week = week !== undefined ? week : _currentWeek;
 
-        let _dateCount = 0;
-        let _monthCount = 0;
+        const _currentYear = TimesheetDate.getCurrentYearNumber();
+        const _year = year !== undefined ? year : _currentYear;
+
+        const _possibleMonths = TimesheetDate.getMonthsInAWeek(_week, _year);
+        const _month = month !== undefined && _possibleMonths.includes(month) ? month : _possibleMonths[0];
+
+        const _lastDayOfTheSelectedWeek = TimesheetDate.getLastDayOfWeekFromWeekNumber(_week, _year)
 
         const _defaultEntryTypeSlug = "working-time";
         const getDefaultEntryType = () => defaultTimesheetEntryType.filter((entryType) => entryType.slug == _defaultEntryTypeSlug)[0];
@@ -227,21 +200,25 @@ export class Timesheet implements PlainTimesheet {
         let _records: TimesheetRecord[] = []
         if (shouldPopulateEntry) {
             const _weekDays = TimesheetDate.getWeekDays(_lastDayOfTheSelectedWeek)
-            _records = _weekDays.map(_date => {
-                const _newEntry = new TimesheetEntry({
-                    id: TimesheetEntry.createId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
-                });
-                const _newRecord = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _date, entries: [_newEntry] });
-                return _newRecord
-            });
+            _records = _weekDays.reduce((_recordsAccumulator, _date) => {
+                if (_date.monthNumber === _month) {
+                    const _newEntry = new TimesheetEntry({
+                        id: TimesheetEntry.createId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
+                    });
+                    const _newRecord = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _date, entries: [_newEntry] });
+                    return [..._recordsAccumulator, _newRecord]
+                } else {
+                    return _recordsAccumulator
+                }
+            }, _records);
         }
 
         let _key = getUniqueIDBasedOnTime();
         while (!await Timesheet.isKeyUnique(_key)) _key = getUniqueIDBasedOnTime();
 
-        const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, customer: customer, site: site, project: project, options: [], records: _records, comment: '' });
+        const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, month: _month, customer: customer, site: site, project: project, options: timesheetOptions, records: _records, comment: '' });
+        let _timesheetSchema: TimesheetSchema = _newTimesheet.convertToSchema();
 
-        let _timesheetSchema: TimesheetSchema = { key: _key, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _newTimesheet.records, options: _newTimesheet.options, weekEndingDate: _newTimesheet.weekEndingDate.date, comment: _newTimesheet.comment }
         const _stringifiedTimesheet = JSON.stringify(_timesheetSchema)
         const _returnedTimesheet = await createTimesheet(JSON.parse(_stringifiedTimesheet));
 
@@ -249,7 +226,7 @@ export class Timesheet implements PlainTimesheet {
             await createOrUpdateAppOption(StorageLabel.activeTimesheetIdLabel, _returnedTimesheet.id);
             await createOrUpdateAppOption(StorageLabel.activeComponentType, ComponentType.timesheet);
         }
-        return _returnedTimesheet;
+        return Timesheet.convertSchemaToTimesheet(_returnedTimesheet);
     }
 
     static async createTimesheetCollectionFromMobilizationPeriod(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate, personnel: Personnel, customer: Customer, site: Site, project: Project) {
@@ -299,7 +276,7 @@ export class Timesheet implements PlainTimesheet {
             if (_startNewTimesheet) {
                 let _timesheetKey = getUniqueIDBasedOnTime();
                 while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
-                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, customer: customer, site: site, project: project, options: [{ key: OptionLabel.mobilizationDate, value: _mobDate }, { key: OptionLabel.demobilizationDate, value: _demobDate }, { key: OptionLabel.timesheetCollectionKey, value: _timesheetCollectionKey }], records: [], comment: '' });
+                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, month: _cursorMonthNumber, customer: customer, site: site, project: project, options: [{ key: OptionLabel.mobilizationDate, value: _mobDate }, { key: OptionLabel.demobilizationDate, value: _demobDate }, { key: OptionLabel.timesheetCollectionKey, value: _timesheetCollectionKey }], records: [], comment: '' });
                 timesheetCollectionByMonth[_monthCount] = [...timesheetCollectionByMonth[_monthCount], _cursorTimesheet];
                 _startNewTimesheet = false;
             } else {
@@ -336,7 +313,7 @@ export class Timesheet implements PlainTimesheet {
                 let _timesheetKey = getUniqueIDBasedOnTime();
                 while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
 
-                let _timesheetSchema: TimesheetSchema = { key: _timesheetKey, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.date, comment: _cursorTimesheet.comment }
+                let _timesheetSchema: TimesheetSchema = { key: _timesheetKey, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.date, month: _cursorMonthNumber, comment: _cursorTimesheet.comment }
 
                 const stringifiedTimesheet = JSON.stringify(_timesheetSchema)
                 const timesheet = await createTimesheet(JSON.parse(stringifiedTimesheet));
@@ -394,12 +371,12 @@ export class Timesheet implements PlainTimesheet {
 
         if (!timesheetSchema.id) throw new Error("Cannot Change Timesheet Schema to Timesheet Object");
         const timesheet = new Timesheet({
-            id: timesheetSchema.id, key: timesheetSchema.key, personnel: _personnel, customer: _customer, site: _site, project: _project, weekEndingDate: _weekEndingDate, options: _options, records: _timesheetRecord, comment: timesheetSchema.comment
+            id: timesheetSchema.id, key: timesheetSchema.key, personnel: _personnel, customer: _customer, site: _site, project: _project, weekEndingDate: _weekEndingDate, options: _options, records: _timesheetRecord, comment: timesheetSchema.comment, month: timesheetSchema.month
         });
         return timesheet
     }
 
-    static async convertPrimitiveToTimesheet(primitiveTimesheet: PrimitiveTimesheet, personnel: Personnel, weekEndingDate: TimesheetDate) {
+    static async convertPrimitiveToTimesheet(primitiveTimesheet: PrimitiveTimesheet, personnel: Personnel, weekEndingDate: TimesheetDate, month: number) {
         const _customer: Customer = await Customer.getCustomerBySlug(primitiveTimesheet.customerSlug);
 
         if (!_customer.sites) throw new Error("Sites Not Found");
@@ -419,7 +396,7 @@ export class Timesheet implements PlainTimesheet {
 
         const _timesheet: Timesheet = new Timesheet({
             id: primitiveTimesheet.id, key: primitiveTimesheet.key, personnel: personnel, customer: _customer, site: _site, project: _project, options: _options, records: _records, comment: primitiveTimesheet.comment,
-            weekEndingDate: weekEndingDate
+            weekEndingDate: weekEndingDate, month: month
         });
         return _timesheet
     }
@@ -499,11 +476,37 @@ export class Timesheet implements PlainTimesheet {
     }
 
     static errorOnEntryTime = (entry: TimesheetEntry, timesheet: Timesheet, timeType: string = 'finish',) => {
-        let errorData = timeType === 'start' ? entry.entryPeriod.errorOnStartTime() : entry.entryPeriod.errorOnFinishTime()
+        let errorData = timeType === 'start' ? TimesheetEntryPeriod.errorOnStartTime(entry.entryPeriod) : TimesheetEntryPeriod.errorOnFinishTime(entry.entryPeriod)
         if (errorData.error) return errorData
 
         if (entry) {
-            if (timesheet.doesDayHaveOverlappingTimeEntries(entry.date) && timesheet.getEntriesWithOverlappingPeriodInDay(entry.date).some(e => e.id === entry.id)) return { error: true, message: "Entry Period Overlaps with other entries." }
+            const _record = timesheet.records.filter((_record) => _record.date.isDateSame(entry.date))[0]
+            if (_record) {
+                const _primitiveRecord = _record.convertToPrimitive();
+                const _doesPrimitiveRecordHaveOverlappingTimeEntries = TimesheetRecord.doesPrimitiveRecordHaveOverlappingTimeEntries(_primitiveRecord)
+                const _entriesWithOverlappingPeriod = TimesheetRecord.getEntriesWithOverlappingPeriodFromPrimitiveRecord(_primitiveRecord)
+                const _isEntryPartOfEntriesWithOverlappingPeriod = _entriesWithOverlappingPeriod.some(_overlappingEntry => _overlappingEntry.id === entry.id)
+
+                if (_doesPrimitiveRecordHaveOverlappingTimeEntries && _isEntryPartOfEntriesWithOverlappingPeriod) return { error: true, message: "Entry Period Overlaps with other entries." }
+            }
+        }
+        return { error: false, message: "" }
+    }
+
+    static errorOnPrimitiveEntryTime = (primitiveEntry: PrimitiveTimesheetEntry, primitiveTimesheet: PrimitiveTimesheet, timeType: string = 'finish') => {
+        const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(primitiveEntry);
+        let errorData = timeType === 'start' ? TimesheetEntryPeriod.errorOnStartTime(_entry.entryPeriod) : TimesheetEntryPeriod.errorOnFinishTime(_entry.entryPeriod)
+        if (errorData.error) return errorData
+
+        if (_entry) {
+            const _primitiveRecord = primitiveTimesheet.records.filter((_primitiveRecord) => _primitiveRecord.date === primitiveEntry.date)[0]
+            if (_primitiveRecord) {
+                const _doesPrimitiveRecordHaveOverlappingTimeEntries = TimesheetRecord.doesPrimitiveRecordHaveOverlappingTimeEntries(_primitiveRecord)
+                const _entriesWithOverlappingPeriod = TimesheetRecord.getEntriesWithOverlappingPeriodFromPrimitiveRecord(_primitiveRecord)
+                const _isEntryPartOfEntriesWithOverlappingPeriod = _entriesWithOverlappingPeriod.some(_overlappingEntry => _overlappingEntry.id === _entry.id)
+
+                if (_doesPrimitiveRecordHaveOverlappingTimeEntries && _isEntryPartOfEntriesWithOverlappingPeriod) return { error: true, message: "Entry Period Overlaps with other entries." }
+            }
         }
         return { error: false, message: "" }
     }
@@ -523,14 +526,6 @@ export class Timesheet implements PlainTimesheet {
         return _timesheets
     }
 
-    static convertCustomerSchemaToInterface(customerSchema: CustomerSchema) {
-        if (customerSchema.id) {
-            let _iCustomer = { id: customerSchema.id, slug: customerSchema.slug, name: customerSchema.name }
-            return _iCustomer;
-        }
-        throw new Error("Cannot Convert Customer Schema To Interface - Id is undefined");
-    }
-
     static async isKeyUnique(key: number) {
         const _timesheetWithCurrentIndex = await getAllFromIndexInStore(StoreName.timesheet, IndexName.keyIndex, key);
         if (_timesheetWithCurrentIndex.length > 0) return false
@@ -542,5 +537,65 @@ export class Timesheet implements PlainTimesheet {
         if (_timesheetCollectionWithCurrentIndex.length > 0) return false
         return true
     }
+
+    static monthNumberFromPrimitiveTimesheet(primitiveTimesheet: PrimitiveTimesheet) {
+        if (!primitiveTimesheet) throw new Error("Timesheet Not Found");
+
+        const _primitiveRecords = primitiveTimesheet.records;
+        if (!_primitiveRecords) throw new Error("Timesheet Records Not Found");
+
+        const _firstPrimitiveRecord = _primitiveRecords[0];
+        if (!_firstPrimitiveRecord) throw new Error("Record Not Found");
+
+        const _firstRecord = TimesheetRecord.convertPrimitiveToRecord(_firstPrimitiveRecord);
+        return _firstRecord.monthNumber
+    }
+
+    static primitiveTimesheetHasRecords(primitiveTimesheet: PrimitiveTimesheet) {
+        const _records = primitiveTimesheet.records.map((_primitiveRecord) => TimesheetRecord.convertPrimitiveToRecord(_primitiveRecord));
+        if (_records.length > 0) return true
+        return false
+    }
+
+    static generateTimesheetFormErrors = (primitiveTimesheet: PrimitiveTimesheet, existingEntryErrors: PrimitiveTimesheetEntryError[]) => {
+        const defaultErrorObject = { error: false, message: "" }
+        let entryErrors: PrimitiveTimesheetEntryError[] = [];
+        primitiveTimesheet.records.forEach((_primitiveRecord) => {
+            const _entriesInRecord = _primitiveRecord.entries.map((_primitiveEntry) => {
+                let _entryTypeError = defaultErrorObject
+                if (!_primitiveEntry.entryTypeSlug) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
+
+                let startTimeError = Timesheet.errorOnPrimitiveEntryTime(_primitiveEntry, primitiveTimesheet, 'start');
+                let _entryStartTimeError = defaultErrorObject
+                if (startTimeError.error) _entryStartTimeError = startTimeError
+
+                let finishTimeError = Timesheet.errorOnPrimitiveEntryTime(_primitiveEntry, primitiveTimesheet, 'finish');
+                let _entryFinishTimeError = defaultErrorObject
+                if (finishTimeError.error) _entryFinishTimeError = finishTimeError
+
+                const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(_primitiveEntry)
+                let breakStartTimeError = TimesheetEntryPeriod.errorOnBreakStartTime(_entry.entryPeriod);
+                let _entryBreakStartTimeError = defaultErrorObject
+                if (breakStartTimeError.error) _entryBreakStartTimeError = breakStartTimeError
+
+                let breakFinishTimeError = TimesheetEntryPeriod.errorOnBreakFinishTime(_entry.entryPeriod);
+                let _entryBreakFinishTimeError = defaultErrorObject
+                if (breakFinishTimeError.error) _entryBreakFinishTimeError = breakFinishTimeError
+
+                let entryError: PrimitiveTimesheetEntryError = existingEntryErrors.filter((e) => e.id === _primitiveEntry.id)[0];
+                if (entryError) entryError = { ...entryError, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError }
+                else entryError = { id: _primitiveEntry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
+                return entryError
+            })
+            entryErrors = [...entryErrors, ..._entriesInRecord]
+        })
+        return entryErrors
+    }
+
+    /**
+     * Timesheet Rules
+     * - a timesheet with blank records or with no records should not be printed, don't waste the ink
+     * - 
+     */
 }
 

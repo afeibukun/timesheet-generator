@@ -8,7 +8,6 @@ import SubmitButton02 from "@/app/_components/SubmitButton02";
 import { LocationType, Status } from "@/lib/constants/constant";
 import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constants/default";
 import { createOrUpdateTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
-import { AppOption } from "@/lib/services/meta/appOption";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 import { PrimitiveDefaultTimesheetEntry as PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
