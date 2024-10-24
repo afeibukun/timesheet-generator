@@ -3,7 +3,6 @@ import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { useEffect, useState } from "react";
 import InfoLabel from "./InfoLabel";
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
-import { PrimitiveTimesheet, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
 import TimesheetExportUI from "./TimesheetExportUI";
 import ManageRecordView from "./ManageRecordView";
 
@@ -14,7 +13,6 @@ type TimesheetTableProps = {
 
 export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: TimesheetTableProps) {
 
-    const [localPrimitiveTimesheet, setLocalPrimitiveTimesheet] = useState(timesheet.convertToPrimitive());
     const [localTimesheet, setLocalTimesheet] = useState(timesheet);
 
     const [timesheetRecordsErrorState, setTimesheetRecordsErrorState] = useState(Array(7).fill(false));
@@ -30,15 +28,15 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
         initializer();
     }, []);
 
-    const getPrimitiveRecordForDate = (primitiveDate: string) => {
-        const _primitiveRecord = localPrimitiveTimesheet.records.filter((_record) => TimesheetDate.areDateStringsSameDay(_record.date, primitiveDate))[0]
-        return _primitiveRecord
+    const getRecordForDate = (date: TimesheetDate) => {
+        const _record = localTimesheet.records.filter((_record) => date.isDateSame(_record.date))[0]
+        return _record
     }
 
-    const primitiveTimesheetHasRecord = () => {
+    const timesheetHasRecord = () => {
         try {
-            const _primitiveTimesheetHasRecords = Timesheet.primitiveTimesheetHasRecords(localPrimitiveTimesheet)
-            return _primitiveTimesheetHasRecords
+            const _timesheetHasRecords = (localTimesheet.records && localTimesheet.records.length > 0)
+            return _timesheetHasRecords
         } catch (e) { }
         return false
     }
@@ -46,19 +44,19 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
     const canRecordHaveEntry = (date: string) => {
         let _monthNumberMatch = false
         try {
-            if (date && localPrimitiveTimesheet) {
+            if (date && localTimesheet) {
                 const _monthForSelectedDay = TimesheetDate.monthForSelectedDay(date);
-                const _primitiveTimesheetMonthNumber = Timesheet.monthNumberFromPrimitiveTimesheet(localPrimitiveTimesheet);
-                _monthNumberMatch = _monthForSelectedDay === _primitiveTimesheetMonthNumber
+                const _timesheetMonthNumber = localTimesheet.monthNumber
+                _monthNumberMatch = _monthForSelectedDay === _timesheetMonthNumber
             }
         } catch (e) { }
 
         let _noRecordInTimesheetYet = true;
         try {
-            if (date && localPrimitiveTimesheet) {
-                const _primitiveRecord = getPrimitiveRecordForDate(date);
-                const _primitiveTimesheetHasRecords = primitiveTimesheetHasRecord()
-                _noRecordInTimesheetYet = (!_primitiveRecord && !_primitiveTimesheetHasRecords)
+            if (date && localTimesheet) {
+                const _record = getRecordForDate(new TimesheetDate(date));
+                const _timesheetHasRecords = timesheetHasRecord()
+                _noRecordInTimesheetYet = (!_record && !_timesheetHasRecords)
             }
         } catch (e) { }
 
@@ -68,48 +66,36 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
 
     const getTimesheetMonth = () => {
         try {
-            const _firstPrimitiveRecord = localPrimitiveTimesheet.records[0]
-            return TimesheetDate.monthsInYear[TimesheetRecord.monthNumberForPrimitiveRecord(_firstPrimitiveRecord)]
+            return TimesheetDate.monthsInYear[localTimesheet.monthNumber]
         } catch (e) { }
         return ''
     }
 
-    const handleUpdatePrimitiveRecordInTimesheet = (primitiveRecord: PrimitiveTimesheetRecord) => {
-        const doesPrimitiveRecordExistInLocalTimesheet = localPrimitiveTimesheet.records.some(_primitiveRecord => _primitiveRecord.id === primitiveRecord.id)
-        let _updatedPrimitiveTimesheet: PrimitiveTimesheet;
-        if (doesPrimitiveRecordExistInLocalTimesheet) {
+    const handleUpdateRecordInTimesheet = (record: TimesheetRecord) => {
+        const doesRecordExistInLocalTimesheet = localTimesheet.records.some(_record => _record.id === record.id)
+        let _updatedTimesheet: Timesheet;
+        if (doesRecordExistInLocalTimesheet) {
             // update it,
-            let _updatedPrimitiveRecords = localPrimitiveTimesheet.records.map((_primitiveRecord) => {
-                if (_primitiveRecord.id === primitiveRecord.id) return primitiveRecord
-                else return _primitiveRecord
+            let _updatedRecords = localTimesheet.records.map((_record) => {
+                if (_record.id === record.id) return record
+                else return _record
             })
             // remove empty records
-            _updatedPrimitiveRecords = _updatedPrimitiveRecords.filter((_record) => _record.entries && _record.entries.length > 0)
+            _updatedRecords = _updatedRecords.filter((_record) => _record.entries && _record.entries.length > 0)
 
-            _updatedPrimitiveTimesheet = {
-                ...localPrimitiveTimesheet, records: _updatedPrimitiveRecords
-            }
+            _updatedTimesheet = new Timesheet({
+                ...localTimesheet, records: _updatedRecords
+            })
 
         } else {
             // add new record
-            _updatedPrimitiveTimesheet = {
-                ...localPrimitiveTimesheet, records: [...localPrimitiveTimesheet.records, primitiveRecord]
-            }
+            _updatedTimesheet = new Timesheet({
+                ...localTimesheet, records: [...localTimesheet.records, record]
+            })
         }
 
-        setLocalPrimitiveTimesheet(_updatedPrimitiveTimesheet);
-        handleLocalTimesheetUpdate(_updatedPrimitiveTimesheet)
+        setLocalTimesheet(_updatedTimesheet);
     }
-
-    async function handleLocalTimesheetUpdate(updatedLocalPrimitiveTimesheet: PrimitiveTimesheet) {
-        try {
-            const updatedLocalTimesheet = await Timesheet.convertPrimitiveToTimesheet(updatedLocalPrimitiveTimesheet, localTimesheet.personnel, localTimesheet.weekEndingDate, localTimesheet.month);
-            setLocalTimesheet(updatedLocalTimesheet)
-        } catch (e) {
-            console.log(e)
-        }
-    }
-
 
     const doesTimesheetHaveError = () => {
         return timesheetRecordsErrorState.some((err) => err === true)
@@ -129,8 +115,6 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
         }
     }
 
-
-
     return (
         <div>
             <div className="print:hidden">
@@ -140,7 +124,7 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                             <h4 className="rounded text-base font-black text-purple-700">
                                 <span>Week </span>
                                 <span>{timesheet.weekNumber}</span>
-                                <>{primitiveTimesheetHasRecord() ?
+                                <>{timesheetHasRecord() ?
                                     <span>
                                         <small className="capitalize">({getTimesheetMonth()})</small>
                                     </span> : ''
@@ -215,7 +199,7 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                             </>
                         </div>
                         <div className="timesheet-validity-status text-[10px] font-bold">
-                            {localPrimitiveTimesheet && doesTimesheetHaveError() ? <p className="bg-red-200 text-red-900 px-2 py-1">Timesheet Has Errors</p> : <p className="bg-green-100 text-green-900 px-2 py-1">Valid Timesheet</p>}
+                            {localTimesheet && doesTimesheetHaveError() ? <p className="bg-red-200 text-red-900 px-2 py-1">Timesheet Has Errors</p> : <p className="bg-green-100 text-green-900 px-2 py-1">Valid Timesheet</p>}
                         </div>
                     </div>
                     {/* Daily Breakdown */}
@@ -223,10 +207,10 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                         <>{daysInCurrentTimesheetWeek.map((date, dayOfTheWeekIndex) =>
                             <div key={date.date}>
                                 <ManageRecordView
-                                    primitiveRecord={getPrimitiveRecordForDate(date.basicFormat())}
+                                    record={getRecordForDate(date)}
                                     uiElementId={`${timesheet.id}${dayOfTheWeekIndex}`}
                                     date={date}
-                                    updatePrimitiveRecordInTimesheet={(primitiveRecord: PrimitiveTimesheetRecord) => handleUpdatePrimitiveRecordInTimesheet(primitiveRecord)}
+                                    updateRecordInTimesheet={(record: TimesheetRecord) => handleUpdateRecordInTimesheet(record)}
                                     canAddEntry={canRecordHaveEntry(date.basicFormat())}
                                     updateRecordErrorState={(errorState: boolean) => updateTimesheetErrorState(errorState, dayOfTheWeekIndex)}
                                 />

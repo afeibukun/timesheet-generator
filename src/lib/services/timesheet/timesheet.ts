@@ -14,7 +14,7 @@ import { StorageLabel, IndexName, StoreName } from "@/lib/constants/storage";
 import { Customer } from "../meta/customer";
 import { Site } from "../meta/site";
 import { Project } from "../meta/project";
-import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheet, PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError, PrimitiveTimesheetOption } from "@/lib/types/primitive";
+import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheet, PrimitiveTimesheetEntry, TimesheetEntryError, PrimitiveTimesheetOption } from "@/lib/types/primitive";
 import { PlainCustomer, PlainProject, PlainSite } from "@/lib/types/meta";
 import { createXlsxTimesheetClassicTemplate } from "../xlsx/excelJsService";
 import { createPdfWithJsPdfAutoTable } from "../pdf/jsPdfAutoTableService";
@@ -475,42 +475,6 @@ export class Timesheet implements PlainTimesheet {
         return _timesheetCollectionByMonth
     }
 
-    static errorOnEntryTime = (entry: TimesheetEntry, timesheet: Timesheet, timeType: string = 'finish',) => {
-        let errorData = timeType === 'start' ? TimesheetEntryPeriod.errorOnStartTime(entry.entryPeriod) : TimesheetEntryPeriod.errorOnFinishTime(entry.entryPeriod)
-        if (errorData.error) return errorData
-
-        if (entry) {
-            const _record = timesheet.records.filter((_record) => _record.date.isDateSame(entry.date))[0]
-            if (_record) {
-                const _primitiveRecord = _record.convertToPrimitive();
-                const _doesPrimitiveRecordHaveOverlappingTimeEntries = TimesheetRecord.doesPrimitiveRecordHaveOverlappingTimeEntries(_primitiveRecord)
-                const _entriesWithOverlappingPeriod = TimesheetRecord.getEntriesWithOverlappingPeriodFromPrimitiveRecord(_primitiveRecord)
-                const _isEntryPartOfEntriesWithOverlappingPeriod = _entriesWithOverlappingPeriod.some(_overlappingEntry => _overlappingEntry.id === entry.id)
-
-                if (_doesPrimitiveRecordHaveOverlappingTimeEntries && _isEntryPartOfEntriesWithOverlappingPeriod) return { error: true, message: "Entry Period Overlaps with other entries." }
-            }
-        }
-        return { error: false, message: "" }
-    }
-
-    static errorOnPrimitiveEntryTime = (primitiveEntry: PrimitiveTimesheetEntry, primitiveTimesheet: PrimitiveTimesheet, timeType: string = 'finish') => {
-        const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(primitiveEntry);
-        let errorData = timeType === 'start' ? TimesheetEntryPeriod.errorOnStartTime(_entry.entryPeriod) : TimesheetEntryPeriod.errorOnFinishTime(_entry.entryPeriod)
-        if (errorData.error) return errorData
-
-        if (_entry) {
-            const _primitiveRecord = primitiveTimesheet.records.filter((_primitiveRecord) => _primitiveRecord.date === primitiveEntry.date)[0]
-            if (_primitiveRecord) {
-                const _doesPrimitiveRecordHaveOverlappingTimeEntries = TimesheetRecord.doesPrimitiveRecordHaveOverlappingTimeEntries(_primitiveRecord)
-                const _entriesWithOverlappingPeriod = TimesheetRecord.getEntriesWithOverlappingPeriodFromPrimitiveRecord(_primitiveRecord)
-                const _isEntryPartOfEntriesWithOverlappingPeriod = _entriesWithOverlappingPeriod.some(_overlappingEntry => _overlappingEntry.id === _entry.id)
-
-                if (_doesPrimitiveRecordHaveOverlappingTimeEntries && _isEntryPartOfEntriesWithOverlappingPeriod) return { error: true, message: "Entry Period Overlaps with other entries." }
-            }
-        }
-        return { error: false, message: "" }
-    }
-
     static async getTimesheetSchemasFromPersonnel(personnel: Personnel) {
         const _timesheetSchemasByPersonnel: TimesheetSchema[] = await getAllFromIndexInStore(StoreName.timesheet, IndexName.personnelSlugIndex, personnel.slug);
         return _timesheetSchemasByPersonnel
@@ -538,58 +502,9 @@ export class Timesheet implements PlainTimesheet {
         return true
     }
 
-    static monthNumberFromPrimitiveTimesheet(primitiveTimesheet: PrimitiveTimesheet) {
-        if (!primitiveTimesheet) throw new Error("Timesheet Not Found");
-
-        const _primitiveRecords = primitiveTimesheet.records;
-        if (!_primitiveRecords) throw new Error("Timesheet Records Not Found");
-
-        const _firstPrimitiveRecord = _primitiveRecords[0];
-        if (!_firstPrimitiveRecord) throw new Error("Record Not Found");
-
-        const _firstRecord = TimesheetRecord.convertPrimitiveToRecord(_firstPrimitiveRecord);
-        return _firstRecord.monthNumber
-    }
-
-    static primitiveTimesheetHasRecords(primitiveTimesheet: PrimitiveTimesheet) {
-        const _records = primitiveTimesheet.records.map((_primitiveRecord) => TimesheetRecord.convertPrimitiveToRecord(_primitiveRecord));
-        if (_records.length > 0) return true
+    static timesheetHasRecords(timesheet: Timesheet) {
+        if (timesheet.records && timesheet.records.length > 0) return true
         return false
-    }
-
-    static generateTimesheetFormErrors = (primitiveTimesheet: PrimitiveTimesheet, existingEntryErrors: PrimitiveTimesheetEntryError[]) => {
-        const defaultErrorObject = { error: false, message: "" }
-        let entryErrors: PrimitiveTimesheetEntryError[] = [];
-        primitiveTimesheet.records.forEach((_primitiveRecord) => {
-            const _entriesInRecord = _primitiveRecord.entries.map((_primitiveEntry) => {
-                let _entryTypeError = defaultErrorObject
-                if (!_primitiveEntry.entryTypeSlug) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
-
-                let startTimeError = Timesheet.errorOnPrimitiveEntryTime(_primitiveEntry, primitiveTimesheet, 'start');
-                let _entryStartTimeError = defaultErrorObject
-                if (startTimeError.error) _entryStartTimeError = startTimeError
-
-                let finishTimeError = Timesheet.errorOnPrimitiveEntryTime(_primitiveEntry, primitiveTimesheet, 'finish');
-                let _entryFinishTimeError = defaultErrorObject
-                if (finishTimeError.error) _entryFinishTimeError = finishTimeError
-
-                const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(_primitiveEntry)
-                let breakStartTimeError = TimesheetEntryPeriod.errorOnBreakStartTime(_entry.entryPeriod);
-                let _entryBreakStartTimeError = defaultErrorObject
-                if (breakStartTimeError.error) _entryBreakStartTimeError = breakStartTimeError
-
-                let breakFinishTimeError = TimesheetEntryPeriod.errorOnBreakFinishTime(_entry.entryPeriod);
-                let _entryBreakFinishTimeError = defaultErrorObject
-                if (breakFinishTimeError.error) _entryBreakFinishTimeError = breakFinishTimeError
-
-                let entryError: PrimitiveTimesheetEntryError = existingEntryErrors.filter((e) => e.id === _primitiveEntry.id)[0];
-                if (entryError) entryError = { ...entryError, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError }
-                else entryError = { id: _primitiveEntry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
-                return entryError
-            })
-            entryErrors = [...entryErrors, ..._entriesInRecord]
-        })
-        return entryErrors
     }
 
     /**

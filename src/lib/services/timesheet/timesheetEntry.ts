@@ -6,7 +6,7 @@ import { AppOptionSchema } from "@/lib/types/schema";
 import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
 import { TimesheetHour } from "./timesheetHour";
-import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError } from "@/lib/types/primitive";
+import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry, TimesheetEntryError } from "@/lib/types/primitive";
 
 /**
  * Refers to actual timesheet activity entries, working time, travel time e.t.c.
@@ -50,14 +50,29 @@ export class TimesheetEntry implements PlainTimesheetEntry {
     get entryPeriodStartTime(): string {
         let time = this.entryPeriod?.startTime?.time
         if (time) return time
-        throw new Error(ErrorMessage.startTimeNotFound) // Time not found 
+        // throw new Error(ErrorMessage.startTimeNotFound) // Time not found 
+        return ""
     }
 
     get entryPeriodFinishTime(): string {
         let time = this.entryPeriod?.finishTime?.time
         if (time) return time
-        throw new Error(ErrorMessage.finishTimeNotFound) // finish time not found
+        return ""
+        // throw new Error(ErrorMessage.finishTimeNotFound) // finish time not found
     }
+
+    get breakPeriodStartTime(): string {
+        let time = this.entryPeriod?.breakTimeStart?.time
+        if (time) return time
+        return ""
+    }
+
+    get breakPeriodFinishTime(): string {
+        let time = this.entryPeriod?.breakTimeFinish?.time
+        if (time) return time
+        return ""
+    }
+
 
     get weekNumber(): number {
         const timesheetEntryWeek = this.date.weekNumber;

@@ -70,7 +70,7 @@ export interface PrimitiveTimesheetEntryType {
     name: string
 }
 
-export interface PrimitiveTimesheetEntryError {
+export interface TimesheetEntryError {
     id: number,
     entryType: { error: boolean, message: string },
     locationType: { error: boolean, message: string },

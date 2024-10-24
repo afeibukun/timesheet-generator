@@ -4,7 +4,7 @@ import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetHour } from "./timesheetHour";
 import { ErrorMessage, LocationType, TimesheetEntryType } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
+import { PrimitiveTimesheetEntry, TimesheetEntryError, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
 
 /**
  * Refers to a daily record of timesheet entries, it holds entries within the same day together
@@ -195,50 +195,38 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return _hasOverlap
     }
 
-    static getEntriesWithOverlappingPeriodFromPrimitiveRecord(primitiveRecord: PrimitiveTimesheetRecord) {
-        const _record = TimesheetRecord.convertPrimitiveToRecord(primitiveRecord);
-        const _overlappingEntries = TimesheetRecord.getEntriesWithOverlappingPeriod(_record);
-        return _overlappingEntries
-    }
-
-    static doesPrimitiveRecordHaveOverlappingTimeEntries(primitiveRecord: PrimitiveTimesheetRecord) {
-        const _record = TimesheetRecord.convertPrimitiveToRecord(primitiveRecord);
-        return TimesheetRecord.hasEntriesWithOverlappingPeriod(_record);
-    }
-    static entryTimeError = (primitiveEntry: PrimitiveTimesheetEntry, primitiveRecord: PrimitiveTimesheetRecord, timeType: "start" | "finish") => {
-        const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(primitiveEntry);
-        let errorData = timeType === "start" ? TimesheetEntryPeriod.errorOnStartTime(_entry.entryPeriod) : TimesheetEntryPeriod.errorOnFinishTime(_entry.entryPeriod)
+    static entryTimeError = (entry: TimesheetEntry, record: TimesheetRecord, timeType: "start" | "finish") => {
+        let errorData = timeType === "start" ? TimesheetEntryPeriod.errorOnStartTime(entry.entryPeriod) : TimesheetEntryPeriod.errorOnFinishTime(entry.entryPeriod)
         if (errorData.error) return errorData
 
-        if (_entry) {
-            if (primitiveRecord) {
-                const _doesPrimitiveRecordHaveOverlappingTimeEntries = TimesheetRecord.doesPrimitiveRecordHaveOverlappingTimeEntries(primitiveRecord)
-                const _entriesWithOverlappingPeriod = TimesheetRecord.getEntriesWithOverlappingPeriodFromPrimitiveRecord(primitiveRecord)
-                const _isEntryPartOfEntriesWithOverlappingPeriod = _entriesWithOverlappingPeriod.some(_overlappingEntry => _overlappingEntry.id === _entry.id)
+        if (entry) {
+            if (record) {
+                const _doesRecordHaveOverlappingTimeEntries = TimesheetRecord.hasEntriesWithOverlappingPeriod(record)
+                const _entriesWithOverlappingPeriod = TimesheetRecord.getEntriesWithOverlappingPeriod(record)
+                const _isEntryPartOfEntriesWithOverlappingPeriod = _entriesWithOverlappingPeriod.some(_overlappingEntry => _overlappingEntry.id === entry.id)
 
-                if (_doesPrimitiveRecordHaveOverlappingTimeEntries && _isEntryPartOfEntriesWithOverlappingPeriod) return { error: true, message: "Entry Period Overlaps with other entries." }
+                if (_doesRecordHaveOverlappingTimeEntries && _isEntryPartOfEntriesWithOverlappingPeriod) return { error: true, message: "Entry Period Overlaps with other entries." }
             }
         }
         return { error: false, message: "" }
     }
 
 
-    static cheeckForErrorsInRecord = (primitiveRecord: PrimitiveTimesheetRecord, existingEntryErrors: PrimitiveTimesheetEntryError[]) => {
+    static cheeckForErrorsInRecord = (record: TimesheetRecord, existingEntryErrors: TimesheetEntryError[]) => {
         const defaultErrorObject = { error: false, message: "" }
-        let entryErrors: PrimitiveTimesheetEntryError[] = [];
-        const _entryErrorsInRecord = primitiveRecord.entries.map((_primitiveEntry) => {
+        let entryErrors: TimesheetEntryError[] = [];
+        const _entryErrorsInRecord = record.entries.map((_entry) => {
             let _entryTypeError = defaultErrorObject
-            if (!_primitiveEntry.entryTypeSlug) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
+            if (!_entry.entryType.slug) _entryTypeError = { error: true, message: "Entry Type Not Selected" }
 
-            let startTimeError = TimesheetRecord.entryTimeError(_primitiveEntry, primitiveRecord, 'start');
+            let startTimeError = TimesheetRecord.entryTimeError(_entry, record, 'start');
             let _entryStartTimeError = defaultErrorObject
             if (startTimeError.error) _entryStartTimeError = startTimeError
 
-            let finishTimeError = TimesheetRecord.entryTimeError(_primitiveEntry, primitiveRecord, 'finish');
+            let finishTimeError = TimesheetRecord.entryTimeError(_entry, record, 'finish');
             let _entryFinishTimeError = defaultErrorObject
             if (finishTimeError.error) _entryFinishTimeError = finishTimeError
 
-            const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(_primitiveEntry)
             let breakStartTimeError = TimesheetEntryPeriod.errorOnBreakStartTime(_entry.entryPeriod);
             let _entryBreakStartTimeError = defaultErrorObject
             if (breakStartTimeError.error) _entryBreakStartTimeError = breakStartTimeError
@@ -247,10 +235,10 @@ export class TimesheetRecord implements PlainTimesheetRecord {
             let _entryBreakFinishTimeError = defaultErrorObject
             if (breakFinishTimeError.error) _entryBreakFinishTimeError = breakFinishTimeError
 
-            let entryError: PrimitiveTimesheetEntryError = existingEntryErrors.filter((e) => e.id === _primitiveEntry.id)[0];
+            let entryError: TimesheetEntryError = existingEntryErrors.filter((e) => e.id === _entry.id)[0];
 
             if (entryError) entryError = { ...entryError, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError }
-            else entryError = { id: _primitiveEntry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
+            else entryError = { id: _entry.id, entryType: _entryTypeError, entryPeriodStartTime: _entryStartTimeError, entryPeriodFinishTime: _entryFinishTimeError, breakPeriodStartTime: _entryBreakStartTimeError, breakPeriodFinishTime: _entryBreakFinishTimeError, locationType: defaultErrorObject }
             return entryError
         })
         entryErrors = [...entryErrors, ..._entryErrorsInRecord]

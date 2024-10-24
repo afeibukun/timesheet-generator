@@ -1,18 +1,20 @@
 import { LocationType } from "@/lib/constants/constant"
 import { defaultTimesheetEntryType } from "@/lib/constants/default"
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry"
-import { PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError } from "@/lib/types/primitive"
+import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
+import { TimesheetHour } from "@/lib/services/timesheet/timesheetHour"
+import { TimesheetEntryError } from "@/lib/types/primitive"
 import { useState } from "react"
 
 type EntryEditViewProps = {
-    primitiveEntry: PrimitiveTimesheetEntry,
+    entry: TimesheetEntry,
     uiElementId: string,
-    updatePrimitiveEntryInRecord: Function,
-    deletePrimitiveEntryInRecord: Function,
-    entryError: PrimitiveTimesheetEntryError | undefined
+    updateEntryInRecord: Function,
+    deleteEntryInRecord: Function,
+    entryError: TimesheetEntryError | undefined
 }
 
-export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimitiveEntryInRecord, deletePrimitiveEntryInRecord, entryError }: EntryEditViewProps) {
+export default function EntryEditView({ entry, uiElementId, updateEntryInRecord, deleteEntryInRecord, entryError }: EntryEditViewProps) {
 
     const timeSuggestion = {
         startTime: ["06:00", "07:00", "08:00", "09:00"],
@@ -21,20 +23,79 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
         breakFinishTime: ["12:00", "12:30", "13:00", "13:30", "14:00"],
     }
 
-    const [localPrimitiveEntry, setLocalPrimitiveEntry] = useState(primitiveEntry);
+    const [localEntry, setLocalEntry] = useState(entry);
 
-    function handleLocalPrimitiveEntryChange(e: any, itemKey: string) {
-        let itemValue = e.target.value;
-        if (itemKey === 'hasPremium') itemValue = !!e.target.checked
-        const _updatedLocalPrimitiveEntry = { ...localPrimitiveEntry, [itemKey]: itemValue }
-        setLocalPrimitiveEntry(_updatedLocalPrimitiveEntry);
-        updatePrimitiveEntryInRecord(_updatedLocalPrimitiveEntry)
+    const handleEntryTypeChange = (e: any) => {
+        const _entryTypeSlug = e.target.value
+        const _entryType = defaultTimesheetEntryType.filter((_entryType) => _entryType.slug === _entryTypeSlug)[0];
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, entryType: _entryType })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
 
+    const handleLocationTypeChange = (e: any) => {
+        const _locationType = e.target.value
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, locationType: _locationType })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleHasPremiumCheck = (e: any) => {
+        const _hasPremium: boolean = !!e.target.checked
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, hasPremium: _hasPremium })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleEntryStartTimeChange = (e: any) => {
+        const _entryStartTimeString: string = e.target.value
+        let _entryStartTime: TimesheetHour | undefined
+        try {
+            _entryStartTime = new TimesheetHour(_entryStartTimeString)
+        } catch (e) { }
+        const _entryPeriod = new TimesheetEntryPeriod({ ...localEntry.entryPeriod, startTime: _entryStartTime });
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, entryPeriod: _entryPeriod })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleEntryFinishTimeChange = (e: any) => {
+        const _entryFinishTimeString: string = e.target.value
+        const _entryFinishTime: TimesheetHour = new TimesheetHour(_entryFinishTimeString)
+        const _entryPeriod = new TimesheetEntryPeriod({ ...localEntry.entryPeriod, finishTime: _entryFinishTime });
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, entryPeriod: _entryPeriod })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleBreakStartTimeChange = (e: any) => {
+        const _breakStartTimeString: string = e.target.value
+        const _breakStartTime: TimesheetHour = new TimesheetHour(_breakStartTimeString)
+        const _entryPeriod = new TimesheetEntryPeriod({ ...localEntry.entryPeriod, breakTimeStart: _breakStartTime });
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, entryPeriod: _entryPeriod })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleBreakFinishTimeChange = (e: any) => {
+        const _breakFinishTimeString: string = e.target.value
+        const _breakFinishTime: TimesheetHour = new TimesheetHour(_breakFinishTimeString)
+        const _entryPeriod = new TimesheetEntryPeriod({ ...localEntry.entryPeriod, finishTime: _breakFinishTime });
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, entryPeriod: _entryPeriod })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleCommentChange = (e: any) => {
+        const _comment: string = e.target.value
+        const _updatedLocalEntry = new TimesheetEntry({ ...localEntry, comment: _comment })
+        setLocalEntry(_updatedLocalEntry);
+        updateEntryInRecord(_updatedLocalEntry)
     }
 
     const totalHoursInEntry = () => {
         try {
-            const _totalHoursInString = TimesheetEntry.getTotalHoursInPrimitiveTimesheetEntry(localPrimitiveEntry);
+            const _totalHoursInString = localEntry.totalHoursInString;
             return _totalHoursInString
         } catch (e) { }
         return "00:00"
@@ -43,7 +104,7 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
     const verifyErrorData = (fieldName: string) => {
         try {
             if (entryError) {
-                const errorData = entryError[fieldName as keyof PrimitiveTimesheetEntryError] as { error: boolean, message: string }
+                const errorData = entryError[fieldName as keyof TimesheetEntryError] as { error: boolean, message: string }
                 return errorData
             } else {
                 throw new Error("Entry Error Data Not found")
@@ -55,19 +116,19 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
     }
 
     function handleEntryDelete(e: any, entryId: number) {
-        deletePrimitiveEntryInRecord(entryId);
+        deleteEntryInRecord(entryId);
     }
 
     return (
-        <div className="entry-body grid grid-cols-12 gap-x-1.5 mb-4" key={localPrimitiveEntry.id}>
+        <div className="entry-body grid grid-cols-12 gap-x-1.5 mb-4" key={localEntry.id}>
             <div className="time-type-edit col-span-2">
                 <select
                     name="timeType"
                     id={`time-type-${uiElementId}`}
                     title="Select Time Type"
                     className={`text-xs p-1 rounded-sm border w-full ${!(entryError && entryError.entryType && entryError.entryType.error) ? 'border-black ' : 'border-red-600 focus:outline-red-600'}`}
-                    value={localPrimitiveEntry.entryTypeSlug}
-                    onChange={(e) => handleLocalPrimitiveEntryChange(e, 'entryTypeSlug')} >
+                    value={localEntry.entryType.slug}
+                    onChange={(e) => handleEntryTypeChange(e)} >
                     <option value="" >Select Time Type</option>
                     {defaultTimesheetEntryType.map((entryType, entryTypeIndex) =>
                         <option value={entryType.slug} key={entryTypeIndex}>{entryType.name}</option>
@@ -87,13 +148,13 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                     name="locationType"
                     id={`location-type-${uiElementId}`}
                     title="Select Location Type"
-                    className={`w-full text-xs p-1 rounded-sm border ${(localPrimitiveEntry.locationType == LocationType.onshore || localPrimitiveEntry.locationType == LocationType.offshore) ? 'border-black' : 'border-red-600 focus:outline-red-600'}`}
-                    value={localPrimitiveEntry.locationType}
-                    onChange={(e) => handleLocalPrimitiveEntryChange(e, 'locationType')}>
+                    className={`w-full text-xs p-1 rounded-sm border ${(localEntry.locationType == LocationType.onshore || localEntry.locationType == LocationType.offshore) ? 'border-black' : 'border-red-600 focus:outline-red-600'}`}
+                    value={localEntry.locationType}
+                    onChange={(e) => handleLocationTypeChange(e)}>
                     <option value={LocationType.onshore}>Onshore</option>
                     <option value={LocationType.offshore}>Offshore</option>
                 </select>
-                <>{!(localPrimitiveEntry.locationType == LocationType.onshore || localPrimitiveEntry.locationType == LocationType.offshore) ?
+                <>{!(localEntry.locationType == LocationType.onshore || localEntry.locationType == LocationType.offshore) ?
                     <div className="w-full relative">
                         <div className="error-display absolute w-full" title="Invalid Location Type">
                             <p className="text-red-600 text-[8px] font-medium text-ellipsis overflow-hidden whitespace-nowrap">Invalid Location Type</p>
@@ -107,7 +168,7 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                     name="premium"
                     id={`premium-${uiElementId}`}
                     title="Check Premium"
-                    checked={!!localPrimitiveEntry.hasPremium} onChange={(e) => handleLocalPrimitiveEntryChange(e, 'hasPremium')}
+                    checked={!!localEntry.hasPremium} onChange={(e) => handleHasPremiumCheck(e)}
                     className="text-center" />
             </div>
             <div className="start-time-edit">
@@ -117,8 +178,8 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                     id={`start-time-${uiElementId}`}
                     title="Pick Your Start Time"
                     className={`w-full text-xs p-1 rounded-sm border border-black ${!(entryError && entryError.entryPeriodStartTime && entryError.entryPeriodStartTime.error) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`}
-                    value={localPrimitiveEntry.entryPeriodStartTime}
-                    onChange={(e) => handleLocalPrimitiveEntryChange(e, 'entryPeriodStartTime')}
+                    value={localEntry.entryPeriodStartTime}
+                    onChange={(e) => handleEntryStartTimeChange(e)}
                     step={300}
                     list="entryStartTimePopularHours" />
                 <datalist id="entryStartTimePopularHours">
@@ -141,8 +202,9 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                     type="time"
                     name="finishTime"
                     id={`finish-time-${uiElementId}`}
-                    title="Pick Your Finish Time" value={localPrimitiveEntry.entryPeriodFinishTime}
-                    onChange={(e) => handleLocalPrimitiveEntryChange(e, 'entryPeriodFinishTime')}
+                    title="Pick Your Finish Time"
+                    value={localEntry.entryPeriodFinishTime}
+                    onChange={(e) => handleEntryFinishTimeChange(e)}
                     className={`w-full text-xs p-1 rounded-sm border ${!(entryError && entryError.entryPeriodFinishTime && entryError.entryPeriodFinishTime.error) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`}
                     step="300"
                     list="entryFinishTimePopularHours" />
@@ -169,8 +231,8 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                     id={`break-start-time-${uiElementId}`}
                     title="Pick Your Break Start Time"
                     className={`w-full text-xs p-1 rounded-sm border border-black ${!(entryError && entryError.breakPeriodStartTime && entryError.breakPeriodStartTime.error) ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`}
-                    value={localPrimitiveEntry.breakPeriodStartTime}
-                    onChange={(e) => handleLocalPrimitiveEntryChange(e, 'breakPeriodStartTime')}
+                    value={localEntry.breakPeriodStartTime}
+                    onChange={(e) => handleBreakStartTimeChange(e)}
                     step="300"
                     list="breakStartTimePopularHours" />
 
@@ -195,8 +257,8 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                     id={`break-finish-time-${uiElementId}`}
                     title="Pick Your Break Finish Time"
                     className={`w-full text-xs p-1 rounded-sm border ${!verifyErrorData('breakPeriodFinishTime').error ? 'border-black text-black' : 'border-red-600 text-red-600 outline-red-600'}`}
-                    value={localPrimitiveEntry.breakPeriodFinishTime}
-                    onChange={(e) => handleLocalPrimitiveEntryChange(e, 'breakPeriodFinishTime')}
+                    value={localEntry.breakPeriodFinishTime}
+                    onChange={(e) => handleBreakFinishTimeChange(e)}
                     step="300"
                     list="breakFinishTimePopularHours" />
 
@@ -223,7 +285,7 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                 <input
                     type="text"
                     name="comment"
-                    id={`comment-${uiElementId}`} title="Type Your Comment" className="w-full text-xs p-1 rounded-sm border border-black" value={primitiveEntry.comment} onChange={(e) => handleLocalPrimitiveEntryChange(e, 'comment')} />
+                    id={`comment-${uiElementId}`} title="Type Your Comment" className="w-full text-xs p-1 rounded-sm border border-black" value={localEntry.comment} onChange={(e) => handleCommentChange(e)} />
             </div>
             <div className="action-list">
                 <div className="flex gap-x-1 justify-end">
@@ -233,7 +295,7 @@ export default function EntryEditView({ primitiveEntry, uiElementId, updatePrimi
                         </svg>
                     </button>
 
-                    <button type="button" title="Delete Entry" className="p-0.5 text-red-700" onClick={(e) => handleEntryDelete(e, primitiveEntry.id)}>
+                    <button type="button" title="Delete Entry" className="p-0.5 text-red-700" onClick={(e) => handleEntryDelete(e, localEntry.id)}>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                         </svg>

@@ -1,100 +1,100 @@
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate"
-import { PrimitiveTimesheetEntry, PrimitiveTimesheetEntryError, PrimitiveTimesheetRecord } from "@/lib/types/primitive"
+import { TimesheetEntryError } from "@/lib/types/primitive"
 import { useEffect, useState } from "react"
 import EntryEditView from "./EntryEditView"
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry"
 import { LocationType } from "@/lib/constants/constant"
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord"
+import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
 
 type ManageRecordViewProps = {
-    primitiveRecord: PrimitiveTimesheetRecord | undefined,
+    record: TimesheetRecord,
     uiElementId: string,
     date: TimesheetDate,
     canAddEntry: Boolean,
-    updatePrimitiveRecordInTimesheet: Function,
+    updateRecordInTimesheet: Function,
     updateRecordErrorState: Function
 }
 
-export default function ManageRecordView({ primitiveRecord, uiElementId, date, canAddEntry, updatePrimitiveRecordInTimesheet, updateRecordErrorState }: ManageRecordViewProps) {
+export default function ManageRecordView({ record, uiElementId, date, canAddEntry, updateRecordInTimesheet, updateRecordErrorState }: ManageRecordViewProps) {
 
-    const [localPrimitiveRecord, setLocalPrimitiveRecord] = useState(primitiveRecord);
+    const [localRecord, setLocalRecord] = useState(record);
 
     const defaultErrorObject = { error: false, message: "" }
 
-    const _initialLocalEntryErrors: PrimitiveTimesheetEntryError[] = []
+    const _initialLocalEntryErrors: TimesheetEntryError[] = []
     const [entryErrorsInRecord, setEntryErrorsInRecord] = useState(_initialLocalEntryErrors);
 
     useEffect(() => {
         const initializer = () => {
-            const _initialLocalEntryErrors: PrimitiveTimesheetEntryError[] = primitiveRecord && primitiveRecord.entries && primitiveRecord.entries.length > 0 ? primitiveRecord.entries.map((_primitiveEntry) => {
-                return addNewEntryError(_primitiveEntry.id)
+            const _initialLocalEntryErrors: TimesheetEntryError[] = record && record.entries && record.entries.length > 0 ? record.entries.map((_entry) => {
+                return addNewEntryError(_entry.id)
             }) : [];
             setEntryErrorsInRecord(_initialLocalEntryErrors);
         }
         initializer();
     }, []);
 
-    const doesPrimitiveRecordHaveEntries = (primitiveRecord: PrimitiveTimesheetRecord | undefined) => {
-        if (!primitiveRecord || !primitiveRecord.entries.some((_primitiveEntry) => primitiveRecord.date === _primitiveEntry.date)) return false
+    const doesRecordHaveEntries = (record: TimesheetRecord | undefined) => {
+        if (!record || !record.entries.some((_entry) => record.date.isDateSame(_entry.date))) return false
         return true
     }
 
     const getTotalHoursForRecord = () => {
-        if (localPrimitiveRecord) return TimesheetRecord.totalHoursForPrimitiveRecord(localPrimitiveRecord);
+        if (localRecord) return localRecord.totalHoursInString;
         return '00:00'
     }
 
     const addNewEntry = (dayString: string) => {
-        const _newPrimitiveEntry: PrimitiveTimesheetEntry = { id: TimesheetEntry.createId(), date: dayString, entryTypeSlug: '', hasPremium: false, entryPeriodStartTime: '', entryPeriodFinishTime: '', locationType: LocationType.onshore, comment: '', breakPeriodStartTime: '', breakPeriodFinishTime: '' }
-        let _primitiveRecord: PrimitiveTimesheetRecord;
+        const _newEntry: TimesheetEntry = new TimesheetEntry({ id: TimesheetEntry.createId(), date: new TimesheetDate(dayString), entryType: { slug: '', name: '' }, hasPremium: false, entryPeriod: new TimesheetEntryPeriod({}), locationType: LocationType.onshore, comment: '' });
+        let _record: TimesheetRecord;
 
-        if (doesPrimitiveRecordHaveEntries(localPrimitiveRecord) && localPrimitiveRecord?.entries) {
-            _primitiveRecord = { ...localPrimitiveRecord, entries: [...localPrimitiveRecord?.entries, _newPrimitiveEntry] }
+        if (doesRecordHaveEntries(localRecord) && localRecord?.entries) {
+            _record = new TimesheetRecord({ ...localRecord, entries: [...localRecord?.entries, _newEntry] })
         } else {
-            _primitiveRecord = { id: TimesheetRecord.createId(), date: dayString, entries: [_newPrimitiveEntry] }
+            _record = new TimesheetRecord({ id: TimesheetRecord.createId(), date: new TimesheetDate(dayString), entries: [_newEntry] })
         }
-        setLocalPrimitiveRecord(_primitiveRecord);
-        updatePrimitiveRecordInTimesheet(_primitiveRecord);
-        const _updatedEntryErrors = [...entryErrorsInRecord, addNewEntryError(_newPrimitiveEntry.id)]
+        setLocalRecord(_record);
+        updateRecordInTimesheet(_record);
+        const _updatedEntryErrors = [...entryErrorsInRecord, addNewEntryError(_newEntry.id)]
         setEntryErrorsInRecord(_updatedEntryErrors)
-        checkForEntryErrors(_primitiveRecord, _updatedEntryErrors)
-        // set the primitive record on its timesheet
+        checkForEntryErrors(_record, _updatedEntryErrors)
     }
 
     const addNewEntryError = (entryId: number) => {
-        return { id: entryId, entryType: defaultErrorObject, locationType: defaultErrorObject, entryPeriodStartTime: defaultErrorObject, entryPeriodFinishTime: defaultErrorObject, breakPeriodStartTime: defaultErrorObject, breakPeriodFinishTime: defaultErrorObject } as PrimitiveTimesheetEntryError
+        return { id: entryId, entryType: defaultErrorObject, locationType: defaultErrorObject, entryPeriodStartTime: defaultErrorObject, entryPeriodFinishTime: defaultErrorObject, breakPeriodStartTime: defaultErrorObject, breakPeriodFinishTime: defaultErrorObject } as TimesheetEntryError
     }
 
-    const handleUpdatePrimitiveEntryInRecord = (primitiveEntry: PrimitiveTimesheetEntry) => {
-        if (localPrimitiveRecord) {
-            const doesPrimitiveEntryExistInLocalRecord = localPrimitiveRecord.entries.some(_primitiveEntry => _primitiveEntry.id === primitiveEntry.id)
-            let _updatedLocalPrimitiveRecord: PrimitiveTimesheetRecord;
-            if (doesPrimitiveEntryExistInLocalRecord) {
-                // update the primitive record
-                _updatedLocalPrimitiveRecord = {
-                    ...localPrimitiveRecord, entries: localPrimitiveRecord.entries.map((_primtiveEntry) => {
-                        if (_primtiveEntry.id === primitiveEntry.id) return primitiveEntry
-                        else return _primtiveEntry
+    const handleUpdateEntryInRecord = (entry: TimesheetEntry) => {
+        if (localRecord) {
+            const doesEntryExistInLocalRecord = localRecord.entries.some(_entry => _entry.id === entry.id)
+            let _updatedLocalRecord: TimesheetRecord;
+            if (doesEntryExistInLocalRecord) {
+                // update the record
+                _updatedLocalRecord = new TimesheetRecord({
+                    ...localRecord, entries: localRecord.entries.map((_entry) => {
+                        if (_entry.id === entry.id) return entry
+                        else return _entry
                     })
-                }
+                })
             } else {
-                // add primitive entry
-                _updatedLocalPrimitiveRecord = { ...localPrimitiveRecord, entries: [...localPrimitiveRecord.entries, primitiveEntry] }
+                // add entry
+                _updatedLocalRecord = new TimesheetRecord({ ...localRecord, entries: [...localRecord.entries, entry] })
             }
-            setLocalPrimitiveRecord(_updatedLocalPrimitiveRecord);
-            updatePrimitiveRecordInTimesheet(_updatedLocalPrimitiveRecord);
-            checkForEntryErrors(_updatedLocalPrimitiveRecord, entryErrorsInRecord);
+            setLocalRecord(_updatedLocalRecord);
+            updateRecordInTimesheet(_updatedLocalRecord);
+            checkForEntryErrors(_updatedLocalRecord, entryErrorsInRecord);
         }
     }
 
-    function handlePrimitiveEntryDelete(entryId: number) {
-        if (localPrimitiveRecord) {
-            const _updatedPrimitiveRecord = { ...localPrimitiveRecord, entries: localPrimitiveRecord.entries.filter((_primitiveEntry) => _primitiveEntry.id !== entryId) }
-            setLocalPrimitiveRecord(_updatedPrimitiveRecord);
-            updatePrimitiveRecordInTimesheet(_updatedPrimitiveRecord);
+    function handleEntryDelete(entryId: number) {
+        if (localRecord) {
+            const _updatedRecord = new TimesheetRecord({ ...localRecord, entries: localRecord.entries.filter((_entry) => _entry.id !== entryId) })
+            setLocalRecord(_updatedRecord);
+            updateRecordInTimesheet(_updatedRecord);
             const _updatedEntryErrors = entryErrorsInRecord.filter((_error) => _error.id !== entryId)
             setEntryErrorsInRecord(_updatedEntryErrors)
-            checkForEntryErrors(_updatedPrimitiveRecord, _updatedEntryErrors)
+            checkForEntryErrors(_updatedRecord, _updatedEntryErrors)
         }
     }
 
@@ -103,8 +103,8 @@ export default function ManageRecordView({ primitiveRecord, uiElementId, date, c
             return entryErrorsInRecord.filter(e => e.id === entryId)[0]
     }
 
-    const checkForEntryErrors = (primitiveRecord: PrimitiveTimesheetRecord, entryErrorsInRecord: PrimitiveTimesheetEntryError[]) => {
-        let entryErrors: PrimitiveTimesheetEntryError[] = TimesheetRecord.cheeckForErrorsInRecord(primitiveRecord, entryErrorsInRecord);
+    const checkForEntryErrors = (record: TimesheetRecord, entryErrorsInRecord: TimesheetEntryError[]) => {
+        let entryErrors: TimesheetEntryError[] = TimesheetRecord.cheeckForErrorsInRecord(record, entryErrorsInRecord);
         if (entryErrors.length > 0) {
             setEntryErrorsInRecord(entryErrors);
             updateRecordErrorState(doesRecordHaveErrors(entryErrors))
@@ -112,7 +112,7 @@ export default function ManageRecordView({ primitiveRecord, uiElementId, date, c
 
     }
 
-    const doesRecordHaveErrors = (entryErrorsInRecord: PrimitiveTimesheetEntryError[]) => {
+    const doesRecordHaveErrors = (entryErrorsInRecord: TimesheetEntryError[]) => {
         return entryErrorsInRecord.some((err) => {
             const hasErrors = err.entryType.error || err.entryPeriodStartTime.error || err.entryPeriodFinishTime.error || err.breakPeriodStartTime.error || err.breakPeriodFinishTime.error
             return hasErrors
@@ -122,7 +122,7 @@ export default function ManageRecordView({ primitiveRecord, uiElementId, date, c
     return (
         <div>
             <div className={``}>
-                <div className={`grid grid-cols-4 items-center px-3 py-2 rounded-md mb-2 ${doesPrimitiveRecordHaveEntries(localPrimitiveRecord) ? 'bg-blue-900' : 'bg-gray-400'}`}>
+                <div className={`grid grid-cols-4 items-center px-3 py-2 rounded-md mb-2 ${doesRecordHaveEntries(localRecord) ? 'bg-blue-900' : 'bg-gray-400'}`}>
                     <div className="date-container gap-x-2">
                         <div>
                             <h4 className="text-xs text-white">
@@ -131,7 +131,7 @@ export default function ManageRecordView({ primitiveRecord, uiElementId, date, c
                             </h4>
                         </div>
                     </div>
-                    <div>{/* record hours */}{doesPrimitiveRecordHaveEntries(localPrimitiveRecord) ?
+                    <div>{/* record hours */}{doesRecordHaveEntries(localRecord) ?
                         <div className="hours-container">
                             <div>
                                 <p className="text-xs text-white">
@@ -153,7 +153,7 @@ export default function ManageRecordView({ primitiveRecord, uiElementId, date, c
                 </div>
             </div>
             <div className="mb-3">
-                <>{doesPrimitiveRecordHaveEntries(localPrimitiveRecord) ?
+                <>{doesRecordHaveEntries(localRecord) ?
                     <div>
                         <div className="entry-heading grid grid-cols-12 gap-x-1 mb-1">
                             <div className="time-type col-span-2">
@@ -187,14 +187,14 @@ export default function ManageRecordView({ primitiveRecord, uiElementId, date, c
                                 <h4 className="text-xs text-gray-600"></h4>
                             </div>
                         </div>
-                        <div>{localPrimitiveRecord?.entries.map((_primitiveEntry, _entryIndex) =>
+                        <div>{localRecord?.entries.map((_entry, _entryIndex) =>
                             <EntryEditView
-                                key={_primitiveEntry.id}
-                                primitiveEntry={_primitiveEntry}
-                                uiElementId={`${uiElementId}-${_primitiveEntry.id}${_entryIndex}`}
-                                updatePrimitiveEntryInRecord={(primitiveEntry: PrimitiveTimesheetEntry) => handleUpdatePrimitiveEntryInRecord(primitiveEntry)}
-                                deletePrimitiveEntryInRecord={(entryId: number) => handlePrimitiveEntryDelete(entryId)}
-                                entryError={getEntryError(_primitiveEntry.id)} />
+                                key={_entry.id}
+                                entry={_entry}
+                                uiElementId={`${uiElementId}-${_entry.id}${_entryIndex}`}
+                                updateEntryInRecord={(entry: TimesheetEntry) => handleUpdateEntryInRecord(entry)}
+                                deleteEntryInRecord={(entryId: number) => handleEntryDelete(entryId)}
+                                entryError={getEntryError(_entry.id)} />
                         )}</div>
                     </div> :
                     <div className="py-2 px-4 rounded-sm bg-slate-100">
