@@ -3,12 +3,13 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetCollection } from "@/lib/types/timesheet";
-import { ToastStatus } from "@/lib/constants/constant";
+import { ReportType, TemplateType, ToastStatus } from "@/lib/constants/constant";
 import DefaultSection from "@/app/_components/DefaultSection";
 import DefaultSectionHeader from "@/app/_components/DefaultSectionHeader";
 import DefaultSectionTitle from "@/app/_components/DefaultSectionTitle";
 import ToastNotification from "@/app/_components/ToastNotification";
 import TimesheetUpdateView from "./TimesheetUpdateView";
+import { defaultExportOption } from "@/lib/constants/default";
 
 type NotificationType = {
     display: boolean,
@@ -28,6 +29,7 @@ type TimesheetCollectionViewProps = {
 export default function TimesheetCollectionView({ timesheetCollection, setTimesheetCollection }: TimesheetCollectionViewProps) {
 
     // const [timesheetCollection, setTimesheetCollection] = useState({} as TimesheetCollection);
+    const [exportOption, setExportOption] = useState(defaultExportOption);
     const [showNotification, setShowNotification] = useState({ display: false, text: '' } as NotificationType);
     const [activeTimesheetIndexInCollection, setActiveTimesheetIndexInCollection] = useState(0);
 
@@ -113,7 +115,7 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                     }
                     <div className="timesheet-collection-container w-full">
                         <div className="timesheet-collection-navigation">
-                            {timesheetCollection?.collection ?
+                            <>{timesheetCollection?.collection ?
                                 <div className="flex justify-between mb-2">
                                     <button type="button" onClick={(e) => activeTimesheetIndexInCollection > 0 ? setActiveTimesheetIndexInCollection(activeTimesheetIndexInCollection - 1) : ''} className={`px-3 py-1 text-xs rounded ${activeTimesheetIndexInCollection == 0 ? 'bg-slate-300 text-gray-400' : 'bg-slate-600 text-white'}`}>Prev</button>
 
@@ -127,7 +129,8 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
 
                                     <button type="button" onClick={(e) => activeTimesheetIndexInCollection < timesheetCollection.collection.length - 1 ? setActiveTimesheetIndexInCollection(activeTimesheetIndexInCollection + 1) : ''} className={`px-3 py-1 text-xs rounded ${activeTimesheetIndexInCollection == timesheetCollection.collection.length - 1 ? 'bg-slate-300 text-gray-400' : 'bg-slate-600 text-white'}`}>Next</button>
                                 </div>
-                                : ''}
+                                : ''
+                            }</>
                         </div>
                         {timesheetCollection?.collection ? (
                             <div className="timesheet-collection w-full overflow-x-hidden">
@@ -149,17 +152,21 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                 </div>
                 <footer className="py-8 print:hidden">
                     <div className="">
-                        <div className="flex gap-x-4">
+                        <div className="flex gap-x-4 mb-4">
                             <div>
-                                <button type="button" className="inline-block px-8 py-2 rounded uppercase text-sm bg-purple-700 text-white">Save Data</button>
+                                <button type="button" className="inline-block px-4 py-1 rounded uppercase text-sm bg-purple-700 text-white" onClick={(e) => Timesheet.exportXlsxTimesheets(timesheetCollection.collection, ReportType.customer, TemplateType.classic, exportOption)}>Export Timesheet Collection Excel</button>
                             </div>
                             <div>
-                                <Link href="/generate" className="inline-block px-8 py-2 rounded border">Edit Meta Data</Link>
+                                <button type="button" className="inline-block px-4 py-1 rounded uppercase text-sm bg-green-700 text-white" onClick={(e) => Timesheet.exportPdfTimesheets(timesheetCollection.collection, ReportType.customer, TemplateType.classic, exportOption)}>Export Timesheet Collection PDF</button>
                             </div>
+
+                            <div>
+                            </div>
+                        </div>
+                        <div>
+
                             <div>
                                 <Link href="/" className="inline-block px-8 py-2 rounded border">Go Home</Link>
-                            </div>
-                            <div>
                             </div>
                         </div>
                     </div>

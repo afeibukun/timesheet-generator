@@ -6,8 +6,10 @@ import { defaultLogoBase64 } from "@/lib/constants/defaultLogoBase64Image";
 import { useEffect, useState } from "react";
 import { Personnel } from "@/lib/services/meta/personnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import { ComponentType, SearchParamsLabel } from "@/lib/constants/constant";
+import { ComponentType, OptionLabel, SearchParamsLabel } from "@/lib/constants/constant";
 import ActivePersonnel from "./_components/ActivePersonnel";
+import { StorageLabel } from "@/lib/constants/storage";
+import { time } from "console";
 
 
 export default function Home() {
@@ -46,7 +48,16 @@ export default function Home() {
     sideEffect();
   }, [localActivePersonnel]);
 
-  // const getTimesheetsFrom
+  const isTimesheetPartOfCollection = (timesheet: Timesheet) => {
+    return timesheet.options.some((_option) => _option.key === OptionLabel.timesheetCollectionKey && _option.value)
+  }
+
+  const getTimesheetCollectionKey = (timesheet: Timesheet) => {
+    if (isTimesheetPartOfCollection(timesheet)) {
+      return timesheet.options.filter((_option) => _option.key === OptionLabel.timesheetCollectionKey && _option.value)[0].value
+    }
+  }
+
   return (
     <main className="container mx-auto">
       <DefaultSection>
@@ -156,6 +167,9 @@ export default function Home() {
                         </div>
                       </div>
                     </Link>
+                    <>{isTimesheetPartOfCollection(_timesheet) ?
+                      <Link href={`/review?${SearchParamsLabel.component}=${ComponentType.timesheetCollection}&${SearchParamsLabel.key}=${getTimesheetCollectionKey(_timesheet)}`} className="px-3 py-0.5 text-xs italic bg-green-300">View Collection {getTimesheetCollectionKey(_timesheet)}</Link> : ''}
+                    </>
                   </li>
                 )}
               </ul>

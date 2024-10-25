@@ -507,6 +507,19 @@ export class Timesheet implements PlainTimesheet {
         return false
     }
 
+    static async exportXlsxTimesheets(timesheets: Timesheet[], reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
+        await TimesheetDate.initializeWeekStartDay();
+        if (reportType == ReportType.customer && templateType === TemplateType.classic) {
+            createXlsxTimesheetClassicTemplate(timesheets, exportOption);
+        }
+    }
+
+    static exportPdfTimesheets(timesheets: Timesheet[], reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
+        if (reportType == ReportType.customer && templateType === TemplateType.classic) {
+            createPdfWithJsPdfAutoTable(timesheets, exportOption)
+        }
+    }
+
     /**
      * Timesheet Rules
      * - a timesheet with blank records or with no records should not be printed, don't waste the ink
