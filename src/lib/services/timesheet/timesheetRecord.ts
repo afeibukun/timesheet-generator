@@ -2,9 +2,9 @@ import { PlainTimesheetRecord, PlainTimesheetDate } from "@/lib/types/timesheet"
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetHour } from "./timesheetHour";
-import { ErrorMessage, LocationType, TimesheetEntryType } from "@/lib/constants/constant";
+import { ErrorMessage, LocationType, } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { PrimitiveTimesheetEntry, TimesheetEntryError, PrimitiveTimesheetRecord } from "@/lib/types/primitive";
+import { TimesheetEntryError } from "@/lib/types/primitive";
 
 /**
  * Refers to a daily record of timesheet entries, it holds entries within the same day together
@@ -110,15 +110,6 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return this.entries.some((entry) => this.date.isEqual(entry.date))
     }
 
-    convertToPrimitive(): PrimitiveTimesheetRecord {
-        const _entries = this.entries.map((entry: TimesheetEntry) => {
-            const _primitiveTimesheetEntry = entry.convertToPrimitive();
-            return _primitiveTimesheetEntry
-        });
-        const _primitiveRecord: PrimitiveTimesheetRecord = { id: this.id, date: this.date.defaultFormat(), entries: _entries }
-        return _primitiveRecord
-    }
-
     convertToPlain() {
         const _plainEntries = this.entries.map((entry: TimesheetEntry) => {
             const _plainTimesheetEntry = entry.convertToPlain();
@@ -128,30 +119,10 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return _plainRecord;
     }
 
-    static convertPrimitiveToRecord(primitiveRecord: PrimitiveTimesheetRecord) {
-        const _id = primitiveRecord.id;
-        const _date: TimesheetDate = TimesheetDate.convertPrimitiveToDate(primitiveRecord.date);
-        const _entries = primitiveRecord.entries.map((_primitiveEntry: PrimitiveTimesheetEntry) => {
-            return TimesheetEntry.convertPrimitiveToTimesheetEntry(_primitiveEntry)
-        })
-        const _record: TimesheetRecord = new TimesheetRecord({ id: _id, date: _date, entries: _entries })
-        return _record;
-    }
-
     static createId() {
         const randomCode = 895
         const id = randomCode.toString() + Date.now().toString();
         return Number(id);
-    }
-
-    static monthNumberForPrimitiveRecord(primitiveRecord: PrimitiveTimesheetRecord) {
-        const _record = TimesheetRecord.convertPrimitiveToRecord(primitiveRecord);
-        return _record.monthNumber
-    }
-
-    static totalHoursForPrimitiveRecord(primitiveRecord: PrimitiveTimesheetRecord) {
-        const _record = TimesheetRecord.convertPrimitiveToRecord(primitiveRecord);
-        return _record.totalHoursInString
     }
 
     static getEntriesWithOverlappingPeriod(record: TimesheetRecord) {

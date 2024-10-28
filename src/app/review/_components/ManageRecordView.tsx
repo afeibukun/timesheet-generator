@@ -1,3 +1,4 @@
+'use client'
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate"
 import { TimesheetEntryError } from "@/lib/types/primitive"
 import { useEffect, useState } from "react"
@@ -8,22 +9,23 @@ import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord"
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
 
 type ManageRecordViewProps = {
-    record: TimesheetRecord,
+    record: TimesheetRecord | undefined,
     uiElementId: string,
     date: TimesheetDate,
     canAddEntry: Boolean,
     updateRecordInTimesheet: Function,
-    updateRecordErrorState: Function
+    updateRecordErrorState: Function,
+    duplicateRecord: Function,
 }
 
-export default function ManageRecordView({ record, uiElementId, date, canAddEntry, updateRecordInTimesheet, updateRecordErrorState }: ManageRecordViewProps) {
-
-    const [localRecord, setLocalRecord] = useState(record);
+export default function ManageRecordView({ record, uiElementId, date, canAddEntry, updateRecordInTimesheet, updateRecordErrorState, duplicateRecord }: ManageRecordViewProps) {
 
     const defaultErrorObject = { error: false, message: "" }
 
     const _initialLocalEntryErrors: TimesheetEntryError[] = []
     const [entryErrorsInRecord, setEntryErrorsInRecord] = useState(_initialLocalEntryErrors);
+    const [showRecordDuplicateOption, setShowRecordDuplicateOption] = useState(false);
+    const [recordDuplicateDestination, setRecordDuplicateDestination] = useState([] as string[]);
 
     useEffect(() => {
         const initializer = () => {
@@ -41,7 +43,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
     }
 
     const getTotalHoursForRecord = () => {
-        if (localRecord) return localRecord.totalHoursInString;
+        if (record) return record.totalHoursInString;
         return '00:00'
     }
 
@@ -49,12 +51,11 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
         const _newEntry: TimesheetEntry = new TimesheetEntry({ id: TimesheetEntry.createId(), date: new TimesheetDate(dayString), entryType: { slug: '', name: '' }, hasPremium: false, entryPeriod: new TimesheetEntryPeriod({}), locationType: LocationType.onshore, comment: '' });
         let _record: TimesheetRecord;
 
-        if (doesRecordHaveEntries(localRecord) && localRecord?.entries) {
-            _record = new TimesheetRecord({ ...localRecord, entries: [...localRecord?.entries, _newEntry] })
+        if (doesRecordHaveEntries(record) && record?.entries) {
+            _record = new TimesheetRecord({ ...record, entries: [...record?.entries, _newEntry] })
         } else {
             _record = new TimesheetRecord({ id: TimesheetRecord.createId(), date: new TimesheetDate(dayString), entries: [_newEntry] })
         }
-        setLocalRecord(_record);
         updateRecordInTimesheet(_record);
         const _updatedEntryErrors = [...entryErrorsInRecord, addNewEntryError(_newEntry.id)]
         setEntryErrorsInRecord(_updatedEntryErrors)
@@ -66,31 +67,29 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
     }
 
     const handleUpdateEntryInRecord = (entry: TimesheetEntry) => {
-        if (localRecord) {
-            const doesEntryExistInLocalRecord = localRecord.entries.some(_entry => _entry.id === entry.id)
-            let _updatedLocalRecord: TimesheetRecord;
-            if (doesEntryExistInLocalRecord) {
+        if (record) {
+            const doesEntryExistInRecord = record.entries.some(_entry => _entry.id === entry.id)
+            let _updatedRecord: TimesheetRecord;
+            if (doesEntryExistInRecord) {
                 // update the record
-                _updatedLocalRecord = new TimesheetRecord({
-                    ...localRecord, entries: localRecord.entries.map((_entry) => {
+                _updatedRecord = new TimesheetRecord({
+                    ...record, entries: record.entries.map((_entry) => {
                         if (_entry.id === entry.id) return entry
                         else return _entry
                     })
                 })
             } else {
                 // add entry
-                _updatedLocalRecord = new TimesheetRecord({ ...localRecord, entries: [...localRecord.entries, entry] })
+                _updatedRecord = new TimesheetRecord({ ...record, entries: [...record.entries, entry] })
             }
-            setLocalRecord(_updatedLocalRecord);
-            updateRecordInTimesheet(_updatedLocalRecord);
-            checkForEntryErrors(_updatedLocalRecord, entryErrorsInRecord);
+            updateRecordInTimesheet(_updatedRecord);
+            checkForEntryErrors(_updatedRecord, entryErrorsInRecord);
         }
     }
 
     function handleEntryDelete(entryId: number) {
-        if (localRecord) {
-            const _updatedRecord = new TimesheetRecord({ ...localRecord, entries: localRecord.entries.filter((_entry) => _entry.id !== entryId) })
-            setLocalRecord(_updatedRecord);
+        if (record) {
+            const _updatedRecord = new TimesheetRecord({ ...record, entries: record.entries.filter((_entry) => _entry.id !== entryId) })
             updateRecordInTimesheet(_updatedRecord);
             const _updatedEntryErrors = entryErrorsInRecord.filter((_error) => _error.id !== entryId)
             setEntryErrorsInRecord(_updatedEntryErrors)
@@ -119,10 +118,31 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
         })
     }
 
+    const canRecordMakeCopies = () => {
+        try {
+            if (record) return (record.hasEntry())
+        } catch (e) { }
+        return false
+    }
+
+    const getOtherDaysInTheWeek = () => {
+        if (date) {
+            let daysOfTheWeek = TimesheetDate.daysOfTheWeek;
+            let everyOtherDayInTheWeek = daysOfTheWeek.filter((_day) => _day !== daysOfTheWeek[date.weekday])
+            return everyOtherDayInTheWeek;
+        } else return []
+    }
+
+    const handleRecordDuplication = () => {
+        setShowRecordDuplicateOption(false)
+        duplicateRecord(record, recordDuplicateDestination)
+        setRecordDuplicateDestination([])
+    }
+
     return (
         <div>
             <div className={``}>
-                <div className={`grid grid-cols-4 items-center px-3 py-2 rounded-md mb-2 ${doesRecordHaveEntries(localRecord) ? 'bg-blue-900' : 'bg-gray-400'}`}>
+                <div className={`grid grid-cols-4 items-center px-3 py-2 rounded-md mb-2 ${doesRecordHaveEntries(record) ? 'bg-blue-900' : 'bg-gray-400'}`}>
                     <div className="date-container gap-x-2">
                         <div>
                             <h4 className="text-xs text-white">
@@ -131,7 +151,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                             </h4>
                         </div>
                     </div>
-                    <div>{/* record hours */}{doesRecordHaveEntries(localRecord) ?
+                    <div>{/* record hours */}{doesRecordHaveEntries(record) ?
                         <div className="hours-container">
                             <div>
                                 <p className="text-xs text-white">
@@ -143,17 +163,59 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                     }</div>
                     <div></div>
                     <div className="action-group justify-self-end">
-                        {canAddEntry ?
-                            <div>
-                                <button className="px-3 py-0.5 border rounded-sm text-xs text-white bg-blue-900" type="button" onClick={(e) => addNewEntry(date.defaultFormat())}>Add +</button>
-                            </div>
-                            : ''
-                        }
+                        <div className="flex gap-x-2">
+                            <>{canRecordMakeCopies() ?
+                                <div className="flex items-center">
+                                    <button type="button" className="px-3 text-xs text-white" id="duplicateRecordDropdownButton" data-dropdown-toggle="dropdownDuplicate" onClick={() => setShowRecordDuplicateOption(!showRecordDuplicateOption)}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
+                                        </svg>
+                                    </button>
+                                    <div className="duplicate-dropdown relative w-full">
+                                        {/* Dropdown menu  */}
+                                        <div id="dropdownDuplicate" className={`z-10 ${showRecordDuplicateOption ? '' : 'hidden'} w-48 absolute right-0 top-4 bg-white rounded-lg shadow dark:bg-gray-700`}>
+                                            <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="duplicateRecordDropdownButton">
+                                                <li>
+                                                    <h4 className="font-bold underline text-blue-100">Duplicate Record</h4>
+                                                </li>
+                                                {getOtherDaysInTheWeek().map((_day) =>
+                                                    <li key={_day}>
+                                                        <div className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                            <input id={`duplicateable-day-${uiElementId}-${_day}`} type="checkbox" value={_day} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500"
+                                                                onChange={(e) => { setRecordDuplicateDestination(e.target.checked ? [...recordDuplicateDestination, e.target.value] : recordDuplicateDestination.filter(d => d !== e.target.value)) }} />
+                                                            <label htmlFor={`duplicateable-day-${uiElementId}-${_day}`} className="w-full ms-2 text-sm font-medium text-gray-900 rounded dark:text-gray-300 capitalize">{_day}</label>
+                                                        </div>
+                                                    </li>
+                                                )}
+                                                <li>
+                                                    <div className="flex gap-x-1">
+                                                        <button className="px-3 py-1 rounded text-xs bg-blue-700 hover:bg-blue-500" onClick={() => handleRecordDuplication()}>Duplicate</button>
+                                                        <button className="px-3 py-1 rounded text-xs bg-transparent" onClick={() => setShowRecordDuplicateOption(false)}>Cancel</button>
+                                                    </div>
+                                                </li>
+                                            </ul>
+                                        </div>
+
+                                    </div>
+                                </div> : ''
+                            }</>
+                            <>{canAddEntry ?
+                                <div className="flex items-center">
+                                    <button className="px-3 rounded-sm text-xs text-white" type="button" onClick={(e) => addNewEntry(date.defaultFormat())}>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                                        </svg>
+
+                                    </button>
+                                </div>
+                                : ''
+                            }</>
+                        </div>
                     </div>
                 </div>
             </div>
             <div className="mb-3">
-                <>{doesRecordHaveEntries(localRecord) ?
+                <>{doesRecordHaveEntries(record) ?
                     <div>
                         <div className="entry-heading grid grid-cols-12 gap-x-1 mb-1">
                             <div className="time-type col-span-2">
@@ -187,7 +249,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                                 <h4 className="text-xs text-gray-600"></h4>
                             </div>
                         </div>
-                        <div>{localRecord?.entries.map((_entry, _entryIndex) =>
+                        <div>{record?.entries.map((_entry, _entryIndex) =>
                             <EntryEditView
                                 key={_entry.id}
                                 entry={_entry}

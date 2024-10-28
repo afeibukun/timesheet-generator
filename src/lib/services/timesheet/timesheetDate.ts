@@ -43,6 +43,14 @@ export class TimesheetDate implements PlainTimesheetDate {
         return moment(this.date).day();
     }
 
+    /**
+     * Returns Day In Week (Locale aware)
+     * @returns day
+     */
+    get weekday(): number {
+        return moment(this.date).weekday();
+    }
+
     get dayLabel(): string {
         return moment(this.date).format('dddd');
         // @returns "Sunday", "Monday" ...

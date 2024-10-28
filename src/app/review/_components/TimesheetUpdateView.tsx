@@ -1,3 +1,4 @@
+'use client'
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { useEffect, useState } from "react";
@@ -5,10 +6,16 @@ import InfoLabel from "./InfoLabel";
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
 import TimesheetExportUI from "./TimesheetExportUI";
 import ManageRecordView from "./ManageRecordView";
+import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
 
 type TimesheetTableProps = {
     timesheet: Timesheet,
     handleSaveTimesheet: Function
+}
+
+type TimesheetDatePlusRecords = {
+    day: TimesheetDate,
+    record: TimesheetRecord | undefined
 }
 
 export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: TimesheetTableProps) {
@@ -18,18 +25,28 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
     const [timesheetRecordsErrorState, setTimesheetRecordsErrorState] = useState(Array(7).fill(false));
 
     const [daysInCurrentTimesheetWeek, setDaysInCurrentTimesheetWeek] = useState([] as TimesheetDate[]);
+    const [daysInCurrentWeekPlusRecords, setDaysInCurrentWeekPlusRecords] = useState([] as TimesheetDatePlusRecords[]);
 
     useEffect(() => {
         const initializer = async () => {
             await TimesheetDate.initializeWeekStartDay();
             const _weekDays = TimesheetDate.getWeekDays(timesheet.weekEndingDate)
+            const _weekDaysPlusRecords = generateWeekDaysPlusRecords(localTimesheet)
             setDaysInCurrentTimesheetWeek(_weekDays);
+            setDaysInCurrentWeekPlusRecords(_weekDaysPlusRecords);
         }
         initializer();
     }, []);
 
-    const getRecordForDate = (date: TimesheetDate) => {
-        const _record = localTimesheet.records.filter((_record) => date.isDateSame(_record.date))[0]
+    /*  useEffect(() => {
+         const _weekDaysPlusRecords = daysInCurrentTimesheetWeek.map(_day => {
+             return { day: _day, record: getRecordForDate(_day, localTimesheet) }
+         })
+         setDaysInCurrentWeekPlusRecords(_weekDaysPlusRecords);
+     }, [localTimesheet]); */
+
+    const getRecordForDate = (date: TimesheetDate, timesheet: Timesheet) => {
+        const _record = timesheet.records.filter((_record) => date.isDateSame(_record.date))[0]
         return _record
     }
 
@@ -54,7 +71,7 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
         let _noRecordInTimesheetYet = true;
         try {
             if (date && localTimesheet) {
-                const _record = getRecordForDate(new TimesheetDate(date));
+                const _record = getRecordForDate(new TimesheetDate(date), localTimesheet);
                 const _timesheetHasRecords = timesheetHasRecord()
                 _noRecordInTimesheetYet = (!_record && !_timesheetHasRecords)
             }
@@ -95,6 +112,8 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
         }
 
         setLocalTimesheet(_updatedTimesheet);
+        const _weekDaysPlusRecords = generateWeekDaysPlusRecords(_updatedTimesheet, daysInCurrentTimesheetWeek)
+        setDaysInCurrentWeekPlusRecords(_weekDaysPlusRecords);
     }
 
     const doesTimesheetHaveError = () => {
@@ -113,6 +132,43 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
         } else {
             handleSaveTimesheet(e, undefined);
         }
+    }
+
+    const copyRecordToOtherDays = (referenceRecord: TimesheetRecord, otherDays: string[]) => {
+        let _records = localTimesheet.records;
+        otherDays.forEach((_day) => {
+            const _timesheetDate = daysInCurrentTimesheetWeek.filter((_date) => _date.dayLabel.toLowerCase() === _day.toLowerCase())[0];
+            const _recordForDate = _records.filter((_record) => _record.date.isDateSame(_timesheetDate))[0];
+            let _updatedRecord: TimesheetRecord;
+            if (_recordForDate) {
+                if (_recordForDate.entries) {
+                    _updatedRecord = new TimesheetRecord({ ..._recordForDate, entries: [..._recordForDate.entries, ...referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createId(), date: _timesheetDate }))] })
+                } else {
+                    _updatedRecord = new TimesheetRecord({ ..._recordForDate, entries: [...referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createId(), date: _timesheetDate }))] })
+                }
+                _records = _records.map(_record => {
+                    if (_record.id === _recordForDate.id) return _updatedRecord
+                    else return _record
+                })
+            } else {
+                _updatedRecord = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _timesheetDate, entries: referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createId(), date: _timesheetDate })), comment: referenceRecord.comment })
+                _records = [..._records, _updatedRecord]
+            }
+        })
+        const _updatedLocalTimesheet = new Timesheet({ ...localTimesheet, records: _records })
+        setLocalTimesheet(_updatedLocalTimesheet);
+        const _weekDaysPlusRecords = generateWeekDaysPlusRecords(_updatedLocalTimesheet, daysInCurrentTimesheetWeek)
+        setDaysInCurrentWeekPlusRecords(_weekDaysPlusRecords);
+    }
+
+    const generateWeekDaysPlusRecords = (timesheet: Timesheet, weekDays?: TimesheetDate[]): TimesheetDatePlusRecords[] => {
+        let _weekDays: TimesheetDate[]
+        if (weekDays) _weekDays = weekDays
+        else _weekDays = TimesheetDate.getWeekDays(timesheet.weekEndingDate)
+
+        return _weekDays.map(_day => {
+            return { day: _day, record: getRecordForDate(_day, timesheet) }
+        })
     }
 
     return (
@@ -204,15 +260,16 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                     </div>
                     {/* Daily Breakdown */}
                     <div>
-                        <>{daysInCurrentTimesheetWeek.map((date, dayOfTheWeekIndex) =>
-                            <div key={date.date}>
+                        <>{daysInCurrentWeekPlusRecords.map((_datePlusRecord, dayOfTheWeekIndex) =>
+                            <div key={_datePlusRecord.day.date}>
                                 <ManageRecordView
-                                    record={getRecordForDate(date)}
+                                    record={_datePlusRecord.record}
                                     uiElementId={`${timesheet.id}${dayOfTheWeekIndex}`}
-                                    date={date}
+                                    date={_datePlusRecord.day}
                                     updateRecordInTimesheet={(record: TimesheetRecord) => handleUpdateRecordInTimesheet(record)}
-                                    canAddEntry={canRecordHaveEntry(date.basicFormat())}
+                                    canAddEntry={canRecordHaveEntry(_datePlusRecord.day.basicFormat())}
                                     updateRecordErrorState={(errorState: boolean) => updateTimesheetErrorState(errorState, dayOfTheWeekIndex)}
+                                    duplicateRecord={(referenceRecord: TimesheetRecord, otherDays: string[]) => copyRecordToOtherDays(referenceRecord, otherDays)}
                                 />
                             </div>
                         )}</>

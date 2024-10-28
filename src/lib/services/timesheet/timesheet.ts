@@ -241,7 +241,6 @@ export class Timesheet implements PlainTimesheet {
         const getEntryType = (date: TimesheetDate) => defaultTimesheetEntryType.filter((entryType) => entryType.slug == getEntryTypeSlug(date))[0];
 
         const getEntryPeriod = (currentDate: TimesheetDate) => {
-
             if (currentDate.isDateSame(_preMobTravelDate) || currentDate.isDateSame(_postDemobTravelDate)) return new TimesheetEntryPeriod({ startTime: new TimesheetHour("06:00"), finishTime: new TimesheetHour("14:00") })
             else return new TimesheetEntryPeriod({ startTime: new TimesheetHour(defaultData.startTime), finishTime: new TimesheetHour(defaultData.finishTime) })
         }

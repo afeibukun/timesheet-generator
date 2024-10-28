@@ -1,16 +1,18 @@
 # TODO
 
 ### *Date: 24th October 2024*
-- Copy Timesheet record from one day to another day
-- Implement modals.
+- Copy / duplicate Timesheet record from one day to another day
+- Implement modals, custom dropdowns
 - Check overlapping timesheet (one timesheet with similar time frame as another timesheet). This doesn't mean the timesheet is invalid, but it means the timesheet might be wrong from the user's point of view.
-- View a collection
-- download pdf / excel report for a collection
+- View a collection ✅
+- download pdf / excel report for a collection ✅
 - include an option to exclude an entry from customer report or internal report.
 - why do I need primitives though?
 - Implement Internal Timesheet Export (Monthly / Custom Timeframe)
 - Implement Timesheet Read Only view
 - Increase the length of classic customer template column A
+- When creating collections, travel mobilization and demobilization should have 8 hours by default.
+- For any timesheet, the week ending date gives you an idea of the first day of the week. That should be considered
 
 ### *Date: 24th August 2024*
 + Save Multiple Timesheets
