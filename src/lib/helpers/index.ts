@@ -39,3 +39,8 @@ export const titleize = (slug: string) => {
     }
     return words.join(' ');
 }
+
+export const capitalize = (sentence: string) => {
+    const capitalizedSentence = sentence.replace(/(^\w{1})|(\s+\w{1})/g, letter => letter.toUpperCase());
+    return capitalizedSentence
+}

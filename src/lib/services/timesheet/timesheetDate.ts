@@ -147,6 +147,10 @@ export class TimesheetDate implements PlainTimesheetDate {
         return new TimesheetDate({ date: moment(this.date).add(numberOfDays, 'day').format() });
     }
 
+    dateDecrementByMonth(numberOfMonths: number): TimesheetDate {
+        return new TimesheetDate({ date: moment(this.date).subtract(numberOfMonths, 'months').format() });
+    }
+
     incrementHoursForDate(hours: number): TimesheetDate {
         return new TimesheetDate({ date: moment(this.date).add(hours, 'hours').format() });
     }
@@ -210,6 +214,11 @@ export class TimesheetDate implements PlainTimesheetDate {
     static dayDifference(earlierDate: TimesheetDate, laterDate: TimesheetDate): number {
         let dayDiff = moment(laterDate.date).diff(moment(earlierDate.date), 'days');
         return dayDiff;
+    }
+
+    static monthDifference(earlierDate: TimesheetDate, laterDate: TimesheetDate): number {
+        let monthDiff = moment(laterDate.date).diff(moment(earlierDate.date), 'month');
+        return monthDiff;
     }
 
     static convertWeekdayTextToWeekdayNumber(weekdayText: string): number {
@@ -359,11 +368,55 @@ export class TimesheetDate implements PlainTimesheetDate {
     }
 
     static areDateStringsSameDay(date1: string, date2: string) {
-        return moment(date1).isSame(moment(date2))
+        return moment(date1).isSame(moment(date2), 'day')
     }
 
     static monthForSelectedDay(date: string) {
         const _date = new TimesheetDate(date);
         return _date.monthNumber
+    }
+
+    static daysInMonth(referenceDate: TimesheetDate) {
+        const daysInMonth = moment(referenceDate.date).daysInMonth();
+        return daysInMonth;
+    }
+
+    static getFirstDayOfMonth(referenceDate: TimesheetDate) {
+        const firstDayOfMonth = TimesheetDate.getDayOfMonth(referenceDate, 1)
+        return firstDayOfMonth;
+    }
+
+    static getLastDayOfMonth(referenceDate: TimesheetDate) {
+        const daysInMonth = TimesheetDate.daysInMonth(referenceDate);
+        const lastDayOfMonth = TimesheetDate.getDayOfMonth(referenceDate, daysInMonth)
+        return lastDayOfMonth;
+    }
+
+    static getDayOfMonth(referenceDate: TimesheetDate, dayInMonth: number) {
+        const dayInMonthMoment = moment(referenceDate.date).date(dayInMonth)
+        return new TimesheetDate(dayInMonthMoment.format());
+    }
+
+    static getDayObjectWithMonth(month: number, year?: number) {
+        const momentObject = moment();
+        if (year) momentObject.year(year);
+        momentObject.month(month)
+        return new TimesheetDate(momentObject.format());
+    }
+
+    static isWeekDay(timesheetDate: TimesheetDate) {
+        return !this.isWeekEnd(timesheetDate)
+    }
+
+    static isWeekEnd(timesheetDate: TimesheetDate) {
+        return (this.isSaturday(timesheetDate) || this.isSunday(timesheetDate))
+    }
+
+    static isSunday(timesheetDate: TimesheetDate) {
+        return (timesheetDate.dayLabel.toLowerCase() === this.daysOfTheWeek[6])
+    }
+
+    static isSaturday(timesheetDate: TimesheetDate) {
+        return (timesheetDate.dayLabel.toLowerCase() === this.daysOfTheWeek[5])
     }
 }

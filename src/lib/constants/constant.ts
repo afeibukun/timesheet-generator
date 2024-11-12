@@ -90,19 +90,27 @@ export enum SearchParamsLabel {
 }
 
 export enum ReportType {
-    customer = "customer-timesheet",
-    internal = "internal-timesheet"
+    customer = "customer",
+    internal = "internal"
 }
 
 export enum TemplateType {
-    classic = "classic-timesheet",
+    classic = "classic",
 }
 
 export enum OptionLabel {
     mobilizationDate = "mobilization-date",
     demobilizationDate = "demobilization-date",
     timesheetWeek = "timesheet-week",
-    timesheetCollectionKey = "timesheet-collection-key"
+    timesheetCollectionKey = "timesheet-collection-key",
+    costCenter = "cost-center",
+    personnelCodeA = "personnel-code-a",
+    personnelCodeB = "personnel-code-b",
+    approverManager = "approver-manager",
+    excludeEntryFromReport = "exclude-entry-from-report",
+    isColaRequired = "is-cola-required",
+    isPublicHoliday = "is-public-holiday",
+    teamLeadName = "team-lead-name"
 }
 
 export enum TimesheetEntryType {
@@ -110,9 +118,7 @@ export enum TimesheetEntryType {
     travelDemobilization = "travel-demobilization",
     workingTime = "working-time",
     waitingTime = "waiting-time",
-    publicHolidayWork = "public-holiday-work",
-    travelTimeToSite = "travel-time-to-site",
-    travelTimeFromSite = "travel-time-from-site",
+    travelTimeToOrFromSite = "travel-time-to-or-from-site",
 }
 
 export enum DateDisplayExportOption {

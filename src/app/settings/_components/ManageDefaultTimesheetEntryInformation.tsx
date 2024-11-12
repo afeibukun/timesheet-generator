@@ -141,6 +141,23 @@ export default function ManageDefaultTimesheetEntryInformation() {
                         </DefaultFormItem>
 
                         <DefaultFormItem>
+                            <label htmlFor="defaultNormalWorkingHours">
+                                <DefaultLabelText>Normal Working Hours</DefaultLabelText>
+                            </label>
+                            <input
+                                name="defaultNormalWorkingHours"
+                                id="defaultNormalWorkingHours"
+                                value={defaultTimesheetEntryForm.normalWorkingHours}
+                                onChange={
+                                    e => {
+                                        handleInputChange(e, 'normalWorkingHours')
+                                    }
+                                }
+                                className="inline-block border rounded capitalize" />
+
+                        </DefaultFormItem>
+
+                        <DefaultFormItem>
                             <div>
                                 <div>
                                     <div className="py-2">

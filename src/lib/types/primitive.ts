@@ -13,7 +13,8 @@ export interface PrimitiveDefaultTimesheetEntry {
     comment: string,
     weekStartDay: string,
     updatedAt: string,
-    timesheetEntryType?: PlainTimesheetEntryType
+    timesheetEntryType: PlainTimesheetEntryType,
+    normalWorkingHours: string,
 }
 
 

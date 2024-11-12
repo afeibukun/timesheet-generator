@@ -70,6 +70,12 @@ export interface PlainTimesheetRecord {
     date: PlainTimesheetDate,
     entries: PlainTimesheetEntry[],
     comment?: string,
+    options?: TimesheetRecordOption[]
+}
+
+export interface TimesheetRecordOption {
+    key: any,
+    value: any,
 }
 
 export interface PlainTimesheetEntry {
@@ -80,6 +86,12 @@ export interface PlainTimesheetEntry {
     locationType?: LocationType,
     hasPremium?: boolean
     comment?: string,
+    options?: TimesheetEntryOption[]
+}
+
+export interface TimesheetEntryOption {
+    key: any,
+    value: any,
 }
 
 export interface PlainTimesheetEntryType {

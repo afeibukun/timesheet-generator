@@ -1,7 +1,15 @@
 # TODO
 
+### *Date: 06th November 2024*
+- Display Total Hours Worked In each month
+### *Date: 06th November 2024*
+- In a scenario when a project / personnel / customer  / site is deleted. what do we do from the  timesheet end. (***we might need to implement soft delete***)
+
+### *Date: 29th October 2024*
+- Include option to claim cola from timesheet
+
 ### *Date: 24th October 2024*
-- Copy / duplicate Timesheet record from one day to another day
+- Copy / duplicate Timesheet record from one day to another day ✅ __28th October 2024__
 - Implement modals, custom dropdowns
 - Check overlapping timesheet (one timesheet with similar time frame as another timesheet). This doesn't mean the timesheet is invalid, but it means the timesheet might be wrong from the user's point of view.
 - View a collection ✅
@@ -11,12 +19,12 @@
 - Implement Internal Timesheet Export (Monthly / Custom Timeframe)
 - Implement Timesheet Read Only view
 - Increase the length of classic customer template column A
-- When creating collections, travel mobilization and demobilization should have 8 hours by default.
-- For any timesheet, the week ending date gives you an idea of the first day of the week. That should be considered
-
+- When creating collections, travel mobilization and demobilization should have 8 hours by default. ✅
+- For any timesheet, the week ending date gives you an idea of the first day of the week. That should be considered.
+ 
 ### *Date: 24th August 2024*
 + Save Multiple Timesheets
-    - View a list of timesheets
+    - View a list of timesheets ✅
     - Select a particular timesheet to read its entry
 + Download Excel and PDF versions of timesheet ✅
 + Update static content to be used while rendering excel file ✅

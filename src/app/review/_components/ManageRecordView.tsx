@@ -4,9 +4,10 @@ import { TimesheetEntryError } from "@/lib/types/primitive"
 import { useEffect, useState } from "react"
 import EntryEditView from "./EntryEditView"
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry"
-import { LocationType } from "@/lib/constants/constant"
+import { LocationType, OptionLabel } from "@/lib/constants/constant"
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord"
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
+import { TimesheetRecordOption } from "@/lib/types/timesheet"
 
 type ManageRecordViewProps = {
     record: TimesheetRecord | undefined,
@@ -26,6 +27,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
     const [entryErrorsInRecord, setEntryErrorsInRecord] = useState(_initialLocalEntryErrors);
     const [showRecordDuplicateOption, setShowRecordDuplicateOption] = useState(false);
     const [recordDuplicateDestination, setRecordDuplicateDestination] = useState([] as string[]);
+    const [showRecordOptionsDropdown, setShowRecordOptionsDropdown] = useState(false);
 
     useEffect(() => {
         const initializer = () => {
@@ -139,6 +141,56 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
         setRecordDuplicateDestination([])
     }
 
+    const isColaRequired = () => {
+        return record && record?.options ? record?.options?.some((_option) => _option.key == OptionLabel.isColaRequired && _option.value) : false
+    }
+
+    const isPublicHoliday = () => {
+        return record && record.options ? record.options.some((_option) => _option.key == OptionLabel.isPublicHoliday && _option.value) : false
+    }
+
+    const handleColaOptionToggle = (e: any) => {
+        const colaOption = !!e.target.checked
+        if (record) {
+            const recordHasColaOption = record.options ? record.options.some((_option) => _option.key == OptionLabel.isColaRequired) : false
+            let _recordOptions: TimesheetRecordOption[] = []
+            if (record && record.options) _recordOptions = record.options
+
+            if (recordHasColaOption) {
+                _recordOptions = _recordOptions.map((_option) => {
+                    if (_option.key == OptionLabel.isColaRequired) {
+                        return { key: _option.key, value: colaOption }
+                    } else return _option
+                })
+            } else {
+                _recordOptions = [..._recordOptions, { key: OptionLabel.isColaRequired, value: colaOption }]
+            }
+            const _updatedRecord = new TimesheetRecord({ ...record, options: _recordOptions })
+            updateRecordInTimesheet(_updatedRecord);
+        }
+    }
+
+    const handlePublicHolidayOptionToggle = (e: any) => {
+        const publicHolidayOption = !!e.target.checked
+        if (record) {
+            const recordHasPublicHolidayOption = record.options ? record.options.some((_option) => _option.key == OptionLabel.isPublicHoliday) : false
+            let _recordOptions: TimesheetRecordOption[] = []
+            if (record && record.options) _recordOptions = record.options
+
+            if (recordHasPublicHolidayOption) {
+                _recordOptions = _recordOptions.map((_option) => {
+                    if (_option.key == OptionLabel.isPublicHoliday) {
+                        return { key: _option.key, value: publicHolidayOption }
+                    } else return _option
+                })
+            } else {
+                _recordOptions = [..._recordOptions, { key: OptionLabel.isPublicHoliday, value: publicHolidayOption }]
+            }
+            const _updatedRecord = new TimesheetRecord({ ...record, options: _recordOptions })
+            updateRecordInTimesheet(_updatedRecord);
+        }
+    }
+
     return (
         <div>
             <div className={``}>
@@ -164,6 +216,43 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                     <div></div>
                     <div className="action-group justify-self-end">
                         <div className="flex gap-x-2">
+                            <div className="">
+                                <button type="button" className="text-white" onClick={() => setShowRecordOptionsDropdown(!showRecordOptionsDropdown)}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                                    </svg>
+                                </button>
+
+                                <div className="record-options-dropdown relative w-full">
+                                    {/* Dropdown menu  */}
+                                    <div id="dropdownEntryOptions" className={`z-10 ${showRecordOptionsDropdown ? '' : 'hidden'} w-48 absolute right-0 -top-2 bg-white rounded-lg shadow dark:bg-gray-700`}>
+                                        <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="entryOptionDropdownButton">
+                                            <li className="mb-6">
+                                                <h4 className="font-bold underline text-blue-100">Record Options</h4>
+                                            </li>
+                                            <li >
+                                                <div className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                    <input id={`public-holiday-${uiElementId}`} type="checkbox" value='cola' className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" checked={isPublicHoliday()} onChange={(e) => { handlePublicHolidayOptionToggle(e) }} />
+                                                    <label htmlFor={`public-holiday-${uiElementId}`} className="w-full ms-2 text-xs font-medium text-gray-900 rounded dark:text-gray-300 capitalize">Public Holiday?</label>
+                                                </div>
+                                            </li>
+                                            <li >
+                                                <div className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                    <input id={`cola-required-${uiElementId}`} type="checkbox" value='cola' className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" checked={isColaRequired()} onChange={(e) => { handleColaOptionToggle(e) }} />
+                                                    <label htmlFor={`cola-required-${uiElementId}`} className="w-full ms-2 text-xs font-medium text-gray-900 rounded dark:text-gray-300 capitalize">Is COLA Required?</label>
+                                                </div>
+                                            </li>
+
+                                            <li className="hidden">
+                                                <div className="flex gap-x-2">
+                                                    <button className="px-3 py-1 rounded text-xs bg-red-700" onClick={() => { }}>Cancel</button>
+                                                </div>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                </div>
+                            </div>
                             <>{canRecordMakeCopies() ?
                                 <div className="flex items-center">
                                     <button type="button" className="px-3 text-xs text-white" id="duplicateRecordDropdownButton" data-dropdown-toggle="dropdownDuplicate" onClick={() => setShowRecordDuplicateOption(!showRecordDuplicateOption)}>

@@ -5,16 +5,22 @@ import DefaultSectionHeader from "./_components/DefaultSectionHeader";
 import { defaultLogoBase64 } from "@/lib/constants/defaultLogoBase64Image";
 import { useEffect, useState } from "react";
 import { Personnel } from "@/lib/services/meta/personnel";
-import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import { ComponentType, OptionLabel, SearchParamsLabel } from "@/lib/constants/constant";
+import { Timesheet, TimesheetAnnualReport } from "@/lib/services/timesheet/timesheet";
+import { ComponentType, OptionLabel, ReportType, SearchParamsLabel, TemplateType } from "@/lib/constants/constant";
 import ActivePersonnel from "./_components/ActivePersonnel";
 import { StorageLabel } from "@/lib/constants/storage";
 import { time } from "console";
+import { ClassicTemplate } from "@/lib/services/template/classic/classic";
+import { defaultExportOption } from "@/lib/constants/default";
+import { AppOption } from "@/lib/services/meta/appOption";
+import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 
 
 export default function Home() {
   const [localActivePersonnel, setLocalActivePersonnel] = useState({} as Personnel);
   const [timesheetsFromActivePersonnel, setTimesheetsFromActivePersonnel] = useState([] as Timesheet[]);
+  const [exportOption, setExportOption] = useState(defaultExportOption);
+  const [annualReport, setAnnualReport] = useState({} as TimesheetAnnualReport);
 
   useEffect(() => {
     const initializer = async () => {
@@ -24,11 +30,20 @@ export default function Home() {
           _activePersonnel = await Personnel.getActivePersonnel();
           setLocalActivePersonnel(_activePersonnel);
         } catch (e) { }
+        try {
+          const _exportOption = await AppOption.getExportOption();
+          setExportOption(_exportOption);
+        } catch (e) { }
 
         if (_activePersonnel) {
           const _timesheetsFromActivePersonnel = await Timesheet.getTimesheetsFromPersonnel(_activePersonnel);
           setTimesheetsFromActivePersonnel(_timesheetsFromActivePersonnel);
         }
+
+        try {
+          if (_activePersonnel)
+            setAnnualReport(await Timesheet.getTimesheetAnnualReport(_activePersonnel))
+        } catch (e) { }
       } catch (e) {
         console.log(e)
       }
@@ -56,6 +71,10 @@ export default function Home() {
     if (isTimesheetPartOfCollection(timesheet)) {
       return timesheet.options.filter((_option) => _option.key === OptionLabel.timesheetCollectionKey && _option.value)[0].value
     }
+  }
+
+  const findMonthIndex = (monthName: string) => {
+    return TimesheetDate.monthsInYear.findIndex((_month) => _month == monthName)
   }
 
   return (
@@ -94,98 +113,115 @@ export default function Home() {
           </div>
         </footer>
       </DefaultSection>
-
+      <div>
+        <button onClick={() => { Timesheet.exportXlsxTimesheets(ReportType.internal, TemplateType.classic, exportOption, 10, 2024, 25, localActivePersonnel) }}>Create Internal Timesheet</button>
+      </div>
       <div className="spacer h-8"></div>
 
       <DefaultSection>
         <header className="section-header py-4">
           <h2 className="text-2xl font-semibold">Timesheets</h2>
         </header>
-        <div className="section-body">
-          {timesheetsFromActivePersonnel.length > 0 ? (
-            <div className="previous-timesheets py-4">
-              <ul className="flex flex-col gap-y-2">
-                {timesheetsFromActivePersonnel.map((_timesheet) =>
-                  <li key={_timesheet.id} className="bg-stone-100 rounded cursor-pointer">
-                    <Link href={`/review?${SearchParamsLabel.component}=${ComponentType.timesheet}&${SearchParamsLabel.key}=${_timesheet.key}`} className="timesheet-row px-4 py-2 flex items-center justify-between">
-                      <div className="lhs-column flex items-center">
-                        <div className="time-info flex flex-col p-3 border rounded items-center">
-                          <h3 className="time-info-hours leading-none inline-flex flex-col items-center">
-                            <span className="text-3xl leading-none font-bold">{_timesheet.totalHours.hour}</span>
-                            <span className="text-[10px] leading-none italic text-center">hours</span>
-                          </h3>
-                          {_timesheet.totalHours.minute > 0 ?
-                            <h4 className="time-info-minutes inline-flex">
-                              <span className="text-[10px] leading-none font-medium">{_timesheet.totalHours.minute}</span>
-                              <span className="text-[10px] leading-none text-center">mins</span>
-                            </h4>
-                            : ''}
-                        </div>
-                        <div>
-                          <div className="period-info-group mx-2">
-                            <div className="period-info flex gap-x-2 items-center">
-                              <p className="text-sm">
-                                <span className="italic">
-                                  <span className="mr-1 px-1.5 py-1 rounded bg-slate-300">From</span>
-                                  <span className="start-date">{_timesheet.records[0].date.basicFormat()}</span>
-                                  <span className="mx-1 px-1.5 py-1 rounded bg-slate-300">to</span>
-                                  <span className="finish-date">{_timesheet.records[_timesheet.records.length - 1].date.basicFormat()}</span>
-                                </span>
-                              </p>
-                              <p>
-                                <span className="total-days-of-work">
-                                  <span>| </span>
-                                  <span className="total-days-of-work-value text-sm font-bold">{_timesheet.totalDays}</span>
-                                  <span className="text-[10px] ml-1">days</span>
-                                </span>
-                              </p>
-                            </div>
+        <div className="grid grid-cols-12 gap-x-1">
+          <div className="col-span-2">
+            <div>
+              <h4 className="font-bold text-sm">{annualReport.year}</h4>
+              {annualReport && annualReport.monthlyReports ? annualReport.monthlyReports.map((_report) =>
+                <div key={_report.monthName}>
+                  <button className="w-full grid grid-cols-3 gap-x-1 mb-1" onClick={() => { Timesheet.exportXlsxTimesheets(ReportType.internal, TemplateType.classic, exportOption, findMonthIndex(_report.monthName), annualReport.year, 25, localActivePersonnel) }}>
+                    <span className="col-span-2 capitalize text-left text-sm">{_report.monthName}</span>
+                    <span className="text-xs text-right">{_report.totalHoursInMonth}</span>
+                  </button>
+                </div>
+              ) : ''}
+            </div>
+          </div>
+          <div className="section-body col-span-10">
+            {timesheetsFromActivePersonnel.length > 0 ? (
+              <div className="previous-timesheets py-4">
+                <ul className="flex flex-col gap-y-2">
+                  {timesheetsFromActivePersonnel.map((_timesheet) =>
+                    <li key={_timesheet.id} className="bg-stone-100 rounded cursor-pointer">
+                      <Link href={`/review?${SearchParamsLabel.component}=${ComponentType.timesheet}&${SearchParamsLabel.key}=${_timesheet.key}`} className="timesheet-row px-4 py-2 flex items-center justify-between">
+                        <div className="lhs-column flex items-center">
+                          <div className="time-info flex flex-col p-3 border rounded items-center">
+                            <h3 className="time-info-hours leading-none inline-flex flex-col items-center">
+                              <span className="text-3xl leading-none font-bold">{_timesheet.totalHours.hour}</span>
+                              <span className="text-[10px] leading-none italic text-center">hours</span>
+                            </h3>
+                            {_timesheet.totalHours.minute > 0 ?
+                              <h4 className="time-info-minutes inline-flex">
+                                <span className="text-[10px] leading-none font-medium">{_timesheet.totalHours.minute}</span>
+                                <span className="text-[10px] leading-none text-center">mins</span>
+                              </h4>
+                              : ''}
                           </div>
-
-
-                          <div className="personnel-and-customer-info mx-2">
-                            <div className="flex gap-x-2 items-center">
-                              <div className="user-info">
-                                <h3 className="text-lg font-semibold">{_timesheet.personnel.name}</h3>
-                              </div>
-                              <div className="customer-info">
-                                <p className="text-sm italic">
-                                  <span className="site-info">{_timesheet.site.name}</span>
-                                  <span>,</span>
-                                  <span className="site-country-info ml-1">{_timesheet.site.country}</span>
+                          <div>
+                            <div className="period-info-group mx-2">
+                              <div className="period-info flex gap-x-2 items-center">
+                                <p className="text-sm">
+                                  <span className="italic">
+                                    <span className="mr-1 px-1.5 py-1 rounded bg-slate-300">From</span>
+                                    <span className="start-date">{_timesheet.records[0].date.basicFormat()}</span>
+                                    <span className="mx-1 px-1.5 py-1 rounded bg-slate-300">to</span>
+                                    <span className="finish-date">{_timesheet.records[_timesheet.records.length - 1].date.basicFormat()}</span>
+                                  </span>
+                                </p>
+                                <p>
+                                  <span className="total-days-of-work">
+                                    <span>| </span>
+                                    <span className="total-days-of-work-value text-sm font-bold">{_timesheet.totalDays}</span>
+                                    <span className="text-[10px] ml-1">days</span>
+                                  </span>
                                 </p>
                               </div>
                             </div>
+
+
+                            <div className="personnel-and-customer-info mx-2">
+                              <div className="flex gap-x-2 items-center">
+                                <div className="user-info">
+                                  <h3 className="text-lg font-semibold">{_timesheet.personnel.name}</h3>
+                                </div>
+                                <div className="customer-info">
+                                  <p className="text-sm italic">
+                                    <span className="site-info">{_timesheet.site.name}</span>
+                                    <span>,</span>
+                                    <span className="site-country-info ml-1">{_timesheet.site.country}</span>
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="rhs-column">
-                        <div className="timesheet-status">
-                          <div className="hidden">
-                            <p className="inline-block  text-[12px] font-medium rounded-2xl bg-red-500 px-2 text-white">{"In Progress"}</p>
+                        <div className="rhs-column">
+                          <div className="timesheet-status">
+                            <div className="hidden">
+                              <p className="inline-block  text-[12px] font-medium rounded-2xl bg-red-500 px-2 text-white">{"In Progress"}</p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                    <>{isTimesheetPartOfCollection(_timesheet) ?
-                      <Link href={`/review?${SearchParamsLabel.component}=${ComponentType.timesheetCollection}&${SearchParamsLabel.key}=${getTimesheetCollectionKey(_timesheet)}`} className="px-3 py-0.5 text-xs italic bg-green-300">View Collection {getTimesheetCollectionKey(_timesheet)}</Link> : ''}
-                    </>
-                  </li>
-                )}
-              </ul>
-            </div>
-          ) : (
-            <div className="empty-previous-timesheets py-8 border">
-              <p className="text-center text-sm italic font-medium text-gray-500" >
-                <span>There are no timesheet previously generated,</span>
-                <Link href="/generate" className="underline text-purple-700">Generate a New One</Link>
-              </p>
-            </div>
-          )}
+                      </Link>
+                      <>{isTimesheetPartOfCollection(_timesheet) ?
+                        <Link href={`/review?${SearchParamsLabel.component}=${ComponentType.timesheetCollection}&${SearchParamsLabel.key}=${getTimesheetCollectionKey(_timesheet)}`} className="px-3 py-0.5 text-xs italic bg-green-300">View Collection {getTimesheetCollectionKey(_timesheet)}</Link> : ''}
+                      </>
+                    </li>
+                  )}
+                </ul>
+              </div>
+            ) : (
+              <div className="empty-previous-timesheets py-8 border">
+                <p className="text-center text-sm italic font-medium text-gray-500" >
+                  <span>There are no timesheet previously generated,</span>
+                  <Link href="/generate" className="underline text-purple-700">Generate a New One</Link>
+                </p>
+              </div>
+            )}
+          </div>
         </div>
         <div className="mt-4">
         </div>
       </DefaultSection>
-    </main>
+    </main >
   );
 }

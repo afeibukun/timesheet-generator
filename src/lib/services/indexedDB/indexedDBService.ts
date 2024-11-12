@@ -4,6 +4,8 @@ import { CustomerSchema, PersonnelSchema, ProjectSchema, TimesheetCollectionSche
 import { slugify } from '@/lib/helpers';
 import { PrimitiveDefaultTimesheetEntry } from '@/lib/types/primitive';
 import { PlainSite } from '@/lib/types/meta';
+import { TimesheetDate } from '../timesheet/timesheetDate';
+import { PlainTimesheetRecord } from '@/lib/types/timesheet';
 
 const databaseVersion = 1;
 const readWriteFlag = "readwrite"
@@ -313,6 +315,58 @@ export const createTimesheetCollection = async (timesheetCollection: TimesheetCo
     const timesheetCollectionKey = await _db.add(StoreName.timesheetCollection, timesheetCollection);
     const newTimesheetCollection = await _db.get(StoreName.timesheetCollection, timesheetCollectionKey);
     return newTimesheetCollection;
+}
+
+export const getTimesheetsInDates = async (timesheetDates: TimesheetDate[]) => {
+    const _db = await useDb();
+    const tx = _db.transaction(StoreName.timesheet);
+    let result: TimesheetSchema[] = []
+    for await (const cursor of tx.store) {
+        const timesheetSchema: TimesheetSchema = cursor.value;
+        const timesheetHasRecordWithinDateRange = timesheetSchema.records?.some((_record) => {
+            const isRecordDateWithinTimesheetDates = timesheetDates.some((_timesheetDate) => {
+                const _isTimesheetDateSameAsCurrentRecordDate = TimesheetDate.areDateStringsSameDay(_timesheetDate.defaultFormat(), _record.date.date)
+                return _isTimesheetDateSameAsCurrentRecordDate
+            })
+            return isRecordDateWithinTimesheetDates
+        })
+        if (timesheetHasRecordWithinDateRange) {
+            result = [...result, timesheetSchema]
+        }
+    }
+    return result
+}
+
+export const getTimesheetRecordsInMonth = async (month: number, year: number) => {
+    const _db = await useDb();
+    const tx = _db.transaction(StoreName.timesheet);
+    let result: PlainTimesheetRecord[] = []
+    for await (const cursor of tx.store) {
+        const _timesheetSchema: TimesheetSchema = cursor.value;
+        const _timesheetRecordInRange = !!_timesheetSchema.records ? _timesheetSchema.records.filter((_record) => {
+            const _date = new TimesheetDate(_record.date);
+            const isRecordDateInMonth = _date.monthNumber == month && _date.yearNumber === year
+            return isRecordDateInMonth
+        }) : []
+        result = [...result, ..._timesheetRecordInRange]
+    }
+    return result
+}
+
+export const getTimesheetRecordsInYear = async (year: number) => {
+    const _db = await useDb();
+    const tx = _db.transaction(StoreName.timesheet);
+    let result: PlainTimesheetRecord[] = []
+    for await (const cursor of tx.store) {
+        const _timesheetSchema: TimesheetSchema = cursor.value;
+        const _timesheetRecordInDateRange = !!_timesheetSchema.records ? _timesheetSchema.records.filter((_record) => {
+            const _date = new TimesheetDate(_record.date);
+            const isRecordDateInYear = _date.yearNumber === year
+            return isRecordDateInYear
+        }) : []
+        result = [...result, ..._timesheetRecordInDateRange]
+    }
+    return result
 }
 
 

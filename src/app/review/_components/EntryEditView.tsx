@@ -1,10 +1,11 @@
 'use client'
-import { LocationType } from "@/lib/constants/constant"
+import { LocationType, OptionLabel, ReportType } from "@/lib/constants/constant"
 import { defaultTimesheetEntryType } from "@/lib/constants/default"
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry"
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
 import { TimesheetHour } from "@/lib/services/timesheet/timesheetHour"
 import { TimesheetEntryError } from "@/lib/types/primitive"
+import { TimesheetEntryOption } from "@/lib/types/timesheet"
 import { useEffect, useState } from "react"
 
 type EntryEditViewProps = {
@@ -23,6 +24,8 @@ export default function EntryEditView({ entry, uiElementId, updateEntryInRecord,
         breakStartTime: ["11:00", "11:30", "12:00", "12:30", "13:00"],
         breakFinishTime: ["12:00", "12:30", "13:00", "13:30", "14:00"],
     }
+
+    const [showEntryOptionsDropdown, setShowEntryOptionsDropdown] = useState(false)
 
     useEffect(() => {
     }, []);
@@ -84,6 +87,41 @@ export default function EntryEditView({ entry, uiElementId, updateEntryInRecord,
     const handleCommentChange = (e: any) => {
         const _comment: string = e.target.value
         const _updatedLocalEntry = new TimesheetEntry({ ...entry, comment: _comment })
+        updateEntryInRecord(_updatedLocalEntry)
+    }
+
+    const handleExclusionOptionChange = (e: any) => {
+        const _optionKey = e.target.value
+        let _entryOptions: TimesheetEntryOption[] = [];
+        if (entry.options) _entryOptions = [...entry.options]
+        const entryHasExclusionOption = _entryOptions.some((_option) => _option.key == OptionLabel.excludeEntryFromReport)
+        let _updatedLocalEntry: TimesheetEntry;
+        if (!!e.target.checked) {
+            // add
+            if (entryHasExclusionOption) {
+                _entryOptions = _entryOptions.map((_option) => {
+                    if (_option.key == OptionLabel.excludeEntryFromReport) {
+                        return { key: _option.key, value: [..._option.value, _optionKey] }
+                    } else return _option
+                })
+            } else {
+                _entryOptions = [..._entryOptions, { key: OptionLabel.excludeEntryFromReport, value: [_optionKey] }]
+            }
+            _updatedLocalEntry = new TimesheetEntry({ ...entry, options: _entryOptions })
+        } else {
+            // remove
+            if (entryHasExclusionOption) {
+                _entryOptions = _entryOptions.map((_option) => {
+                    if (_option.key == OptionLabel.excludeEntryFromReport) {
+                        return { key: _option.key, value: _option.value.filter((_val: string) => _val !== _optionKey) }
+                    } else return _option
+                })
+            } else {
+                _entryOptions = [..._entryOptions]
+            }
+            _updatedLocalEntry = new TimesheetEntry({ ...entry, options: _entryOptions })
+        }
+
         updateEntryInRecord(_updatedLocalEntry)
     }
 
@@ -283,7 +321,43 @@ export default function EntryEditView({ entry, uiElementId, updateEntryInRecord,
             </div>
             <div className="action-list">
                 <div className="flex gap-x-1 justify-end">
-                    <button type="button" title="Duplicate Entry" className="hidden">
+                    <div className="">
+                        <button type="button" onClick={() => setShowEntryOptionsDropdown(!showEntryOptionsDropdown)}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                            </svg>
+                        </button>
+
+                        <div className="entry-options-dropdown relative w-full">
+                            {/* Dropdown menu  */}
+                            <div id="dropdownEntryOptions" className={`z-10 ${showEntryOptionsDropdown ? '' : 'hidden'} w-48 absolute right-0 -top-2 bg-white rounded-lg shadow dark:bg-gray-700`}>
+                                <ul className="p-3 space-y-1 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="entryOptionDropdownButton">
+                                    <li className="mb-6">
+                                        <h4 className="font-bold underline text-blue-100">Entry Options</h4>
+                                    </li>
+                                    <li className="mb-2">
+                                        <p className="text-xs italic text-slate-300">Exclude Entry</p>
+                                    </li>
+                                    {Object.keys(ReportType).map((_key) =>
+                                        <li key={_key}>
+                                            <div className="flex items-center p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-600">
+                                                <input id={`entry-option-${uiElementId}-${_key}`} type="checkbox" value={_key} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500" checked={TimesheetEntry.isExcludedFromReport(entry, _key)}
+                                                    onChange={(e) => { handleExclusionOptionChange(e) }} />
+                                                <label htmlFor={`entry-option-${uiElementId}-${_key}`} className="w-full ms-2 text-xs font-medium text-gray-900 rounded dark:text-gray-300 capitalize">{_key} Report</label>
+                                            </div>
+                                        </li>
+                                    )}
+                                    <li>
+                                        <div className="flex gap-x-2">
+                                            <button className="px-3 py-1 rounded text-xs bg-red-700" onClick={() => { setShowEntryOptionsDropdown(false) }}>Cancel</button>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                        </div>
+                    </div>
+                    <button type="button" title="Duplicate Entry" className="">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
                         </svg>

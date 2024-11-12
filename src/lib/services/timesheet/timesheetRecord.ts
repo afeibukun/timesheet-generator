@@ -1,8 +1,8 @@
-import { PlainTimesheetRecord, PlainTimesheetDate } from "@/lib/types/timesheet";
+import { PlainTimesheetRecord, PlainTimesheetDate, TimesheetRecordOption } from "@/lib/types/timesheet";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetHour } from "./timesheetHour";
-import { ErrorMessage, LocationType, } from "@/lib/constants/constant";
+import { ErrorMessage, LocationType, OptionLabel, TimesheetEntryType, } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { TimesheetEntryError } from "@/lib/types/primitive";
 
@@ -14,12 +14,14 @@ export class TimesheetRecord implements PlainTimesheetRecord {
     date: TimesheetDate;
     entries: TimesheetEntry[];
     comment: string;
+    options?: TimesheetRecordOption[]
 
     constructor(timesheetRecordInput: PlainTimesheetRecord) {
         this.id = timesheetRecordInput.id!;
         this.date = new TimesheetDate(timesheetRecordInput.date);
         this.entries = timesheetRecordInput.entries.map((entry) => new TimesheetEntry(entry));
-        this.comment = timesheetRecordInput.comment ? timesheetRecordInput.comment : ''
+        this.comment = timesheetRecordInput.comment ? timesheetRecordInput.comment : '';
+        this.options = timesheetRecordInput.options
     }
 
     /**
@@ -105,7 +107,6 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return _comment;
     }
 
-
     hasEntry(): Boolean {
         return this.entries.some((entry) => this.date.isEqual(entry.date))
     }
@@ -182,7 +183,6 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return { error: false, message: "" }
     }
 
-
     static cheeckForErrorsInRecord = (record: TimesheetRecord, existingEntryErrors: TimesheetEntryError[]) => {
         const defaultErrorObject = { error: false, message: "" }
         let entryErrors: TimesheetEntryError[] = [];
@@ -214,6 +214,16 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         })
         entryErrors = [...entryErrors, ..._entryErrorsInRecord]
         return entryErrors
+    }
+
+    static hasPremium = (record: TimesheetRecord) => {
+        return record.entries.some((_entry) => _entry.hasPremium)
+    }
+
+    static hasPublicHoliday = (record: TimesheetRecord) => {
+        const recordHasPublicHolidayOption = record.options ? record.options.some((_option) => _option.key == OptionLabel.isPublicHoliday) : false
+        if (recordHasPublicHolidayOption) return !!(record?.options?.find((_option) => _option.key == OptionLabel.isPublicHoliday)?.value)
+        return false
     }
 
     /**

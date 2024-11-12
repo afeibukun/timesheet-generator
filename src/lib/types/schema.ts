@@ -20,6 +20,13 @@ export interface TimesheetSchema {
     comment: string
 }
 
+export interface TimesheetRecordSchema {
+    id?: number // unique    
+    entries?: PlainTimesheetEntry[],
+    date: string,
+    comment: string
+}
+
 export interface AppOptionSchema {
     id?: number
     key: string,

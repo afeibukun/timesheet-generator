@@ -1,16 +1,16 @@
 import jsPDF from "jspdf";
 import autoTable, { ColumnInput, VAlignType } from "jspdf-autotable";
-import { defaultSansProBase64, defaultSansProItalicBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64 } from '../../constants/defaultSansProBase64Font'
-import templateConfig from '../../../../main-timesheet-template'
-import { TimesheetEntry } from "../timesheet/timesheetEntry";
 import { DateDisplayExportOption, EntryTypeExportOption, LocationType, PeriodTypeLabel } from "@/lib/constants/constant";
-import { Timesheet } from "../timesheet/timesheet";
 import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constants/defaultLogoBase64Image";
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
-import { TimesheetRecord } from "../timesheet/timesheetRecord";
-import { ClassicTemplate } from "../template/classic";
-import { TimesheetDate } from "../timesheet/timesheetDate";
 import { ExportOptions } from "@/lib/types/timesheet";
+import { Timesheet } from "@/lib/services/timesheet/timesheet";
+import timesheetConfig from "../../../../../../../main-timesheet-template";
+import templateConfig from "../../../../../../../main-timesheet-template";
+import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
+import { ClassicTemplate } from "../../classic";
+import { defaultSansProBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64, defaultSansProItalicBase64 } from "@/lib/constants/defaultSansProBase64Font";
+import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
 
 export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptions: ExportOptions): void => {
     const doc = new jsPDF(
@@ -77,20 +77,20 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
     // const largeFontSize = templateConfig.font.large //default = 16
     const fontSizeLarge = 13
 
-    const fontStyleItalic = templateConfig.fontStyle.italic
-    const fontStyleBold = templateConfig.fontStyle.bold
-    const fontStyleBoldItalic = templateConfig.fontStyle.boldItalic
-    const fontStyleNormal = templateConfig.fontStyle.normal
+    const fontStyleItalic = templateConfig.style.fontStyle.italic
+    const fontStyleBold = templateConfig.style.fontStyle.bold
+    const fontStyleBoldItalic = templateConfig.style.fontStyle.boldItalic
+    const fontStyleNormal = templateConfig.style.fontStyle.normal
 
-    const colorBlue = templateConfig.color.blue
-    const colorBlack = templateConfig.color.black
-    const colorLightGray = templateConfig.color.lightGray
-    const colorWhite = templateConfig.color.white
+    const colorBlue = templateConfig.style.color.blue
+    const colorBlack = templateConfig.style.color.black
+    const colorLightGray = templateConfig.style.color.lightGray
+    const colorWhite = templateConfig.style.color.white
 
-    const alignLeft = templateConfig.align.left
-    const alignRight = templateConfig.align.right
-    const alignMiddle = templateConfig.align.middle
-    const alignCenter = templateConfig.align.center
+    const alignLeft = templateConfig.style.align.left
+    const alignRight = templateConfig.style.align.right
+    const alignMiddle = templateConfig.style.align.middle
+    const alignCenter = templateConfig.style.align.center
 
     const signatureCellHeight = 24.84;
 
@@ -114,7 +114,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
         doc.setFontSize(smallFontSize)
         doc.setTextColor('0', `${32 / 255}`, `${96 / 255}`)
         doc.setFont(defaultFontFamily, fontStyleNormal, fontStyleBold)
-        doc.text(`${templateConfig.label.weekPrefix} ${_timesheet.weekNumber}`.toUpperCase(), currentXPosition, currentYPosition + 4, { align: alignRight as any });
+        doc.text(`${templateConfig.label.customerReport.weekPrefix} ${_timesheet.weekNumber}`.toUpperCase(), currentXPosition, currentYPosition + 4, { align: alignRight as any });
 
         const columnDefinition: ColumnInput[] = [
             { dataKey: 'columnA' },
@@ -194,9 +194,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
             styles: {
                 font: defaultFontFamily,
                 fontSize: smallFontSize,
-                lineColor: templateConfig.color.black,
-                textColor: templateConfig.color.black,
-                valign: templateConfig.align.middle as VAlignType,
+                lineColor: templateConfig.style.color.black,
+                textColor: templateConfig.style.color.black,
+                valign: templateConfig.style.align.middle as VAlignType,
                 cellPadding: { horizontal: 2, vertical: 1.5 }
             }
         })
@@ -208,7 +208,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
 
     const timesheetMonthWithZeroBasedIndex = timesheets[0].monthNumber;
     const timesheetMonthWithUnityBasedIndex = timesheetMonthWithZeroBasedIndex + 1;
-    const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithUnityBasedIndex, timesheets[0].yearNumber, timesheets[0].personnel.name);
+    const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithUnityBasedIndex, timesheets[0].yearNumber, timesheets[0].personnel.name, 'Customer_Timesheet');
     doc.save(`${_timesheetFilename}.pdf`);
 }
 
@@ -252,15 +252,15 @@ const generatePdfMetaRows = (timesheet: Timesheet, fontSizeMedium: number, fontS
     return [
         // Excel Row 3
         [
-            { content: templateConfig.label.title.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeMedium, textColor: colorBlue, fontStyle: fontStyleBold } },
-            { content: templateConfig.label.personnelName.toUpperCase(), colSpan: 5, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.mobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.demobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.orderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+            { content: templateConfig.label.customerReport.title.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeMedium, textColor: colorBlue, fontStyle: fontStyleBold } },
+            { content: templateConfig.label.customerReport.personnelName.toUpperCase(), colSpan: 5, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.mobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.demobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.orderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
         ],
         // Excel Row 4
         [
-            { content: templateConfig.staticValues.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
+            { content: templateConfig.data.customerReport.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
             { content: timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
             { content: timesheet.mobilizationDate ? timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
             { content: timesheet.demobilizationDate ? timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
@@ -268,11 +268,11 @@ const generatePdfMetaRows = (timesheet: Timesheet, fontSizeMedium: number, fontS
         ],
         // Excel Row 5
         [
-            { content: templateConfig.label.customerName.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.siteName.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.purchaseOrderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.countryName.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.weekEndingDate.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+            { content: templateConfig.label.customerReport.customerName.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.siteName.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.purchaseOrderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.countryName.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.weekEndingDate.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
         ],
         // Excel Row 6
         [
@@ -289,26 +289,26 @@ const generatePdfEntryHeaderRows = (fontAwesomeFontFamily: string, fontStyleItal
     return [
         // Excel Row 7
         [
-            { content: templateConfig.label.dateTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.workingTimeTitle.toUpperCase(), colSpan: 5, styles: { halign: alignLeft, fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.waitingTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } },
+            { content: templateConfig.label.customerReport.dateTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.workingTimeTitle.toUpperCase(), colSpan: 5, styles: { halign: alignLeft, fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.waitingTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } },
             { content: '\uf00c', colSpan: 1, rowSpan: 2, styles: { halign: alignCenter, font: fontAwesomeFontFamily, fontStyle: fontStyleItalic, fontSize: fontSizeLarge } }, // check mark indicator
-            { content: templateConfig.label.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }
+            { content: templateConfig.label.customerReport.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }
         ],
         // Excel Row 8
         [
-            { content: templateConfig.label.periodTitle.toUpperCase(), colSpan: 1, styles: {} },
-            { content: templateConfig.staticValues.workingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: {} },
-            { content: templateConfig.staticValues.workingTimeSecondPeriodTitle.toString(), colSpan: 1 },
-            { content: templateConfig.staticValues.workingTimeThirdPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.staticValues.workingTimeFourthPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.staticValues.waitingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.staticValues.waitingTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.staticValues.travelTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.staticValues.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } }
+            { content: templateConfig.label.customerReport.periodTitle.toUpperCase(), colSpan: 1, styles: {} },
+            { content: templateConfig.data.customerReport.workingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: {} },
+            { content: templateConfig.data.customerReport.workingTimeSecondPeriodTitle.toString(), colSpan: 1 },
+            { content: templateConfig.data.customerReport.workingTimeThirdPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.data.customerReport.workingTimeFourthPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.data.customerReport.waitingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.data.customerReport.waitingTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.data.customerReport.travelTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
+            { content: templateConfig.data.customerReport.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } }
         ],
     ]
 }
@@ -467,15 +467,15 @@ const generateSignatureRows = (fontStyleItalic: string, colorLightGray: string, 
     return [
         // Excel Row 23
         [
-            { content: templateConfig.label.personnelSignature.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } },
-            { content: templateConfig.label.customerVerificationNote.toUpperCase(), colSpan: 14, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } }
+            { content: templateConfig.label.customerReport.personnelSignature.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } },
+            { content: templateConfig.label.customerReport.customerVerificationNote.toUpperCase(), colSpan: 14, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } }
         ],
         // Excel Row 24
         [
-            { content: templateConfig.staticValues.personnelSignatureCertificationNote.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic } },
-            { content: templateConfig.label.customerRepresentativeName.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerRepresentativeTitle.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerRepresentativeSignature.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+            { content: templateConfig.data.customerReport.personnelSignatureCertificationNote.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic } },
+            { content: templateConfig.label.customerReport.customerRepresentativeName.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.customerRepresentativeTitle.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
+            { content: templateConfig.label.customerReport.customerRepresentativeSignature.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
         ],
         // Excel Row 25 and 26
         [
@@ -485,13 +485,13 @@ const generateSignatureRows = (fontStyleItalic: string, colorLightGray: string, 
             { content: ' ', colSpan: 6, }
         ],
         [
-            { content: templateConfig.staticValues.defaultAgreementStatement, colSpan: 18, styles: { fontStyle: fontStyleItalic } }
+            { content: templateConfig.data.customerReport.defaultAgreementStatement, colSpan: 18, styles: { fontStyle: fontStyleItalic } }
         ]
     ]
 }
 
 const generateFooterRows = (alignLeft: string): PdfTemplateRowItem[][] => {
-    const _footerRows = templateConfig.footerAddress.map((address) => {
+    const _footerRows = templateConfig.data.customerReport.footerAddress.map((address) => {
         return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: alignLeft } }]
     })
     return _footerRows;

@@ -7,6 +7,7 @@ import DefaultSectionTitle from "@/app/_components/DefaultSectionTitle";
 import DefaultLabelText from "@/app/_components/DefaultLabelText";
 import CustomerCard from "./CustomerCard";
 import { Customer } from "@/lib/services/meta/customer";
+import Modal from "@/app/_components/Modal";
 
 export default function ManageCustomersAndSites() {
 
@@ -99,7 +100,15 @@ export default function ManageCustomersAndSites() {
                                 }
                             </div>
                         </div>
-                        {customerForm.state === Status.displayForm ?
+                        <Modal showModal={customerForm.state === Status.displayForm}
+                            modalTitle="Add New Customer"
+                            modalFooter={<>
+                                <button data-modal-hide="default-modal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={(e) => handleSaveCustomerEvent(e)}>Save Customer</button>
+                                <button data-modal-hide="default-modal" type="button" className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100" onClick={(e) => setCustomerForm({ ...customerForm, state: Status.hideForm })}>Close</button>
+                            </>
+                            }
+                            closeModalEventHandler={() => setCustomerForm({ ...customerForm, state: Status.hideForm })}
+                        >
                             <div className="add-customer">
                                 <div className="border px-2 py-4 rounded-sm">
 
@@ -117,14 +126,9 @@ export default function ManageCustomersAndSites() {
                                             onChange={(e) => setCustomerForm({ ...customerForm, customerName: e.target.value })}
                                             className="border rounded" />
                                     </div>
-                                    <div className="inline-flex gap-x-2">
-                                        <button type="button" className="py-1 px-2 rounded bg-green-400" onClick={(e) => handleSaveCustomerEvent(e)}>Save</button>
-                                        <button type="button" className="py-1 px-2 rounded bg-red-400" onClick={(e) => setCustomerForm({ ...customerForm, state: Status.hideForm })}>Close</button>
-                                    </div>
                                 </div>
                             </div>
-                            : ''
-                        }
+                        </Modal>
                     </div>
                 </div>
             </DefaultSection>

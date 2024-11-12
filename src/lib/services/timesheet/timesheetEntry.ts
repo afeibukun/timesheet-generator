@@ -1,12 +1,12 @@
-import { ErrorMessage, LocationType } from "@/lib/constants/constant";
+import { ErrorMessage, LocationType, OptionLabel } from "@/lib/constants/constant";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { PlainTimesheetEntry, PlainTimesheetEntryType } from "@/lib/types/timesheet";
+import { PlainTimesheetEntry, PlainTimesheetEntryType, TimesheetEntryOption } from "@/lib/types/timesheet";
 import { AppOptionSchema } from "@/lib/types/schema";
 import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
 import { TimesheetHour } from "./timesheetHour";
-import { PrimitiveDefaultTimesheetEntry, PrimitiveTimesheetEntry, TimesheetEntryError } from "@/lib/types/primitive";
+import { PrimitiveDefaultTimesheetEntry, TimesheetEntryError } from "@/lib/types/primitive";
 
 /**
  * Refers to actual timesheet activity entries, working time, travel time e.t.c.
@@ -19,6 +19,7 @@ export class TimesheetEntry implements PlainTimesheetEntry {
     locationType: LocationType;
     hasPremium: boolean;
     comment: string;
+    options?: TimesheetEntryOption[];
 
     constructor(timesheetEntryInput: PlainTimesheetEntry) {
         this.id = timesheetEntryInput.id!;
@@ -28,6 +29,7 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         this.locationType = timesheetEntryInput.locationType ? this.locationType = timesheetEntryInput.locationType : LocationType.onshore;
         this.hasPremium = timesheetEntryInput.hasPremium ? timesheetEntryInput.hasPremium : false;
         this.comment = timesheetEntryInput.comment ? timesheetEntryInput.comment : ''
+        this.options = timesheetEntryInput.options
     }
 
     get totalHours(): TimesheetHour {
@@ -47,6 +49,7 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         let date = new TimesheetDate(this.date).dateInDayMonthFormat
         return date
     }
+
     get entryPeriodStartTime(): string {
         let time = this.entryPeriod?.startTime?.time
         if (time) return time
@@ -72,7 +75,6 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         if (time) return time
         return ""
     }
-
 
     get weekNumber(): number {
         const timesheetEntryWeek = this.date.weekNumber;
@@ -134,44 +136,16 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         return _timesheetEntryAsInterface;
     }
 
-    convertToPrimitive(): PrimitiveTimesheetEntry {
-        const _breakStartTime = this.entryPeriod?.breakTimeStart?.time;
-        const _breakFinishTime = this?.entryPeriod?.breakTimeFinish?.time;
-
-        if (!this.entryPeriod?.startTime) throw Error(ErrorMessage.invalidStartTime) // invalid starttime
-        const _entryPeriodStartTime = this.entryPeriod.startTime.time
-
-        if (!this.entryPeriod?.finishTime?.time) throw Error(ErrorMessage.invalidFinishTime)
-        const _entryPeriodFinishTime = this.entryPeriod?.finishTime?.time
-
-        const _primitiveTimesheetEntry: PrimitiveTimesheetEntry = { id: this.id, date: this.date.defaultFormat(), entryTypeSlug: this.entryType.slug, hasPremium: this.hasPremium, entryPeriodStartTime: _entryPeriodStartTime, entryPeriodFinishTime: _entryPeriodFinishTime, locationType: this.locationType, comment: this.comment, breakPeriodStartTime: _breakStartTime ? _breakStartTime : '', breakPeriodFinishTime: _breakFinishTime ? _breakFinishTime : '' }
-        return _primitiveTimesheetEntry;
-    }
-
     static async defaultInformation() {
         let defaultData: PrimitiveDefaultTimesheetEntry = defaultTimesheetEntryData
         try {
             const retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
             if (retrievedData) {
-                defaultData = retrievedData.value
+                defaultData = { ...defaultData, ...retrievedData.value }
             } else throw Error(ErrorMessage.defaultDataNotFound)
         } catch (e) { }
 
         return defaultData;
-    }
-
-    static convertPrimitiveToTimesheetEntry(primitiveTimesheetEntry: PrimitiveTimesheetEntry) {
-        const _id = primitiveTimesheetEntry.id;
-        const _date: TimesheetDate = new TimesheetDate(primitiveTimesheetEntry.date);
-        const _entryType: PlainTimesheetEntryType = defaultTimesheetEntryType.filter((entryType) => entryType.slug == primitiveTimesheetEntry.entryTypeSlug)[0];
-
-        const _entryPeriod: TimesheetEntryPeriod = TimesheetEntryPeriod.convertPrimitiveToEntryPeriod(primitiveTimesheetEntry.entryPeriodStartTime, primitiveTimesheetEntry.entryPeriodFinishTime, primitiveTimesheetEntry.breakPeriodStartTime, primitiveTimesheetEntry.breakPeriodFinishTime);
-
-        const _locationType: LocationType = LocationType.offshore === primitiveTimesheetEntry.locationType ? LocationType.offshore : LocationType.onshore;
-        const _hasPremium = !!primitiveTimesheetEntry.hasPremium
-        const _comment = primitiveTimesheetEntry.comment
-        const _timesheetEntry: TimesheetEntry = new TimesheetEntry({ id: _id, date: _date, entryType: _entryType, entryPeriod: _entryPeriod, locationType: _locationType, hasPremium: _hasPremium, comment: _comment });
-        return _timesheetEntry;
     }
 
     static createId() {
@@ -180,9 +154,9 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         return Number(id);
     }
 
-    static getTotalHoursInPrimitiveTimesheetEntry(primitiveTimesheetEntry: PrimitiveTimesheetEntry) {
-        const _entry = TimesheetEntry.convertPrimitiveToTimesheetEntry(primitiveTimesheetEntry);
-        return _entry.totalHoursInString;
+    static isExcludedFromReport(entry: TimesheetEntry, reportKey: string) {
+        // options label: excludeFromReport, value: [customer, internal]        
+        return entry.options ? entry.options.some((_option) => _option.key == OptionLabel.excludeEntryFromReport && Array.isArray(_option.value) && _option.value.includes(reportKey)) : false
     }
 
     /**

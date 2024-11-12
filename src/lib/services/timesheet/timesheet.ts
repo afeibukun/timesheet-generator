@@ -4,7 +4,7 @@ import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption, ExportOptions } from "@/lib/types/timesheet";
 import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, updateDataInStore } from "../indexedDB/indexedDBService";
+import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, getTimesheetRecordsInMonth, updateDataInStore } from "../indexedDB/indexedDBService";
 import { PersonnelSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
 import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType } from "@/lib/constants/constant";
 import { TimesheetHour } from "./timesheetHour";
@@ -15,9 +15,11 @@ import { Customer } from "../meta/customer";
 import { Site } from "../meta/site";
 import { Project } from "../meta/project";
 import { PlainCustomer, PlainProject, PlainSite } from "@/lib/types/meta";
-import { createXlsxTimesheetClassicTemplate } from "../xlsx/excelJsService";
-import { createPdfWithJsPdfAutoTable } from "../pdf/jsPdfAutoTableService";
 import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
+import { createXlsxClassicCustomerTimesheetReport } from "../template/classic/xlsx/excelJs/customerReport";
+import { createPdfWithJsPdfAutoTable } from "../template/classic/pdf/jspdfAutoTable/customerReport";
+import { createXlsxClassicInternalTimesheetReport } from "../template/classic/xlsx/excelJs/internalReport";
+import { ClassicTemplate } from "../template/classic/classic";
 
 /**
  * class: Timesheet
@@ -148,7 +150,7 @@ export class Timesheet implements PlainTimesheet {
     async exportXlsxTimesheet(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
         await TimesheetDate.initializeWeekStartDay();
         if (reportType == ReportType.customer && templateType === TemplateType.classic) {
-            createXlsxTimesheetClassicTemplate([this], exportOption);
+            createXlsxClassicCustomerTimesheetReport([this], exportOption);
         }
     }
 
@@ -461,10 +463,22 @@ export class Timesheet implements PlainTimesheet {
         return false
     }
 
-    static async exportXlsxTimesheets(timesheets: Timesheet[], reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
+    static async exportXlsxTimesheets(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions, timesheets: Timesheet[]): Promise<void>;
+
+    static async exportXlsxTimesheets(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions, month: number, year: number, cutOffDay: number, personnel: Personnel): Promise<void>;
+
+    static async exportXlsxTimesheets(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions, timesheetReference?: Timesheet[] | number, year?: number, cutOffDay?: number, personnel?: Personnel) {
         await TimesheetDate.initializeWeekStartDay();
-        if (reportType == ReportType.customer && templateType === TemplateType.classic) {
-            createXlsxTimesheetClassicTemplate(timesheets, exportOption);
+        if (reportType == ReportType.customer && templateType === TemplateType.classic && timesheetReference && Array.isArray(timesheetReference)) {
+            createXlsxClassicCustomerTimesheetReport(timesheetReference, exportOption);
+        } else if (reportType == ReportType.internal && templateType === TemplateType.classic && timesheetReference && typeof timesheetReference == "number" && year && personnel) {
+            const month = timesheetReference
+            let includePreviousMonth = false
+            if (cutOffDay) includePreviousMonth = true
+            const _internalReportTimesheet = await ClassicTemplate.generateInternalTimesheetReportCollection(month, year, personnel, cutOffDay, includePreviousMonth)
+            console.log("Internal Report Timesheet - ")
+            console.log(_internalReportTimesheet);
+            createXlsxClassicInternalTimesheetReport(_internalReportTimesheet, exportOption);
         }
     }
 
@@ -474,6 +488,42 @@ export class Timesheet implements PlainTimesheet {
         }
     }
 
+    static async getTimesheetAnnualReport(personnel: Personnel, year?: number) {
+        const _selectedYear = year ? year : TimesheetDate.getCurrentYearNumber();
+        let monthlyReports: TimesheetMonthlyReport[] = []
+
+        const _monthsInYear = TimesheetDate.monthsInYear
+        for (let i = 0; i < _monthsInYear.length; i++) {
+            const _monthName = _monthsInYear[i]
+            const _timesheetRecordInMonth = await getTimesheetRecordsInMonth(i, _selectedYear)
+            let _dailyReports: TimesheetDailyReport[] = _timesheetRecordInMonth.reduce((accumulator, record) => {
+                const recordObject = new TimesheetRecord(record)
+                const _day = recordObject.date.dayInMonth
+                const _totalHours = recordObject.totalHoursInString
+                if (accumulator.some(acc => acc.day == _day)) {
+                    return accumulator.map((acc) => {
+                        if (acc.day == _day) {
+                            const _recalculatedHours = TimesheetHour.sumTimesheetHours(new TimesheetHour(acc.totalHoursInDay), new TimesheetHour(_totalHours)).time
+                            return { ...acc, totalHoursInDay: _recalculatedHours }
+                        } else return acc
+                    })
+                } else {
+                    const _report: TimesheetDailyReport = { day: _day, totalHoursInDay: _totalHours }
+                    return [...accumulator, _report]
+                }
+            }, [] as TimesheetDailyReport[])
+
+            let _totalHoursInMonth = _dailyReports.reduce((acc, _dayReport) => {
+                return TimesheetHour.sumTimesheetHours(acc, new TimesheetHour(_dayReport.totalHoursInDay))
+            }, new TimesheetHour('00:00')).time
+            const _monthReport: TimesheetMonthlyReport = { monthName: _monthName, totalHoursInMonth: _totalHoursInMonth, dailyReports: _dailyReports }
+            monthlyReports = [...monthlyReports, _monthReport];
+        }
+
+        let _annualReport: TimesheetAnnualReport = { year: _selectedYear, personnel: personnel, monthlyReports: monthlyReports }
+        return _annualReport
+    }
+
     /**
      * Timesheet Rules
      * - a timesheet with blank records or with no records should not be printed, don't waste the ink
@@ -481,3 +531,19 @@ export class Timesheet implements PlainTimesheet {
      */
 }
 
+export type TimesheetAnnualReport = {
+    year: number, //2024
+    personnel: Personnel
+    monthlyReports: TimesheetMonthlyReport[]
+}
+
+type TimesheetMonthlyReport = {
+    monthName: string,
+    totalHoursInMonth: string,
+    dailyReports: TimesheetDailyReport[]
+}
+
+type TimesheetDailyReport = {
+    day: number,
+    totalHoursInDay: string
+}

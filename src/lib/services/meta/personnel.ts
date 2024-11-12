@@ -1,7 +1,7 @@
 import { StorageLabel, StoreName } from "../../constants/storage";
 import { PersonnelSchema } from "../../types/schema";
 import { AppOptionInterface } from "../../types/generalType";
-import { createOrUpdateAppOption, deleteDataInStore, getAllPersonnel, getAppOptionData } from "../indexedDB/indexedDBService";
+import { createOrUpdateAppOption, deleteDataInStore, getAllPersonnel, getAppOptionData, updateDataInStore } from "../indexedDB/indexedDBService";
 import { PlainPersonnel, PlainPersonnelOption } from "@/lib/types/meta";
 
 export class Personnel implements PlainPersonnel {
@@ -61,5 +61,9 @@ export class Personnel implements PlainPersonnel {
     static async deletePersonnel(personnel: Personnel | number) {
         let _personnelId: number = (typeof personnel === 'number') ? personnel : personnel.id;
         await deleteDataInStore(_personnelId, StoreName.personnel)
+    }
+
+    static async updatePersonnel(personnel: Personnel) {
+        await updateDataInStore(personnel, personnel.id, StoreName.personnel)
     }
 }

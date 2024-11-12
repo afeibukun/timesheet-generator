@@ -1,12 +1,11 @@
-import { Timesheet } from '../timesheet/timesheet'
-import { TimesheetDate } from '../timesheet/timesheetDate'
 import { LocationType, PeriodTypeLabel, EntryTypeExportOption, DateDisplayExportOption } from '@/lib/constants/constant';
 import { saveAs } from 'file-saver';
-
-import templateConfig from '../../../../main-timesheet-template'
-import { ClassicTemplate } from '../template/classic';
-import { TimesheetRecord } from '../timesheet/timesheetRecord';
 import { ExportOptions } from '@/lib/types/timesheet';
+import { Timesheet } from '@/lib/services/timesheet/timesheet';
+import templateConfig from '../../../../../../../main-timesheet-template';
+import { TimesheetDate } from '@/lib/services/timesheet/timesheetDate';
+import { ClassicTemplate } from '../../classic';
+import { TimesheetRecord } from '@/lib/services/timesheet/timesheetRecord';
 
 const sheetNameCollection = (timesheets: Timesheet[]) => {
     let startPoint = "A"
@@ -17,7 +16,7 @@ const sheetNameCollection = (timesheets: Timesheet[]) => {
     return _sheetNameCollection
 }
 
-export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[], exportOptions: ExportOptions) => {
+export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Timesheet[], exportOptions: ExportOptions) => {
     let templateName = 'classic';
     try {
         const ExcelJS = require('exceljs');
@@ -31,21 +30,21 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
 
         const imageExtensionPng = 'png';
 
-        const fontDefault = templateConfig.font.default;
+        const fontDefault = templateConfig.style.font.default;
 
-        const fontSizeSmall = templateConfig.fontSize.small;
-        const fontSizeMedium = templateConfig.fontSize.default;
-        const fontSizeLarge = templateConfig.fontSize.large;
+        const fontSizeSmall = templateConfig.style.fontSize.small;
+        const fontSizeMedium = templateConfig.style.fontSize.default;
+        const fontSizeLarge = templateConfig.style.fontSize.large;
 
-        const colorBlue = templateConfig.color.blueARGB
-        const colorLightGray = templateConfig.color.lightGrayARGB
-        const colorWhite = templateConfig.color.whiteARGB
+        const colorBlue = templateConfig.style.color.blueARGB
+        const colorLightGray = templateConfig.style.color.lightGrayARGB
+        const colorWhite = templateConfig.style.color.whiteARGB
 
-        const alignTop = templateConfig.align.top
-        const alignLeft = templateConfig.align.left
-        const alignRight = templateConfig.align.right
-        const alignCenter = templateConfig.align.center
-        const alignMiddle = templateConfig.align.middle
+        const alignTop = templateConfig.style.align.top
+        const alignLeft = templateConfig.style.align.left
+        const alignRight = templateConfig.style.align.right
+        const alignCenter = templateConfig.style.align.center
+        const alignMiddle = templateConfig.style.align.middle
 
         const cellBorderStyleThin = 'thin'
         const cellBorderStyleThick = 'thick'
@@ -136,7 +135,7 @@ export const createXlsxTimesheetClassicTemplate = async (timesheets: Timesheet[]
 
         const timesheetMonthWithZeroBasedIndex = timesheets[0].monthNumber;
         const timesheetMonthWithUnityBasedIndex = timesheetMonthWithZeroBasedIndex + 1;
-        const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithUnityBasedIndex, timesheets[0].yearNumber, timesheets[0].personnel.name);
+        const _timesheetFilename = ClassicTemplate.generateFilename(templateConfig, timesheetMonthWithUnityBasedIndex, timesheets[0].yearNumber, timesheets[0].personnel.name, 'Customer_Timesheet');
         // return workbook.xlsx.writeFile(filename);
         const xlsxBuffer = workbook.xlsx.writeBuffer();
         xlsxBuffer.then((data: any) => {
@@ -161,7 +160,7 @@ const includeRow1 = (workbook: any, imageExtensionPng: any, worksheet: any, time
     });
 
     const weekNumberCell = worksheet.getCell('Q1');
-    weekNumberCell.value = `${templateConfig.label.weekPrefix} ${timesheet.weekNumber}`.toUpperCase()
+    weekNumberCell.value = `${templateConfig.label.customerReport.weekPrefix} ${timesheet.weekNumber}`.toUpperCase()
 
     // Row 1 - MERGES
     worksheet.mergeCells('A1:B1')
@@ -242,7 +241,7 @@ const timeEntrySectionRows = (timesheetRecord: TimesheetRecord, exportOptions: E
         column_j: canIncludeMultipleTimeType && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).startTime : '',
         column_k: timesheetRecord.isLocationTypeOnshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', // total hours - onshore
         column_l: LocationType.onshore.toUpperCase(), //onshore / offshore
-        column_m: timesheetRecord.isLocationTypeOnshore ? templateConfig.staticValues.locationTypeIndicator : '', //onshore check mark
+        column_m: timesheetRecord.isLocationTypeOnshore ? templateConfig.data.customerReport.locationTypeIndicator : '', //onshore check mark
         column_n: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOnshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "" // Comment for onshore
     }
     const _dayBottomSection: ExcelTemplateRow = {
@@ -258,7 +257,7 @@ const timeEntrySectionRows = (timesheetRecord: TimesheetRecord, exportOptions: E
         column_j: canIncludeMultipleTimeType && canIncludeTravelPeriod && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).finishTime : '',
         column_k: timesheetRecord.isLocationTypeOffshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : "", // total hours - Offshore
         column_l: LocationType.offshore.toUpperCase(), // offshore tag
-        column_m: timesheetRecord.isLocationTypeOffshore ? templateConfig.staticValues.locationTypeIndicator : '', //offshore check mark
+        column_m: timesheetRecord.isLocationTypeOffshore ? templateConfig.data.customerReport.locationTypeIndicator : '', //offshore check mark
         column_n: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOffshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "" // Comment for offshore
     }
 
@@ -416,25 +415,25 @@ const metaSectionData = (timesheet: Timesheet) => {
         // Row 3 - 6 Data
         const timesheetMetaRows = [
             { // Row 3 - DATA
-                column_a: templateConfig.label.title.toUpperCase(),
-                column_e: templateConfig.label.personnelName.toUpperCase(),
-                column_j: templateConfig.label.mobilizationDate.toUpperCase(),
-                column_m: templateConfig.label.demobilizationDate.toUpperCase(),
-                column_p: templateConfig.label.orderNumber.toUpperCase()
+                column_a: templateConfig.label.customerReport.title.toUpperCase(),
+                column_e: templateConfig.label.customerReport.personnelName.toUpperCase(),
+                column_j: templateConfig.label.customerReport.mobilizationDate.toUpperCase(),
+                column_m: templateConfig.label.customerReport.demobilizationDate.toUpperCase(),
+                column_p: templateConfig.label.customerReport.orderNumber.toUpperCase()
             },
             { // Row 4 - DATA
-                column_a: templateConfig.staticValues.defaultTitle.toUpperCase(),
+                column_a: templateConfig.data.customerReport.defaultTitle.toUpperCase(),
                 column_e: timesheet.personnel.name.toUpperCase(),
                 column_j: timesheet.mobilizationDate ? TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheet.mobilizationDate.toJavascriptDate()) : '',
                 column_m: timesheet.demobilizationDate ? TimesheetDate.addTimezoneOffsetToJavascriptDate(timesheet.demobilizationDate.toJavascriptDate()) : '',
                 column_p: timesheet.project.orderNumber
             },
             { // Row 5 - DATA
-                column_a: templateConfig.label.customerName.toUpperCase(),
-                column_g: templateConfig.label.siteName.toUpperCase(),
-                column_j: templateConfig.label.purchaseOrderNumber.toUpperCase(),
-                column_m: templateConfig.label.countryName.toUpperCase(),
-                column_o: templateConfig.label.weekEndingDate.toUpperCase()
+                column_a: templateConfig.label.customerReport.customerName.toUpperCase(),
+                column_g: templateConfig.label.customerReport.siteName.toUpperCase(),
+                column_j: templateConfig.label.customerReport.purchaseOrderNumber.toUpperCase(),
+                column_m: templateConfig.label.customerReport.countryName.toUpperCase(),
+                column_o: templateConfig.label.customerReport.weekEndingDate.toUpperCase()
             },
             { // Row 6 - DATA
                 column_a: timesheet.customer.name.toUpperCase(),
@@ -524,8 +523,8 @@ const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom
         bold: true,
         name: fontDefault
     }
-    worksheet.getCell('J4').numFmt = templateConfig.format.defaultDate;
-    worksheet.getCell('M4').numFmt = templateConfig.format.defaultDate;
+    worksheet.getCell('J4').numFmt = templateConfig.style.format.defaultDate;
+    worksheet.getCell('M4').numFmt = templateConfig.style.format.defaultDate;
 
     // Row 5 STYLES
     worksheet.getRow(5).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
@@ -556,7 +555,7 @@ const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom
             vertical: alignMiddle
         }
     })
-    worksheet.getCell('O6').numFmt = templateConfig.format.defaultDate;
+    worksheet.getCell('O6').numFmt = templateConfig.style.format.defaultDate;
 
 }
 
@@ -566,26 +565,26 @@ const timesheetEntryHeadingSectionData = () => {
         const timesheetEntryHeaderRows: ExcelTemplateRow[] = [
             // Row 7 - DATA
             {
-                column_a: templateConfig.label.dateTitle.toUpperCase(),
-                column_b: templateConfig.label.periodTitle.toUpperCase(),
-                column_c: templateConfig.label.workingTimeTitle.toUpperCase(),
-                column_g: templateConfig.label.waitingTimeTitle.toUpperCase(),
-                column_i: templateConfig.label.travelTimeTitle.toUpperCase(),
-                column_k: templateConfig.label.totalHoursTitle.toUpperCase(),
-                column_l: templateConfig.label.locationTypeIndicatorTitle,
-                column_m: templateConfig.staticValues.locationTypeIndicator,
-                column_n: templateConfig.label.commentTitle.toUpperCase()
+                column_a: templateConfig.label.customerReport.dateTitle.toUpperCase(),
+                column_b: templateConfig.label.customerReport.periodTitle.toUpperCase(),
+                column_c: templateConfig.label.customerReport.workingTimeTitle.toUpperCase(),
+                column_g: templateConfig.label.customerReport.waitingTimeTitle.toUpperCase(),
+                column_i: templateConfig.label.customerReport.travelTimeTitle.toUpperCase(),
+                column_k: templateConfig.label.customerReport.totalHoursTitle.toUpperCase(),
+                column_l: templateConfig.label.customerReport.locationTypeIndicatorTitle,
+                column_m: templateConfig.data.customerReport.locationTypeIndicator,
+                column_n: templateConfig.label.customerReport.commentTitle.toUpperCase()
             },
             // Row 8 - DATA
             {
-                column_c: templateConfig.staticValues.workingTimeFirstPeriodTitle,
-                column_d: templateConfig.staticValues.workingTimeSecondPeriodTitle,
-                column_e: templateConfig.staticValues.workingTimeThirdPeriodTitle,
-                column_f: templateConfig.staticValues.workingTimeFourthPeriodTitle,
-                column_g: templateConfig.staticValues.waitingTimeFirstPeriodTitle,
-                column_h: templateConfig.staticValues.waitingTimeSecondPeriodTitle,
-                column_i: templateConfig.staticValues.travelTimeFirstPeriodTitle,
-                column_j: templateConfig.staticValues.travelTimeSecondPeriodTitle
+                column_c: templateConfig.data.customerReport.workingTimeFirstPeriodTitle,
+                column_d: templateConfig.data.customerReport.workingTimeSecondPeriodTitle,
+                column_e: templateConfig.data.customerReport.workingTimeThirdPeriodTitle,
+                column_f: templateConfig.data.customerReport.workingTimeFourthPeriodTitle,
+                column_g: templateConfig.data.customerReport.waitingTimeFirstPeriodTitle,
+                column_h: templateConfig.data.customerReport.waitingTimeSecondPeriodTitle,
+                column_i: templateConfig.data.customerReport.travelTimeFirstPeriodTitle,
+                column_j: templateConfig.data.customerReport.travelTimeSecondPeriodTitle
             },
         ];
         return timesheetEntryHeaderRows;
@@ -675,21 +674,21 @@ const timesheetSignatureSectionData = () => {
         const timesheetSignatureRows = [
             // Row 23
             {
-                column_a: templateConfig.label.personnelSignature.toUpperCase(),
-                column_e: templateConfig.label.customerVerificationNote.toUpperCase(),
+                column_a: templateConfig.label.customerReport.personnelSignature.toUpperCase(),
+                column_e: templateConfig.label.customerReport.customerVerificationNote.toUpperCase(),
             },
             // Row 24
             {
-                column_a: templateConfig.staticValues.personnelSignatureCertificationNote.toUpperCase(),
-                column_e: templateConfig.label.customerRepresentativeName.toUpperCase(),
-                column_i: templateConfig.label.customerRepresentativeTitle.toUpperCase(),
-                column_m: templateConfig.label.customerRepresentativeSignature.toUpperCase()
+                column_a: templateConfig.data.customerReport.personnelSignatureCertificationNote.toUpperCase(),
+                column_e: templateConfig.label.customerReport.customerRepresentativeName.toUpperCase(),
+                column_i: templateConfig.label.customerReport.customerRepresentativeTitle.toUpperCase(),
+                column_m: templateConfig.label.customerReport.customerRepresentativeSignature.toUpperCase()
             },
             // Row 25 and 26 - Empty row - for signature purpose
             [''], [''],
             //Row 27
             {
-                column_a: templateConfig.staticValues.defaultAgreementStatement,
+                column_a: templateConfig.data.customerReport.defaultAgreementStatement,
             }
         ];
 
@@ -844,7 +843,7 @@ const worksheetColumnDataForExcelJs = () => {
 }
 
 const footerAddressTemplatePartData = () => {
-    return templateConfig.footerAddress.map((address) => {
+    return templateConfig.data.customerReport.footerAddress.map((address) => {
         return { column_d: address, }
     })
 }

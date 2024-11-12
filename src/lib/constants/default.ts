@@ -1,37 +1,32 @@
 import { PrimitiveDefaultTimesheetEntry } from "../types/primitive";
 import { ExportOptions, PlainTimesheetEntryType } from "../types/timesheet";
-import { DateDisplayExportOption, EntryTypeExportOption, LocationType } from "./constant";
+import { DateDisplayExportOption, EntryTypeExportOption, LocationType, TimesheetEntryType } from "./constant";
 
 export const defaultTimesheetEntryType: PlainTimesheetEntryType[] = [
     {
         id: 1,
-        slug: "travel-mobilization",
+        slug: TimesheetEntryType.travelMobilization,
         name: "Travel Mobilization"
     },
     {
         id: 2,
-        slug: "travel-demobilization",
+        slug: TimesheetEntryType.travelDemobilization,
         name: "Travel Demobilization"
     },
     {
         id: 3,
-        slug: "working-time",
+        slug: TimesheetEntryType.workingTime,
         name: "Working Time"
     },
     {
         id: 4,
-        slug: "waiting-time",
+        slug: TimesheetEntryType.waitingTime,
         name: "Waiting Time"
     },
     {
         id: 5,
-        slug: "public-holiday-work",
-        name: "Public Holiday Work"
-    },
-    {
-        id: 6,
-        slug: "travel-time-to-site",
-        name: "Daily Travel Time To Site"
+        slug: TimesheetEntryType.travelTimeToOrFromSite,
+        name: "Daily Travel Time To/From Site"
     }
 ];
 
@@ -42,7 +37,8 @@ export const defaultTimesheetEntryData: PrimitiveDefaultTimesheetEntry = {
     comment: 'Productive Work at the Office',
     weekStartDay: "monday",
     updatedAt: '',
-    timesheetEntryType: defaultTimesheetEntryType.filter((entryType) => entryType.slug == "working-time")[0]
+    timesheetEntryType: defaultTimesheetEntryType.filter((entryType) => entryType.slug == "working-time")[0],
+    normalWorkingHours: '08:00'
 }
 
 export const possibleWeekStartDays = [

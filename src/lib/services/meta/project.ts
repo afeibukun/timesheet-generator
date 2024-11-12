@@ -7,12 +7,14 @@ export class Project implements PlainProject {
     id: number;
     purchaseOrderNumber: string;
     orderNumber?: string | undefined;
+    description?: string | undefined;
 
-    constructor({ id, purchaseOrderNumber, orderNumber }: PlainProject) {
+    constructor({ id, purchaseOrderNumber, orderNumber, description }: PlainProject) {
         if (!id) throw new Error("Cannot Initialize Project");
         this.id = id;
         this.purchaseOrderNumber = purchaseOrderNumber;
         this.orderNumber = orderNumber;
+        this.description = description;
     }
 
     convertToPlain() {

@@ -10,11 +10,19 @@ import DefaultSectionTitle from "../../_components/DefaultSectionTitle";
 import ActivePersonnel from "../../_components/ActivePersonnel";
 import { Status } from "@/lib/constants/constant";
 import { PlainPersonnel } from "@/lib/types/meta";
+import Modal from "@/app/_components/Modal";
+import AddPersonnelModal from "@/app/settings/_components/AddPersonnelModal";
+import DeletePersonnelModal from "./DeletePersonnelModal";
+import UpdatePersonnelModal from "./UpdatePersonnelModal";
 
 export default function ManagePersonnel() {
     const [personnels, setPersonnels] = useState([] as PersonnelSchema[]);
     const [primitiveActivePersonnel, setPrimitiveActivePersonnel] = useState({ displayForm: false, personnelSlug: '' })
     const [localActivePersonnel, setLocalActivePersonnel] = useState({} as Personnel)
+    let _selectedPersonnel: PersonnelSchema | undefined
+    const [selectedPersonnel, setSelectedPersonnel] = useState(_selectedPersonnel)
+    const [showAddNewPersonnelModal, setShowAddNewPersonnelModal] = useState(false)
+    const [showUpdatePersonnelModal, setShowUpdatePersonnelModal] = useState(false)
 
     const enum DisplayLabel {
         none = "",
@@ -52,7 +60,7 @@ export default function ManagePersonnel() {
         initializer();
     }, []);
 
-    const handleSaveActivePersonnel = async (newActivePersonnel: PersonnelSchema) => {
+    const saveActivePersonnelEventHandler = async (newActivePersonnel: PersonnelSchema) => {
         if (!!newActivePersonnel.slug) {
             const _selectedPersonnelSchema = personnels.filter(p => p.slug === newActivePersonnel.slug)[0];
             if (_selectedPersonnelSchema.id) {
@@ -64,29 +72,33 @@ export default function ManagePersonnel() {
         }
     }
 
-    const handleInitiateDeletePersonnel = (personnel: PersonnelSchema) => {
-        setRemovePersonnelForm({ ...removePersonnelForm, personnelSlug: personnel.slug })
+    const initiateDeletePersonnelEventHandler = (personnel: PersonnelSchema) => {
+        setSelectedPersonnel(personnel)
         setPersonnelFormView(PersonnelFormView.displayDeleteConfirmationFormView);
     }
 
-    const handleRemovePersonnel = async () => {
-        const _personnelSlug = removePersonnelForm.personnelSlug;
-        if (_personnelSlug) {
-            // TODO - set the password outside the repo
-            if (removePersonnelForm.masterPassword === 'password' && removePersonnelForm.masterPassword === removePersonnelForm.confirmMasterPassword) {
-                const _selectedPersonnelSchema = personnels.filter(p => p.slug === _personnelSlug)[0];
-                const _name = _selectedPersonnelSchema.name;
-                if (_selectedPersonnelSchema.id) {
-                    await Personnel.deletePersonnel(_selectedPersonnelSchema.id)
-                    setRemovePersonnelForm({ ...defaultRemoveFormState, notification: { active: true, type: 'success', message: `The Personnel (${_name}) has been successfully removed` } })
-
-                    setPersonnels(personnels.filter((_personnel) => _personnel.id !== _selectedPersonnelSchema.id));
-                    if (localActivePersonnel.slug === _personnelSlug) {
-                        setLocalActivePersonnel({} as Personnel);
-                    }
-                }
+    const removePersonnelEventHandler = async (personnel: Personnel | PersonnelSchema) => {
+        const isPersonnelInPersonnelArray = !!personnel.id && personnels.some((p) => p.id === personnel.id);
+        if (isPersonnelInPersonnelArray) {
+            setPersonnels(personnels.filter((_personnel) => _personnel.id !== personnel.id));
+            if (localActivePersonnel.slug === personnel.slug) {
+                setLocalActivePersonnel({} as Personnel);
             }
         }
+    }
+
+    const updatePersonnelsEventHandler = async () => {
+        if (selectedPersonnel) {
+            const _updatedPersonnels = personnels.map((_personnel) => {
+                if (_personnel.slug === selectedPersonnel?.slug) return selectedPersonnel
+                return _personnel
+            })
+            const _personnel = Personnel.convertPersonnelSchemaToPersonnel(selectedPersonnel)
+            await Personnel.updatePersonnel(_personnel);
+            setPersonnels(_updatedPersonnels)
+        }
+        setSelectedPersonnel(undefined)
+        setShowUpdatePersonnelModal(false)
     }
 
     return (
@@ -102,16 +114,6 @@ export default function ManagePersonnel() {
                         </div>
                     </div>
                 </DefaultSectionHeader>
-                <div className="add-personnel">
-                    {personnelFormView === PersonnelFormView.displayAddForm ?
-                        <div className="add-personnel mb-2">
-                            <div className="add-personnel-display">
-                                <AddPersonnel updateLocalPersonnels={(newPersonnel: Personnel) => setPersonnels([...personnels, newPersonnel])} closeForm={() => setPersonnelFormView(Status.hidden)} />
-                            </div>
-                        </div>
-                        : ''
-                    }
-                </div>
                 <div className="change-active-personnel mb-2" id='active-personnel'>
                     <div className="flex justify-between py-3 px-2 rounded bg-slate-200">
                         <div>
@@ -122,25 +124,39 @@ export default function ManagePersonnel() {
                 <div className="personnel-list">
                     {personnels.length > 0 ?
                         <div className="mb-3">
-                            <div className="grid grid-cols-3 px-2 py-1 rounded font-bold text-sm bg-slate-50">
+                            <div className="grid grid-cols-12 px-2 py-1 rounded font-bold text-sm bg-slate-50">
                                 <div><h4>S/N</h4></div>
-                                <div><h4>Personnel Name</h4></div>
-                                <div></div>
+                                <div className="col-span-4"><h4>Personnel Name</h4></div>
+                                <div className="col-span-4"><h4>Options</h4></div>
+                                <div className="col-span-3"></div>
                             </div>
                             <>
                                 {personnels.map((_personnel, index) =>
                                     <div key={_personnel.id} className="px-2 odd:bg-blue-100">
-                                        <div className="grid grid-cols-3 py-0.5 items-center">
-                                            <div><p>{index + 1}</p></div>
-                                            <div>
+                                        <div className="grid grid-cols-12 py-0.5 items-center">
+                                            <div className="serial-number-field"><p>{index + 1}</p></div>
+                                            <div className="personnel-name-field col-span-4">
                                                 <p className="">
                                                     <span className="inline-block mr-1">{_personnel.name}</span>
                                                     <>{_personnel.slug === localActivePersonnel.slug ? <span className="px-2 py-0.5 rounded text-emerald-100 bg-emerald-600 text-xs">Active</span> : ''}</>
                                                 </p>
                                             </div>
-                                            <div className="flex gap-x-1 justify-end">
-                                                <>{_personnel.slug !== localActivePersonnel.slug ? <button type="button" className="px-2 py-0.5 text-xs bg-emerald-700 text-white rounded" onClick={(e) => handleSaveActivePersonnel(_personnel)}>Make Active Personnel</button> : ''}</>
-                                                <button type="button" className="px-2 py-0.5 text-xs bg-red-600 text-white rounded" onClick={() => handleInitiateDeletePersonnel(_personnel)}>Delete</button>
+                                            <div className="personnel-options-field col-span-4 ">
+                                                <>{_personnel.options && _personnel.options.length > 0 ? _personnel.options?.map((options, index) =>
+                                                    <div key={index} className="inline-block text-xs px-2 py-1 rounded bg-slate-200">
+                                                        <span className="font-bold">{options.key}</span>
+                                                        <span> | </span>
+                                                        <span className="border-b border-slate-500">{options.value}</span>
+                                                    </div>
+                                                ) : <p className="inline-block px-2 py-1 bg-slate-200 rounded italic text-[10px]">No Options Found</p>}</>
+                                            </div>
+                                            <div className="personnel-actions-field flex gap-x-1 justify-end col-span-3">
+                                                <>{_personnel.slug !== localActivePersonnel.slug ? <button type="button" className="px-2 py-0.5 text-xs bg-emerald-700 text-white rounded" onClick={(e) => saveActivePersonnelEventHandler(_personnel)}>Set as Active</button> : ''}</>
+                                                <button type="button" className="px-2 py-0.5 text-xs bg-blue-600 text-white rounded" onClick={() => {
+                                                    setSelectedPersonnel(_personnel)
+                                                    setShowUpdatePersonnelModal(true)
+                                                }}>Edit</button>
+                                                <button type="button" className="px-2 py-0.5 text-xs bg-red-600 text-white rounded" onClick={() => initiateDeletePersonnelEventHandler(_personnel)}>Delete</button>
                                             </div>
                                         </div>
                                     </div>
@@ -154,66 +170,24 @@ export default function ManagePersonnel() {
                         </div>
                     }
                 </div>
-                <div className="remove-personnel-form-container">
-                    <div className="remove-personnel">
-                        <>
-                            {personnelFormView === PersonnelFormView.displayDeleteConfirmationFormView ?
-                                <div className="remove-personnel-confirmation-form px-2 py-4 bg-slate-50">
-                                    {!removePersonnelForm.notification.active ?
-                                        <form>
-                                            <>
-                                                {removePersonnelForm.personnelSlug && personnels.some((p) => p.slug === removePersonnelForm.personnelSlug) ?
-                                                    <div className="mb-4">
-                                                        <p>Are you sure you want to remove <span className="px-1 bg-blue-100">{personnels.filter((_personnel) => _personnel.slug === removePersonnelForm.personnelSlug)[0].name}</span> from your personnel list?</p>
-                                                    </div>
-                                                    : ''}
-                                            </>
-                                            <div className="mb-1">
-                                                <label htmlFor="masterPassword">Verify with the Master Password to remove the Personnel</label>
-                                            </div>
-                                            <div className="mb-2">
-                                                <div>
-                                                    <div><label htmlFor="masterPassword" className="text-sm">Master Password</label></div>
-                                                    <input type="password"
-                                                        name="masterPassword"
-                                                        id="masterPassword"
-                                                        className="inline-block border rounded" autoComplete="true" value={removePersonnelForm.masterPassword} onChange={(e) => setRemovePersonnelForm({ ...removePersonnelForm, masterPassword: e.target.value })} />
-                                                </div>
-                                                <div>
-                                                    <div><label htmlFor="confirmMasterPassword" className="text-sm">Confirm Master Password</label></div>
-                                                    <input type="password"
-                                                        name="confirmMasterPassword"
-                                                        id="confirmMasterPassword"
-                                                        className="inline-block border rounded" autoComplete="true" value={removePersonnelForm.confirmMasterPassword} onChange={(e) => setRemovePersonnelForm({ ...removePersonnelForm, confirmMasterPassword: e.target.value })} />
-                                                </div>
-                                            </div>
 
-                                            <div className="inline-flex gap-2">
-                                                <button className="px-3 py-1 rounded text-white bg-red-600" type="button" onClick={(e) => handleRemovePersonnel()}>Remove Personnel</button>
-                                                <button className="px-3 py-1 rounded text-red-600 " type="button" onClick={(e) => setPersonnelFormView(Status.hidden)}>Cancel</button>
-                                            </div>
-                                        </form>
-                                        :
-                                        <div>
-                                            <div className="mb-2">
-                                                <div className={`px-3 py-2 mt-2 border rounded ${removePersonnelForm.notification.type === 'success' ? 'bg-green-100 border-green-200' : removePersonnelForm.notification.type === 'danger' ? 'bg-red-100 border-red-200' : 'bg-blue-100 border-blue-200'}`}>
-                                                    <p className={`text-sm font-bold ${removePersonnelForm.notification.type === 'success' ? 'text-green-700' : removePersonnelForm.notification.type === 'danger' ? 'text-red-700' : 'text-blue-700'}`}>{removePersonnelForm.notification.message}</p>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <button type="button" className="px-3 py-1 rounded bg-red-600 text-white" onClick={() => {
-                                                    setPersonnelFormView(Status.hidden)
-                                                    setRemovePersonnelForm(defaultRemoveFormState);
-                                                }}>Close</button>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                                : ''
-                            }
-                        </>
-                    </div>
-                </div>
+
+
+                {/* Add New Personnel */}
+                <AddPersonnelModal showModal={personnelFormView === PersonnelFormView.displayAddForm} updateLocalPersonnels={(newPersonnel: Personnel) => setPersonnels([...personnels, newPersonnel])} closeModalEventHandler={() => setPersonnelFormView(Status.hidden)} ></AddPersonnelModal>
+
+                {/* Update Personnel */}
+                <>{selectedPersonnel ?
+                    <UpdatePersonnelModal updatePersonnelEventHandler={updatePersonnelsEventHandler} showModal={showUpdatePersonnelModal && !!selectedPersonnel} personnel={selectedPersonnel} selectedPersonnelUpdateEventHandler={(_updatedPersonnel: PersonnelSchema) => { setSelectedPersonnel(_updatedPersonnel) }} closeModalEventHandler={() => {
+                        setSelectedPersonnel(undefined)
+                        setShowUpdatePersonnelModal(false)
+                    }} ></UpdatePersonnelModal> : ''
+                }</>
+
+                {/* Delete Personnel */}
+                <>{selectedPersonnel ?
+                    <DeletePersonnelModal showModal={personnelFormView === PersonnelFormView.displayDeleteConfirmationFormView} personnel={selectedPersonnel} removePersonnelEventHandler={(personnel: Personnel | PersonnelSchema) => removePersonnelEventHandler(personnel)} closeModalEventHandler={() => setPersonnelFormView(Status.hidden)} ></DeletePersonnelModal> : ''
+                }</>
             </DefaultSection>
         </div>
     )

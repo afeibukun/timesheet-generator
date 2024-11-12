@@ -6,6 +6,7 @@ import DefaultLabelText from "@/app/_components/DefaultLabelText";
 import { StoreName } from "@/lib/constants/storage";
 import { Site } from "@/lib/services/meta/site";
 import { Customer } from "@/lib/services/meta/customer";
+import Modal from "@/app/_components/Modal";
 
 type CustomerCardProp = {
     customer: Customer,
@@ -120,21 +121,28 @@ export default function CustomerCard({ customer, handleUpdateCustomer, handleDel
                                 ) : <div className="px-3 py-0.5 bg-slate-200"><p className="text-sm italic">There are no sites yet</p></div>}
                             </div>
                         </div>
-                        {siteFormForCustomer.state === Status.displayForm ?
+                        <Modal showModal={siteFormForCustomer.state === Status.displayForm}
+                            modalTitle="Add New Site"
+                            modalFooter={<>
+                                <button data-modal-hide="default-modal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={(e) => handleSaveSiteEvent(e, customer)}>Save</button>
+                                <button data-modal-hide="default-modal" type="button" className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100" onClick={(e) => setSiteFormForCustomer({ ...siteFormForCustomer, state: Status.hideForm })}>Close</button>
+                            </>
+                            }
+                            closeModalEventHandler={() => setSiteFormForCustomer({ ...siteFormForCustomer, state: Status.hideForm })}
+                        >
                             <div className="add-site">
-                                <div className="px-2 py-4 border">
-                                    <div>Add Site</div>
+                                <div className="px-2 py-2 border">
                                     <div>
                                         <div>
-                                            <label htmlFor="newSiteName">
+                                            <label htmlFor={`newSiteName${customer.id}`}>
                                                 <DefaultLabelText>New Site Name
                                                 </DefaultLabelText>
                                             </label>
                                         </div>
                                         <div>
                                             <input type="text"
-                                                name="newSiteName"
-                                                id="newSiteName"
+                                                name={`newSiteName${customer.id}`}
+                                                id={`newSiteName${customer.id}`}
                                                 value={siteFormForCustomer.siteName}
                                                 onChange={(e) => setSiteFormForCustomer({ ...siteFormForCustomer, siteName: e.target.value })}
                                                 className="border rounded" />
@@ -142,30 +150,23 @@ export default function CustomerCard({ customer, handleUpdateCustomer, handleDel
                                     </div>
                                     <div className="mb-3">
                                         <div>
-                                            <label htmlFor="newSiteCountry">
+                                            <label htmlFor={`newSiteCountry${customer.id}`}>
                                                 <DefaultLabelText>New Site Country
                                                 </DefaultLabelText>
                                             </label>
                                         </div>
                                         <div>
                                             <input type="text"
-                                                name="newSiteCountry"
-                                                id="newSiteCountry"
+                                                name={`newSiteCountry${customer.id}`}
+                                                id={`newSiteCountry${customer.id}`}
                                                 value={siteFormForCustomer.siteCountry}
                                                 onChange={(e) => setSiteFormForCustomer({ ...siteFormForCustomer, siteCountry: e.target.value })}
                                                 className="border rounded" />
                                         </div>
                                     </div>
-
-                                    <div className="inline-flex gap-x-2">
-                                        <button type="button" className="py-1 px-2 rounded bg-green-400" onClick={(e) => {
-                                            handleSaveSiteEvent(e, customer)
-                                        }}>Save</button>
-                                        <button type="button" className="py-1 px-2 rounded bg-red-400" onClick={(e) => setSiteFormForCustomer({ ...siteFormForCustomer, state: Status.hideForm })}>Close</button>
-                                    </div>
                                 </div>
                             </div>
-                            : ''}
+                        </Modal>
                     </div>
                 </div>
             </div>

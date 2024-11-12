@@ -8,6 +8,7 @@ import DefaultSectionTitle from "../../_components/DefaultSectionTitle";
 import DefaultLabelText from "../../_components/DefaultLabelText";
 import { Status } from "@/lib/constants/constant";
 import { StoreName } from "@/lib/constants/storage";
+import Modal from "@/app/_components/Modal";
 
 export default function ManageProjects() {
     const [projects, setProjects] = useState([] as ProjectSchema[]);
@@ -97,48 +98,57 @@ export default function ManageProjects() {
                                         </div>}
                                 </div>
                             </div>
-                            :
-                            <div className="add-new-projects px-2 py-4 border">
-                                <div className="mb-3">
-                                    <h4 className="font-semibold">Add new Project</h4>
-                                </div>
-                                <div>
-                                    <div>
-                                        <label htmlFor="newPurchaseOrderNumber">
-                                            <DefaultLabelText>New Purchase Order Number
-                                            </DefaultLabelText>
-                                        </label>
-                                    </div>
-
-                                    <input type="text"
-                                        name="newPurchaseOrderNumber"
-                                        id="newPurchaseOrderNumber"
-                                        value={projectForm.purchaseOrderNumber}
-                                        onChange={(e) => setProjectForm({ ...projectForm, purchaseOrderNumber: e.target.value })}
-                                        className="border rounded" />
-                                </div>
-                                <div className="mb-2">
-                                    <div>
-                                        <label htmlFor="newOrderNumber">
-                                            <DefaultLabelText>New Order Number
-                                            </DefaultLabelText>
-                                        </label>
-                                    </div>
-                                    <input type="text"
-                                        name="newOrderNumber"
-                                        id="newOrderNumber"
-                                        value={projectForm.orderNumber}
-                                        onChange={(e) => setProjectForm({ ...projectForm, orderNumber: e.target.value })}
-                                        className="border rounded" />
-                                </div>
-
-                                <div className="inline-flex gap-x-2">
-                                    <button type="button" className="py-1 px-2 rounded bg-green-400" onClick={(e) => handleSaveProjectEvent(e)}>Save</button>
-                                    <button type="button" className="py-1 px-2 rounded bg-red-400" onClick={(e) => setProjectForm({ ...projectForm, state: Status.hideForm })}>Close</button>
-                                </div>
-                            </div>
-                        }
+                            : ''}
                     </div>
+                    <Modal showModal={projectForm.state === Status.displayForm}
+                        modalTitle="Add New Project"
+                        modalFooter={<>
+                            <button data-modal-hide="default-modal" type="button" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center" onClick={(e) => handleSaveProjectEvent(e)}>Submit</button>
+                            <button data-modal-hide="default-modal" type="button" className="py-2.5 px-5 ms-3 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-100" onClick={(e) => setProjectForm({ ...projectForm, state: Status.hideForm })}>Close</button>
+                        </>
+                        }
+                        closeModalEventHandler={() => setProjectForm({ ...projectForm, state: Status.hideForm })}
+                    >
+                        <div className="add-new-projects px-2 py-4 border">
+                            <div className="mb-3">
+                                <h4 className="font-semibold">Add new Project</h4>
+                            </div>
+                            <div>
+                                <div>
+                                    <label htmlFor="newPurchaseOrderNumber">
+                                        <DefaultLabelText>New Purchase Order Number
+                                        </DefaultLabelText>
+                                    </label>
+                                </div>
+
+                                <input type="text"
+                                    name="newPurchaseOrderNumber"
+                                    id="newPurchaseOrderNumber"
+                                    value={projectForm.purchaseOrderNumber}
+                                    onChange={(e) => setProjectForm({ ...projectForm, purchaseOrderNumber: e.target.value })}
+                                    className="border rounded" />
+                            </div>
+                            <div className="mb-2">
+                                <div>
+                                    <label htmlFor="newOrderNumber">
+                                        <DefaultLabelText>New Order Number
+                                        </DefaultLabelText>
+                                    </label>
+                                </div>
+                                <input type="text"
+                                    name="newOrderNumber"
+                                    id="newOrderNumber"
+                                    value={projectForm.orderNumber}
+                                    onChange={(e) => setProjectForm({ ...projectForm, orderNumber: e.target.value })}
+                                    className="border rounded" />
+                            </div>
+
+                            <div className="inline-flex gap-x-2">
+                                <button type="button" className="py-1 px-2 rounded bg-green-400" onClick={(e) => handleSaveProjectEvent(e)}>Save</button>
+                                <button type="button" className="py-1 px-2 rounded bg-red-400" onClick={(e) => setProjectForm({ ...projectForm, state: Status.hideForm })}>Close</button>
+                            </div>
+                        </div>
+                    </Modal>
                 </div>
             </DefaultSection>
         </div>

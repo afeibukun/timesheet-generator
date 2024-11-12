@@ -63,6 +63,16 @@ export class TimesheetHour implements PlainTimesheetHour {
         return TimesheetHour.convertMinutesToTimesheetHour(totalMinutes);
     }
 
+    static subtractTimesheetHours(largerTime: TimesheetHour, smallerTime: TimesheetHour) {
+        if (!largerTime._isValidTime || !smallerTime._isValidTime) throw new Error(ErrorMessage.timeInvalid);
+        if (largerTime.isEarlierThan(smallerTime)) throw new Error(ErrorMessage.timeInvalid);
+        if (largerTime.isEqualTo(smallerTime)) return new TimesheetHour("00:00");
+        const largerTimeInMinutes = TimesheetHour.convertTimesheetHourToMinutes(largerTime);
+        const smallerTimeInMinutes = TimesheetHour.convertTimesheetHourToMinutes(smallerTime);
+        const timeDifference = largerTimeInMinutes - smallerTimeInMinutes;
+        return TimesheetHour.convertMinutesToTimesheetHour(timeDifference);
+    }
+
     static convertTimesheetHourToMinutes(_time: TimesheetHour): number {
         let totalMinutes = 0;
         if (_time._isValidTime) totalMinutes = (_time.hour * 60) + _time.minute;

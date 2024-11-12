@@ -8,7 +8,7 @@ export interface PlainPersonnel {
 }
 
 export interface PlainPersonnelOption {
-    id: number,
+    id?: number,
     key: string,
     value: string,
 }
@@ -33,5 +33,6 @@ export interface PlainCustomer {
 export interface PlainProject {
     id?: number
     purchaseOrderNumber: string,
-    orderNumber?: string
+    orderNumber?: string,
+    description?: string
 }
