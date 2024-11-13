@@ -4,94 +4,66 @@ import { ExportOptions } from '@/lib/types/timesheet';
 import templateConfig from '../../../../../../../main-timesheet-template';
 import { ClassicTemplate, InternalReportTimesheetCollection, InternalReportTimesheetRecord } from '../../classic';
 import { capitalize, titleize } from '@/lib/helpers';
+import { Align, Border, BorderStyle, Color, FillPattern, FillType, Font, FontSize } from '../../../type';
 
 export const createXlsxClassicInternalTimesheetReport = async (internalReportTimesheet: InternalReportTimesheetCollection, exportOptions: ExportOptions) => {
     try {
         if (!internalReportTimesheet.records || !Array.isArray(internalReportTimesheet.records) || internalReportTimesheet.records.length < 1) {
             throw new Error("Invalid Timesheet Records for Internal Report")
         }
+
         const ExcelJS = require('exceljs');
         const workbook = new ExcelJS.Workbook();
-        workbook.creator = 'Timesheet Generator App';
-        workbook.lastModifiedBy = 'Timesheet Generator App';
+        workbook.creator = `TGApp - ${internalReportTimesheet.personnel.name}`;
+        workbook.lastModifiedBy = `TG App - ${internalReportTimesheet.personnel.name}`;
         workbook.created = new Date();
         workbook.modified = new Date();
 
-        const orientationLandscape = 'orientation'
+        const orientationLandscape = 'landscape'
 
         const imageExtensionPng = 'png';
 
-        const fontDefault = templateConfig.style.font.default;
+        const fontDefault: Font = templateConfig.style.font.default;
 
-        const fontSizeSmall = templateConfig.style.fontSize.small;
-        const fontSizeNine = templateConfig.style.fontSize.nine;
-        const fontSizeMedium = templateConfig.style.fontSize.default;
-        const fontSizeLarge = templateConfig.style.fontSize.large;
-
-        const colorBlue = templateConfig.style.color.blueARGB
-        const colorGray = templateConfig.style.color.grayARGB
-        const colorLightGray = templateConfig.style.color.lightGrayARGB
-        const colorWhite = templateConfig.style.color.whiteARGB
-        const colorRuddyPink = templateConfig.style.color.ruddyPinkARGB
-        const colorPalePink = templateConfig.style.color.palePinkARGB
-        const colorAliceBlue = templateConfig.style.color.aliceBlueARGB
-        const colorPoliceBlue = templateConfig.style.color.policeBlueARGB
-        const colorTealBlue = templateConfig.style.color.tealBlueARGB
-        const colorPowderBlue = templateConfig.style.color.powderBlueARGB
-
-        const alignTop = templateConfig.style.align.top
-        const alignLeft = templateConfig.style.align.left
-        const alignRight = templateConfig.style.align.right
-        const alignCenter = templateConfig.style.align.center
-        const alignMiddle = templateConfig.style.align.middle
-
-        const cellBorderStyleThin = 'thin'
-        const cellBorderStyleThick = 'thick'
-
-        const borderAllEmpty = {
-            top: { style: '' },
-            left: { style: '' },
-            bottom: { style: '' },
-            right: { style: '' }
+        const borderAllEmpty: Border = {
+            top: { style: BorderStyle.none },
+            left: { style: BorderStyle.none },
+            bottom: { style: BorderStyle.none },
+            right: { style: BorderStyle.none }
         }
 
         const borderAllThin = {
-            top: { style: cellBorderStyleThin },
-            left: { style: cellBorderStyleThin },
-            bottom: { style: cellBorderStyleThin },
-            right: { style: cellBorderStyleThin }
+            top: { style: BorderStyle.thin },
+            left: { style: BorderStyle.thin },
+            bottom: { style: BorderStyle.thin },
+            right: { style: BorderStyle.thin }
         }
         const borderAllThick = {
-            top: { style: cellBorderStyleThick },
-            left: { style: cellBorderStyleThick },
-            bottom: { style: cellBorderStyleThick },
-            right: { style: cellBorderStyleThick }
+            top: { style: BorderStyle.thick },
+            left: { style: BorderStyle.thick },
+            bottom: { style: BorderStyle.thick },
+            right: { style: BorderStyle.thick }
         }
-        const borderVerticalThin = {
-            top: { style: cellBorderStyleThin },
-            left: { style: '' },
-            bottom: { style: cellBorderStyleThin },
-            right: { style: '' }
+        const borderVerticalThin: Border = {
+            top: { style: BorderStyle.thin },
+            left: { style: BorderStyle.none },
+            bottom: { style: BorderStyle.thin },
+            right: { style: BorderStyle.none }
         }
 
         const borderThickBottom = {
-            top: { style: cellBorderStyleThin },
-            left: { style: cellBorderStyleThin },
-            bottom: { style: cellBorderStyleThick },
-            right: { style: cellBorderStyleThin }
+            top: { style: BorderStyle.thin },
+            left: { style: BorderStyle.thin },
+            bottom: { style: BorderStyle.thick },
+            right: { style: BorderStyle.thin }
         }
 
         const borderThickTop = {
-            top: { style: cellBorderStyleThick },
-            left: { style: cellBorderStyleThin },
-            bottom: { style: cellBorderStyleThin },
-            right: { style: cellBorderStyleThin }
+            top: { style: BorderStyle.thick },
+            left: { style: BorderStyle.thin },
+            bottom: { style: BorderStyle.thin },
+            right: { style: BorderStyle.thin }
         }
-
-        const fillTypePattern = 'pattern'
-
-        const fillPatternSolid = 'solid'
-        const fillPatternNone = 'none'
 
         let sheetCollection = ['Sheet 1'];
 
@@ -103,19 +75,19 @@ export const createXlsxClassicInternalTimesheetReport = async (internalReportTim
         // Row 1 - 4
         headerRowData(workbook, imageExtensionPng, worksheet);
         headerRowMerge(worksheet);
-        headerRowStyle(worksheet, fontDefault, fontSizeMedium, fontSizeNine, colorTealBlue, colorWhite, borderVerticalThin, borderAllThin, borderAllEmpty, cellBorderStyleThin, fillTypePattern, fillPatternSolid, alignMiddle, alignTop, alignCenter, alignLeft);
+        headerRowStyle(worksheet, fontDefault, borderVerticalThin, borderAllThin, borderAllEmpty);
 
 
         // Row 5 - 7
         const timesheetMetaRowsData = metaSectionData(internalReportTimesheet)
         worksheet.addRows(timesheetMetaRowsData);
         metaSectionMerges(worksheet);
-        metaSectionStyles(worksheet, borderVerticalThin, borderAllThin, borderAllEmpty, cellBorderStyleThin, fontDefault, fontSizeSmall, fontSizeNine, fillTypePattern, fillPatternSolid, colorLightGray, colorGray, colorWhite, alignRight, alignLeft, alignCenter, alignMiddle);
+        metaSectionStyles(worksheet, borderVerticalThin, borderAllThin, borderAllEmpty, fontDefault);
 
         // Row 8 Data
         const timeEntryHeaderRowsData = timeEntryHeaderRowData();
         worksheet.addRows(timeEntryHeaderRowsData);
-        timeEntryHeaderRowStyles(worksheet, borderAllThin, borderAllEmpty, cellBorderStyleThin, fontDefault, fontSizeSmall, fillTypePattern, fillPatternSolid, colorAliceBlue);
+        timeEntryHeaderRowStyles(worksheet, borderAllThin, borderAllEmpty, fontDefault);
 
         // Row 9 to 40 something - Data
         let coreEntryStartRow = 9;
@@ -123,19 +95,19 @@ export const createXlsxClassicInternalTimesheetReport = async (internalReportTim
         let lengthOfCoreTimesheetEntry = coreTimesheetEntryRows.length;
         worksheet.addRows(coreTimesheetEntryRows);
         timeEntrySectionMerges(worksheet, internalReportTimesheet.records, coreEntryStartRow);
-        timeEntrySectionStyles(worksheet, internalReportTimesheet, exportOptions, fontDefault, fontSizeSmall, alignMiddle, alignLeft, alignRight, borderAllThin, borderAllEmpty, cellBorderStyleThin, fillTypePattern, fillPatternSolid, fillPatternNone, colorLightGray, colorRuddyPink, colorPalePink, colorPowderBlue);
+        timeEntrySectionStyles(worksheet, internalReportTimesheet, exportOptions, fontDefault, borderAllThin, borderAllEmpty);
 
         const totalStartRow = coreEntryStartRow + lengthOfCoreTimesheetEntry;
         const timeEntryTotalRows = timeEntryTotalSectionData(internalReportTimesheet.records);
         worksheet.addRows(timeEntryTotalRows);
         timeEntryTotalSectionMerges(worksheet, totalStartRow)
-        timeEntryTotalSectionStyles(worksheet, totalStartRow, borderAllThin, borderAllThick, borderAllEmpty, cellBorderStyleThin, fontDefault, fontSizeSmall, fontSizeNine, fillTypePattern, fillPatternSolid, colorPoliceBlue, alignMiddle, alignLeft, alignRight)
+        timeEntryTotalSectionStyles(worksheet, totalStartRow, borderAllThin, borderAllThick, borderAllEmpty, fontDefault)
 
         const signatureStartRow = totalStartRow + 1;
         const timesheetSignatureRows = timesheetSignatureSectionData(internalReportTimesheet);
         worksheet.addRows(timesheetSignatureRows);
         timesheetSignatureSectionMerges(worksheet, signatureStartRow);
-        timesheetSignatureSectionStyle(worksheet, signatureStartRow, borderVerticalThin, borderAllEmpty, cellBorderStyleThin, fontDefault, fontSizeMedium, alignMiddle);
+        timesheetSignatureSectionStyle(worksheet, signatureStartRow, borderVerticalThin, borderAllEmpty, fontDefault,);
         const lengthOfSignatureRows = 5;
 
 
@@ -225,44 +197,44 @@ const headerRowMerge = (worksheet: any) => {
 
     worksheet.mergeCells('O3:P3')
 }
-const headerRowStyle = (worksheet: any, fontDefault: any, fontSizeMedium: any, fontSizeNine: any, colorTealBlue: any, colorWhite: any, borderVerticalThin: any, borderAllThin: any, borderAllEmpty: any, cellBorderStyleThin: any, fillTypePattern: any, fillPatternSolid: any, alignMiddle: any, alignTop: any, alignCenter: any, alignLeft: any) => {
+const headerRowStyle = (worksheet: any, fontDefault: Font, borderVerticalThin: Border, borderAllThin: Border, borderAllEmpty: Border) => {
     let _row = 1
     // Row 1 - STYLES
     worksheet.getRow(_row).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
-        cell.border = { ...borderVerticalThin, bottom: { style: cellBorderStyleThin } }
+        cell.border = { ...borderVerticalThin, bottom: { style: BorderStyle.thin } }
         cell.font = {
             name: fontDefault,
             family: 2,
             italic: false,
             bold: true,
-            size: fontSizeMedium
+            size: FontSize.medium
         }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorWhite }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.whiteARGB }
         }
     })
-    worksheet.getCell(`A${_row}`).border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
-    worksheet.getCell(`C${_row}`).border = { ...borderVerticalThin, right: { style: cellBorderStyleThin }, bottom: { style: '' } }
-    worksheet.getCell(`F${_row}`).alignment = { vertical: alignTop, horizontal: alignLeft }
+    worksheet.getCell(`A${_row}`).border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
+    worksheet.getCell(`C${_row}`).border = { ...borderVerticalThin, right: { style: BorderStyle.thin }, bottom: { style: '' } }
+    worksheet.getCell(`F${_row}`).alignment = { vertical: Align.top, horizontal: Align.left }
 
-    worksheet.getCell(`J${_row}`).font = { color: { argb: colorTealBlue }, name: fontDefault, size: fontSizeMedium, bold: true }
-    worksheet.getCell(`J${_row}`).border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
-    worksheet.getCell(`J${_row}`).alignment = { vertical: alignTop, horizontal: alignLeft }
+    worksheet.getCell(`J${_row}`).font = { color: { argb: Color.tealBlueARGB }, name: fontDefault, size: FontSize.medium, bold: true }
+    worksheet.getCell(`J${_row}`).border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
+    worksheet.getCell(`J${_row}`).alignment = { vertical: Align.top, horizontal: Align.left }
 
     worksheet.getCell(`N${_row}`).border = { ...borderAllThin, bottom: { style: '' } }
     worksheet.getCell(`O${_row}`).border = borderAllThin
-    worksheet.getCell(`O${_row}`).alignment = { vertical: alignMiddle, horizontal: alignCenter }
-    worksheet.getCell(`Q${_row}`).border = { ...borderVerticalThin, bottom: { style: '' }, right: { style: cellBorderStyleThin } }
+    worksheet.getCell(`O${_row}`).alignment = { vertical: Align.middle, horizontal: Align.center }
+    worksheet.getCell(`Q${_row}`).border = { ...borderVerticalThin, bottom: { style: '' }, right: { style: BorderStyle.thin } }
 
     // Row 2
     _row += 1
-    worksheet.getCell(`C${_row}`).font = { name: fontDefault, size: fontSizeMedium, bold: true }
-    worksheet.getCell(`C${_row}`).border = { ...borderVerticalThin, top: { style: '' }, right: { style: cellBorderStyleThin } }
-    worksheet.getCell(`O${_row}`).font = { name: fontDefault, size: fontSizeNine, bold: true }
+    worksheet.getCell(`C${_row}`).font = { name: fontDefault, size: FontSize.medium, bold: true }
+    worksheet.getCell(`C${_row}`).border = { ...borderVerticalThin, top: { style: '' }, right: { style: BorderStyle.thin } }
+    worksheet.getCell(`O${_row}`).font = { name: fontDefault, size: FontSize.nine, bold: true }
     worksheet.getCell(`O${_row}`).border = { ...borderAllThin, bottom: { style: '' } }
-    worksheet.getCell(`Q${_row}`).border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell(`Q${_row}`).border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
     // row 3
     _row += 1
     worksheet.getRow(_row).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
@@ -271,23 +243,23 @@ const headerRowStyle = (worksheet: any, fontDefault: any, fontSizeMedium: any, f
             family: 2,
             italic: false,
             bold: true,
-            size: fontSizeMedium
+            size: FontSize.medium
         }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorWhite }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.whiteARGB }
         }
-        cell.alignment = { vertical: alignMiddle, horizontal: alignLeft }
+        cell.alignment = { vertical: Align.middle, horizontal: Align.left }
     })
-    worksheet.getCell('A3').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
-    worksheet.getCell('E3').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('A3').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
+    worksheet.getCell('E3').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('H3').border = borderVerticalThin
-    worksheet.getCell('J3').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
-    worksheet.getCell('O3').font = { name: fontDefault, size: fontSizeNine, bold: true }
+    worksheet.getCell('J3').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
+    worksheet.getCell('O3').font = { name: fontDefault, size: FontSize.nine, bold: true }
     worksheet.getCell('O3').border = { ...borderAllThin, top: { style: '' } }
-    worksheet.getCell('Q3').border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
-    worksheet.getCell('Q4').border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('Q3').border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
+    worksheet.getCell('Q4').border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 }
 
 const metaSectionData = (internalReportTimesheet: InternalReportTimesheetCollection) => {
@@ -347,122 +319,122 @@ const metaSectionMerges = (worksheet: any) => {
     worksheet.mergeCells('I7:J7');
     worksheet.mergeCells('K7:M7');
 }
-const metaSectionStyles = (worksheet: any, borderVerticalThin: any, borderAllThin: any, borderAllEmpty: any, cellBorderStyleThin: any, fontDefault: any, fontSizeSmall: any, fontSizeNine: any, fillTypePattern: any, fillPatternSolid: any, colorLightGray: any, colorGray: any, colorWhite: any, alignRight: any, alignLeft: any, alignCenter: any, alignMiddle: any) => {
-    const metaFontNotBold = { name: fontDefault, family: 2, italic: false, size: fontSizeNine, bold: false }
-    const metaFontBold = { name: fontDefault, family: 2, italic: false, size: fontSizeNine, bold: true }
-    const metaValueFillLightGray = { type: fillTypePattern, pattern: fillPatternSolid, fgColor: { argb: colorLightGray } }
-    const metaKeyAlignmentMiddleRight = { horizontal: alignRight, vertical: alignMiddle }
-    const metaValueAlignmentMiddleLeft = { horizontal: alignLeft, vertical: alignMiddle }
+const metaSectionStyles = (worksheet: any, borderVerticalThin: Border, borderAllThin: Border, borderAllEmpty: Border, fontDefault: Font) => {
+    const metaFontNotBold = { name: fontDefault, family: 2, italic: false, size: FontSize.nine, bold: false }
+    const metaFontBold = { name: fontDefault, family: 2, italic: false, size: FontSize.nine, bold: true }
+    const metaValueFillLightGray = { type: FillType.pattern, pattern: FillPattern.solid, fgColor: { argb: Color.lightGrayARGB } }
+    const metaKeyAlignmentMiddleRight = { horizontal: Align.right, vertical: Align.middle }
+    const metaValueAlignmentMiddleLeft = { horizontal: Align.left, vertical: Align.middle }
     // Row 5 STYLES
     worksheet.getRow(5).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
         cell.border = borderVerticalThin
         cell.font = metaFontBold
     })
-    worksheet.getCell('A5').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('A5').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('A5').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('C5').fill = metaValueFillLightGray
     worksheet.getCell('C5').font = metaFontNotBold
-    worksheet.getCell('C5').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('C5').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('C5').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('E5').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('E5').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('E5').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('F5').font = metaFontNotBold
     worksheet.getCell('F5').fill = metaValueFillLightGray
-    worksheet.getCell('F5').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('F5').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('F5').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('H5').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('H5').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('H5').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('I5').font = metaFontNotBold
     worksheet.getCell('I5').fill = metaValueFillLightGray
-    worksheet.getCell('I5').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('I5').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('I5').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('J5').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('J5').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('J5').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('K5').font = metaFontNotBold
     worksheet.getCell('K5').fill = metaValueFillLightGray
-    worksheet.getCell('K5').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('K5').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('K5').alignment = metaValueAlignmentMiddleLeft
-    worksheet.getCell('Q5').border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('Q5').border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 
     // Row 6 STYLES
     worksheet.getRow(6).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
         cell.border = borderVerticalThin
         cell.font = metaFontBold
     })
-    worksheet.getCell('A6').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('A6').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('A6').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('C6').font = metaFontNotBold
     worksheet.getCell('C6').fill = metaValueFillLightGray
-    worksheet.getCell('C6').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('C6').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('C6').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('E6').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('E6').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('E6').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('F6').font = metaFontNotBold
     worksheet.getCell('F6').fill = metaValueFillLightGray
-    worksheet.getCell('F6').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('F6').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('F6').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('H6').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('H6').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('H6').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('I6').font = metaFontNotBold
     worksheet.getCell('I6').fill = metaValueFillLightGray
-    worksheet.getCell('I6').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('I6').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('I6').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('J6').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('J6').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('J6').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('K6').font = metaFontNotBold
     worksheet.getCell('K6').fill = metaValueFillLightGray
-    worksheet.getCell('K6').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('K6').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('K6').alignment = metaValueAlignmentMiddleLeft
-    worksheet.getCell('Q6').border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('Q6').border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 
     // Row 7 STYLES
     worksheet.getRow(7).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
         cell.border = borderVerticalThin
         cell.font = metaFontBold
     })
-    worksheet.getCell('A7').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('A7').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('A7').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('C7').font = metaFontNotBold
     worksheet.getCell('C7').fill = metaValueFillLightGray
-    worksheet.getCell('C7').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('C7').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('C7').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('E7').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('E7').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('E7').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('F7').font = metaFontNotBold
     worksheet.getCell('F7').fill = metaValueFillLightGray
-    worksheet.getCell('F7').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('F7').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('F7').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('H7').border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell('H7').border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell('H7').alignment = metaKeyAlignmentMiddleRight
 
     worksheet.getCell('I7').font = metaFontNotBold
     worksheet.getCell('I7').fill = metaValueFillLightGray
-    worksheet.getCell('I7').border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('I7').border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
     worksheet.getCell('I7').alignment = metaValueAlignmentMiddleLeft
 
-    worksheet.getCell('K7').fill = { type: fillTypePattern, pattern: fillPatternSolid, fgColor: { argb: colorGray } }
-    worksheet.getCell('K7').font = { ...metaFontBold, size: fontSizeSmall, color: { argb: colorWhite } }
+    worksheet.getCell('K7').fill = { type: FillType.pattern, pattern: FillPattern.solid, fgColor: { argb: Color.grayARGB } }
+    worksheet.getCell('K7').font = { ...metaFontBold, size: FontSize.small, color: { argb: Color.whiteARGB } }
     worksheet.getCell('K7').border = borderAllThin
-    worksheet.getCell('K7').alignment = { horizontal: alignCenter, vertical: alignMiddle }
-    worksheet.getCell('Q7').border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('K7').alignment = { horizontal: Align.center, vertical: Align.middle }
+    worksheet.getCell('Q7').border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 }
 
 const timeEntryHeaderRowData = () => {
@@ -489,7 +461,7 @@ const timeEntryHeaderRowData = () => {
         console.log(err)
     }
 }
-const timeEntryHeaderRowStyles = (worksheet: any, borderAllThin: any, borderAllEmpty: any, cellBorderStyleThin: any, fontDefault: any, fontSizeSmall: any, fillTypePattern: any, fillPatternSolid: any, colorAliceBlue: any) => {
+const timeEntryHeaderRowStyles = (worksheet: any, borderAllThin: Border, borderAllEmpty: Border, fontDefault: Font) => {
     // Row 8 STYLES
     worksheet.getRow(8).eachCell((cell: any, colNumber: any) => {
         cell.border = borderAllThin
@@ -498,15 +470,15 @@ const timeEntryHeaderRowStyles = (worksheet: any, borderAllThin: any, borderAllE
             family: 2,
             italic: false,
             bold: true,
-            size: fontSizeSmall
+            size: FontSize.small
         }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorAliceBlue }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.aliceBlueARGB }
         }
     })
-    worksheet.getCell('Q8').border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell('Q8').border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 }
 
 const timeEntrySectionDataRows = (internalReportRecords: InternalReportTimesheetRecord[]) => {
@@ -535,7 +507,7 @@ const timeEntrySectionMerges = (worksheet: any, internalReportRecords: InternalR
         worksheet.mergeCells(`N${i}:O${i}`);
     }
 }
-const timeEntrySectionStyles = (worksheet: any, internalReportTimesheet: InternalReportTimesheetCollection, exportOptions: ExportOptions, fontDefault: any, fontSizeSmall: any, alignMiddle: any, alignLeft: any, alignRight: any, borderAllThin: any, borderAllEmpty: any, cellBorderStyleThin: any, fillTypePattern: any, fillPatternSolid: any, fillPatternNone: any, colorLightGray: any, colorRuddyPink: any, colorPalePink: any, colorPowderBlue: string) => {
+const timeEntrySectionStyles = (worksheet: any, internalReportTimesheet: InternalReportTimesheetCollection, exportOptions: ExportOptions, fontDefault: Font, borderAllThin: Border, borderAllEmpty: Border) => {
     // Row 9 to 39 (or thereabout) - STYLES
     let counter = 0;
     let startRowForTimeEntry = 9;
@@ -544,10 +516,10 @@ const timeEntrySectionStyles = (worksheet: any, internalReportTimesheet: Interna
         singleRow.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
             cell.font = {
                 name: fontDefault,
-                size: fontSizeSmall,
+                size: FontSize.small,
                 family: 2,
             }
-            cell.alignment = { vertical: alignMiddle, horizontal: alignRight }
+            cell.alignment = { vertical: Align.middle, horizontal: Align.right }
             cell.border = borderAllThin
             // cell.numFmt = '#';
         })
@@ -556,47 +528,47 @@ const timeEntrySectionStyles = (worksheet: any, internalReportTimesheet: Interna
             // not same month
             singleRow.eachCell({ includeEmpty: true }, (cell: any) => {
                 cell.fill = {
-                    type: fillTypePattern,
-                    pattern: fillPatternSolid,
-                    fgColor: { argb: colorLightGray }
+                    type: FillType.pattern,
+                    pattern: FillPattern.solid,
+                    fgColor: { argb: Color.lightGrayARGB }
                 }
             })
         }
 
         if (_records[counter].date.dayLabel.toLowerCase() == "sunday") {
             worksheet.getCell(`B${counter + startRowForTimeEntry}`).fill = {
-                type: fillTypePattern,
-                pattern: fillPatternSolid,
-                fgColor: { argb: colorPalePink }
+                type: FillType.pattern,
+                pattern: FillPattern.solid,
+                fgColor: { argb: Color.palePinkARGB }
             }
         }
 
         if (_records[counter].publicHoliday) {
             worksheet.getCell(`B${counter + startRowForTimeEntry}`).fill = {
-                type: fillTypePattern,
-                pattern: fillPatternSolid,
-                fgColor: { argb: colorRuddyPink }
+                type: FillType.pattern,
+                pattern: FillPattern.solid,
+                fgColor: { argb: Color.ruddyPinkARGB }
             }
         }
 
         if (_records[counter].premium) {
             worksheet.getCell(`N${counter + startRowForTimeEntry}`).fill = {
-                type: fillTypePattern,
-                pattern: fillPatternSolid,
-                fgColor: { argb: colorPowderBlue }
+                type: FillType.pattern,
+                pattern: FillPattern.solid,
+                fgColor: { argb: Color.powderBlueARGB }
             }
         } else {
             worksheet.getCell(`N${counter + startRowForTimeEntry}`).fill = {
-                type: fillTypePattern,
-                pattern: fillPatternNone,
+                type: FillType.pattern,
+                pattern: FillPattern.none,
             }
         }
 
-        worksheet.getCell(`A${counter + startRowForTimeEntry}`).alignment = { horizontal: alignLeft, vertical: alignMiddle }
-        worksheet.getCell(`B${counter + startRowForTimeEntry}`).alignment = { horizontal: alignLeft, vertical: alignMiddle }
-        worksheet.getCell(`N${counter + startRowForTimeEntry}`).border = { ...borderAllEmpty, left: { style: cellBorderStyleThin } }
+        worksheet.getCell(`A${counter + startRowForTimeEntry}`).alignment = { horizontal: Align.left, vertical: Align.middle }
+        worksheet.getCell(`B${counter + startRowForTimeEntry}`).alignment = { horizontal: Align.left, vertical: Align.middle }
+        worksheet.getCell(`N${counter + startRowForTimeEntry}`).border = { ...borderAllEmpty, left: { style: BorderStyle.thin } }
         worksheet.getCell(`P${counter + startRowForTimeEntry}`).border = borderAllEmpty
-        worksheet.getCell(`Q${counter + startRowForTimeEntry}`).border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+        worksheet.getCell(`Q${counter + startRowForTimeEntry}`).border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
         counter += 1
     })
 }
@@ -632,40 +604,40 @@ const timeEntryTotalSectionMerges = (worksheet: any, startRow: number = 40) => {
     worksheet.mergeCells(`N${startRow}:O${startRow}`);
 }
 
-const timeEntryTotalSectionStyles = (worksheet: any, startRow: number = 40, borderAllThin: any, borderAllThick: any, borderAllEmpty: any, cellBorderStyleThin: string, fontDefault: any, fontSizeSmall: any, fontSizeNine: any, fillTypePattern: any, fillPatternSolid: any, colorPoliceBlue: any, alignMiddle: any, alignLeft: any, alignRight: any) => {
+const timeEntryTotalSectionStyles = (worksheet: any, startRow: number = 40, borderAllThin: Border, borderAllThick: Border, borderAllEmpty: Border, fontDefault: Font) => {
     // Row 40 STYLES
     worksheet.getRow(startRow).eachCell({ includeEmpty: true },
         (cell: any, colNumber: number) => {
             cell.border = borderAllThin
             cell.font = {
                 name: fontDefault,
-                size: fontSizeSmall,
+                size: FontSize.small,
                 family: 2,
                 italic: false,
                 bold: true
             }
             cell.alignment = {
-                vertical: alignMiddle,
-                horizontal: alignRight,
+                vertical: Align.middle,
+                horizontal: Align.right,
             }
         }
     )
-    worksheet.getCell(`B${startRow}`).alignment = { wrapText: true, vertical: alignMiddle, horizontal: alignLeft, shrinkToFit: true }
-    worksheet.getCell(`B${startRow}`).font = { size: fontSizeNine, name: fontDefault, italic: false, bold: true }
+    worksheet.getCell(`B${startRow}`).alignment = { wrapText: true, vertical: Align.middle, horizontal: Align.left, shrinkToFit: true }
+    worksheet.getCell(`B${startRow}`).font = { size: FontSize.nine, name: fontDefault, italic: false, bold: true }
 
     worksheet.getCell(`I${startRow}`).border = borderAllThick
     worksheet.getCell(`J${startRow}`).border = borderAllThick
     worksheet.getCell(`K${startRow}`).border = borderAllThick
     worksheet.getCell(`L${startRow}`).border = borderAllThick
     worksheet.getCell(`M${startRow}`).border = borderAllThick
-    worksheet.getCell(`P${startRow}`).border = { ...borderAllEmpty, left: { style: cellBorderStyleThin } }
+    worksheet.getCell(`P${startRow}`).border = { ...borderAllEmpty, left: { style: BorderStyle.thin } }
 
     worksheet.getCell(`N${startRow}`).fill = {
-        type: fillTypePattern,
-        pattern: fillPatternSolid,
-        fgColor: { argb: colorPoliceBlue }
+        type: FillType.pattern,
+        pattern: FillPattern.solid,
+        fgColor: { argb: Color.policeBlueARGB }
     }
-    worksheet.getCell(`Q${startRow}`).border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell(`Q${startRow}`).border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 }
 
 
@@ -706,47 +678,47 @@ const timesheetSignatureSectionMerges = (worksheet: any, startRow: number = 41) 
     worksheet.mergeCells(`C${_cursorRow}:F${_cursorRow}`);
     worksheet.mergeCells(`I${_cursorRow}:K${_cursorRow}`);
 }
-const timesheetSignatureSectionStyle = (worksheet: any, startRow: number = 41, borderVerticalThin: any, borderAllEmpty: any, cellBorderStyleThin: any, fontDefault: any, fontSizeMedium: any, alignMiddle: any) => {
+const timesheetSignatureSectionStyle = (worksheet: any, startRow: number = 41, borderVerticalThin: Border, borderAllEmpty: Border, fontDefault: Font) => {
     let _cursorRow = startRow;
     // Row ~41 - STYLE
     worksheet.getRow(_cursorRow).eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
         cell.border = borderVerticalThin
         cell.font = {
             name: fontDefault,
-            size: fontSizeMedium,
+            size: FontSize.medium,
             family: 2,
             italic: false
         }
-        cell.alignment = { vertical: alignMiddle }
+        cell.alignment = { vertical: Align.middle }
     })
-    worksheet.getCell(`A${_cursorRow}`).border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell(`A${_cursorRow}`).border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell(`L${_cursorRow}`).border = borderVerticalThin
-    worksheet.getCell(`M${_cursorRow}`).border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
-    worksheet.getCell(`N${_cursorRow}`).border = { ...borderAllEmpty, top: { style: cellBorderStyleThin }, left: { style: cellBorderStyleThin } }
-    worksheet.getCell(`O${_cursorRow}`).border = { ...borderAllEmpty, top: { style: cellBorderStyleThin } }
+    worksheet.getCell(`M${_cursorRow}`).border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
+    worksheet.getCell(`N${_cursorRow}`).border = { ...borderAllEmpty, top: { style: BorderStyle.thin }, left: { style: BorderStyle.thin } }
+    worksheet.getCell(`O${_cursorRow}`).border = { ...borderAllEmpty, top: { style: BorderStyle.thin } }
     worksheet.getCell(`P${_cursorRow}`).border = borderAllEmpty
-    worksheet.getCell(`Q${_cursorRow}`).border = { ...borderAllEmpty, right: { style: cellBorderStyleThin } }
+    worksheet.getCell(`Q${_cursorRow}`).border = { ...borderAllEmpty, right: { style: BorderStyle.thin } }
 
     _cursorRow += 1
     worksheet.getRow(_cursorRow).eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
         cell.border = borderVerticalThin
         cell.font = {
             name: fontDefault,
-            size: fontSizeMedium,
+            size: FontSize.medium,
             family: 2,
             italic: false
         }
-        cell.alignment = { vertical: alignMiddle }
+        cell.alignment = { vertical: Align.middle }
     })
 
     worksheet.getRow(_cursorRow).height = 40
-    worksheet.getCell(`A${_cursorRow}`).border = { ...borderVerticalThin, left: { style: cellBorderStyleThin } }
+    worksheet.getCell(`A${_cursorRow}`).border = { ...borderVerticalThin, left: { style: BorderStyle.thin } }
     worksheet.getCell(`L${_cursorRow}`).border = borderVerticalThin
-    worksheet.getCell(`M${_cursorRow}`).border = { ...borderVerticalThin, right: { style: cellBorderStyleThin } }
-    worksheet.getCell(`N${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: cellBorderStyleThin }, left: { style: cellBorderStyleThin } }
-    worksheet.getCell(`O${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: cellBorderStyleThin } }
-    worksheet.getCell(`P${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: cellBorderStyleThin } }
-    worksheet.getCell(`Q${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: cellBorderStyleThin }, right: { style: cellBorderStyleThin } }
+    worksheet.getCell(`M${_cursorRow}`).border = { ...borderVerticalThin, right: { style: BorderStyle.thin } }
+    worksheet.getCell(`N${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: BorderStyle.thin }, left: { style: BorderStyle.thin } }
+    worksheet.getCell(`O${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: BorderStyle.thin } }
+    worksheet.getCell(`P${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: BorderStyle.thin } }
+    worksheet.getCell(`Q${_cursorRow}`).border = { ...borderAllEmpty, bottom: { style: BorderStyle.thin }, right: { style: BorderStyle.thin } }
 }
 
 const internalTimesheetColumns = () => {

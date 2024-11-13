@@ -5,12 +5,12 @@ import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constant
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
 import { ExportOptions } from "@/lib/types/timesheet";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import timesheetConfig from "../../../../../../../main-timesheet-template";
 import templateConfig from "../../../../../../../main-timesheet-template";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { ClassicTemplate } from "../../classic";
 import { defaultSansProBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64, defaultSansProItalicBase64 } from "@/lib/constants/defaultSansProBase64Font";
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
+import { Align, Color, Font, FontSize, FontStyle } from "../../../type";
 
 export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptions: ExportOptions): void => {
     const doc = new jsPDF(
@@ -65,32 +65,8 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
     const fontAwesomeFontFamily = "font-awesome-6-free-solid-900"
     includeFontInPdf(doc, defaultFontFamily, fontAwesomeFontFamily);
 
-    const normalBorderWidth = 0.5;
-    const thickBorderWidth = 1;
-
-    // const smallFontSize = templateConfig.font.small; //default = 8
-    const smallFontSize = 6
-
-    // const mediumFontSize = templateConfig.font.default //default = 10
-    const fontSizeMedium = 8
-
-    // const largeFontSize = templateConfig.font.large //default = 16
-    const fontSizeLarge = 13
-
-    const fontStyleItalic = templateConfig.style.fontStyle.italic
-    const fontStyleBold = templateConfig.style.fontStyle.bold
-    const fontStyleBoldItalic = templateConfig.style.fontStyle.boldItalic
-    const fontStyleNormal = templateConfig.style.fontStyle.normal
-
-    const colorBlue = templateConfig.style.color.blue
-    const colorBlack = templateConfig.style.color.black
-    const colorLightGray = templateConfig.style.color.lightGray
-    const colorWhite = templateConfig.style.color.white
-
-    const alignLeft = templateConfig.style.align.left
-    const alignRight = templateConfig.style.align.right
-    const alignMiddle = templateConfig.style.align.middle
-    const alignCenter = templateConfig.style.align.center
+    const normalBorderWidth: PdfBorderWidth = 0.5;
+    const thickBorderWidth: PdfBorderWidth = 1;
 
     const signatureCellHeight = 24.84;
 
@@ -111,10 +87,10 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
         doc.addImage({ imageData: logoBase64, format: 'PNG', x: currentXPosition, y: currentYPosition, width: imageDimension.width, height: imageDimension.height }) // 90, 32 // width: 120, height: 42.86
 
         currentXPosition = finishPointX;
-        doc.setFontSize(smallFontSize)
+        doc.setFontSize(FontSize.tiny)
         doc.setTextColor('0', `${32 / 255}`, `${96 / 255}`)
-        doc.setFont(defaultFontFamily, fontStyleNormal, fontStyleBold)
-        doc.text(`${templateConfig.label.customerReport.weekPrefix} ${_timesheet.weekNumber}`.toUpperCase(), currentXPosition, currentYPosition + 4, { align: alignRight as any });
+        doc.setFont(defaultFontFamily, FontStyle.normal, FontStyle.bold)
+        doc.text(`${templateConfig.label.customerReport.weekPrefix} ${_timesheet.weekNumber}`.toUpperCase(), currentXPosition, currentYPosition + 4, { align: Align.right });
 
         const columnDefinition: ColumnInput[] = [
             { dataKey: 'columnA' },
@@ -138,42 +114,42 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
         ]
 
         const generalColumnStyles = {
-            columnA: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnA * mainContentWidth / 100 },
-            columnB: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnB * mainContentWidth / 100 },
-            columnC: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnC * mainContentWidth / 100 },
-            columnD: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnD * mainContentWidth / 100 },
-            columnE: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnE * mainContentWidth / 100 },
-            columnF: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnF * mainContentWidth / 100 },
-            columnG: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnG * mainContentWidth / 100 },
-            columnH: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnH * mainContentWidth / 100 },
-            columnI: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnI * mainContentWidth / 100 },
-            columnJ: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnJ * mainContentWidth / 100 },
-            columnK: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnK * mainContentWidth / 100 },
-            columnL: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnL * mainContentWidth / 100 },
-            columnM: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnM * mainContentWidth / 100 },
-            columnN: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnN * mainContentWidth / 100 },
-            columnO: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnO * mainContentWidth / 100 },
-            columnP: { halign: alignLeft, cellWidth: columnWidthFromExcel.columnP * mainContentWidth / 100 },
-            columnQ: { halign: alignCenter, cellWidth: columnWidthFromExcel.columnQ * mainContentWidth / 100 }
+            columnA: { halign: Align.left, cellWidth: columnWidthFromExcel.columnA * mainContentWidth / 100 },
+            columnB: { halign: Align.center, cellWidth: columnWidthFromExcel.columnB * mainContentWidth / 100 },
+            columnC: { halign: Align.center, cellWidth: columnWidthFromExcel.columnC * mainContentWidth / 100 },
+            columnD: { halign: Align.center, cellWidth: columnWidthFromExcel.columnD * mainContentWidth / 100 },
+            columnE: { halign: Align.left, cellWidth: columnWidthFromExcel.columnE * mainContentWidth / 100 },
+            columnF: { halign: Align.center, cellWidth: columnWidthFromExcel.columnF * mainContentWidth / 100 },
+            columnG: { halign: Align.left, cellWidth: columnWidthFromExcel.columnG * mainContentWidth / 100 },
+            columnH: { halign: Align.center, cellWidth: columnWidthFromExcel.columnH * mainContentWidth / 100 },
+            columnI: { halign: Align.left, cellWidth: columnWidthFromExcel.columnI * mainContentWidth / 100 },
+            columnJ: { halign: Align.left, cellWidth: columnWidthFromExcel.columnJ * mainContentWidth / 100 },
+            columnK: { halign: Align.center, cellWidth: columnWidthFromExcel.columnK * mainContentWidth / 100 },
+            columnL: { halign: Align.center, cellWidth: columnWidthFromExcel.columnL * mainContentWidth / 100 },
+            columnM: { halign: Align.left, cellWidth: columnWidthFromExcel.columnM * mainContentWidth / 100 },
+            columnN: { halign: Align.left, cellWidth: columnWidthFromExcel.columnN * mainContentWidth / 100 },
+            columnO: { halign: Align.left, cellWidth: columnWidthFromExcel.columnO * mainContentWidth / 100 },
+            columnP: { halign: Align.left, cellWidth: columnWidthFromExcel.columnP * mainContentWidth / 100 },
+            columnQ: { halign: Align.center, cellWidth: columnWidthFromExcel.columnQ * mainContentWidth / 100 }
             // column R's width is kinda left undefined so it can be auto.
         }
 
-        const zeroLineWidth = { top: 0, left: 0, bottom: 0, right: 0 };
-        const normalLineWidth = { top: normalBorderWidth, left: normalBorderWidth, bottom: normalBorderWidth, right: normalBorderWidth }
-        const thickBottomLineWidth = { top: normalBorderWidth, left: normalBorderWidth, bottom: thickBorderWidth, right: normalBorderWidth }
-        const thickTopLineWidth = { top: thickBorderWidth, left: normalBorderWidth, bottom: normalBorderWidth, right: normalBorderWidth }
-        const onlyTopWidth = { left: 0, right: 0, top: normalBorderWidth, bottom: 0 }
+        const zeroLineWidth: PdfBorder = { top: 0, left: 0, bottom: 0, right: 0 };
+        const normalLineWidth: PdfBorder = { top: normalBorderWidth, left: normalBorderWidth, bottom: normalBorderWidth, right: normalBorderWidth }
+        const thickBottomLineWidth: PdfBorder = { top: normalBorderWidth, left: normalBorderWidth, bottom: thickBorderWidth, right: normalBorderWidth }
+        const thickTopLineWidth: PdfBorder = { top: thickBorderWidth, left: normalBorderWidth, bottom: normalBorderWidth, right: normalBorderWidth }
+        const onlyTopWidth: PdfBorder = { left: 0, right: 0, top: normalBorderWidth, bottom: 0 }
 
         currentYPosition += 48;
-        const _metaRows = generatePdfMetaRows(_timesheet, fontSizeMedium, fontSizeLarge, fontStyleBold, fontStyleItalic, colorBlue, colorLightGray, thickBottomLineWidth);
+        const _metaRows = generatePdfMetaRows(_timesheet, thickBottomLineWidth);
 
-        const _entryHeaderRows = generatePdfEntryHeaderRows(fontAwesomeFontFamily, fontStyleItalic, fontStyleBoldItalic, fontSizeLarge, colorLightGray, alignLeft, alignCenter);
+        const _entryHeaderRows = generatePdfEntryHeaderRows(fontAwesomeFontFamily);
 
-        const _entryRows = exportOptions.dateDisplay === DateDisplayExportOption.showOnlyDatesWithEntry ? generateEntryRowsAlternate(_timesheet, exportOptions, normalLineWidth, zeroLineWidth, normalBorderWidth, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, alignCenter) : generateEntryRows(_timesheet, _weekDays, exportOptions, normalLineWidth, zeroLineWidth, normalBorderWidth, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, colorWhite, alignCenter);
+        const _entryRows = exportOptions.dateDisplay === DateDisplayExportOption.showOnlyDatesWithEntry ? generateEntryRowsAlternate(_timesheet, exportOptions, normalLineWidth, zeroLineWidth, normalBorderWidth, fontAwesomeFontFamily) : generateEntryRows(_timesheet, _weekDays, exportOptions, normalLineWidth, zeroLineWidth, normalBorderWidth, fontAwesomeFontFamily);
 
-        const _signatureRows = generateSignatureRows(fontStyleItalic, colorLightGray, thickTopLineWidth, signatureCellHeight)
+        const _signatureRows = generateSignatureRows(thickTopLineWidth, signatureCellHeight)
 
-        const _footerRows = generateFooterRows(alignLeft);
+        const _footerRows = generateFooterRows();
 
         const timesheetTemplateBodyRows: PdfTemplateRowItem[][] = [
             ..._metaRows,
@@ -193,7 +169,7 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
             margin: marginInPt.left,
             styles: {
                 font: defaultFontFamily,
-                fontSize: smallFontSize,
+                fontSize: FontSize.tiny,
                 lineColor: templateConfig.style.color.black,
                 textColor: templateConfig.style.color.black,
                 valign: templateConfig.style.align.middle as VAlignType,
@@ -247,73 +223,72 @@ const includeFontInPdf = (doc: any, textFontFamily: string, iconFontFamily: stri
     // const defaultFontFamily = templateConfig.font.defaultFontFamily
 }
 
-const generatePdfMetaRows = (timesheet: Timesheet, fontSizeMedium: number, fontSizeLarge: number, fontStyleBold: string, fontStyleItalic: string, colorBlue: string, colorLightGray: string, thickBottomLineWidth: any): PdfTemplateRowItem[][] => {
+const generatePdfMetaRows = (timesheet: Timesheet, thickBottomLineWidth: PdfBorder): PdfTemplateRowItem[][] => {
     const timesheetDateForLastDayOfCurrentWeek = timesheet.weekEndingDate;
     return [
         // Excel Row 3
         [
-            { content: templateConfig.label.customerReport.title.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeMedium, textColor: colorBlue, fontStyle: fontStyleBold } },
-            { content: templateConfig.label.customerReport.personnelName.toUpperCase(), colSpan: 5, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.mobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.demobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.orderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+            { content: templateConfig.label.customerReport.title.toUpperCase(), colSpan: 4, styles: { fontSize: FontSize.small, textColor: Color.blue, fontStyle: FontStyle.bold } },
+            { content: templateConfig.label.customerReport.personnelName.toUpperCase(), colSpan: 5, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.mobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.demobilizationDate.toUpperCase(), colSpan: 3, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.orderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } }
         ],
         // Excel Row 4
         [
-            { content: templateConfig.data.customerReport.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: fontSizeLarge, textColor: colorBlue, fontStyle: fontStyleBold } },
-            { content: timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-            { content: timesheet.mobilizationDate ? timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-            { content: timesheet.demobilizationDate ? timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } },
-            { content: !!timesheet.project.orderNumber ? timesheet.project.orderNumber.toString() : '', colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold } }
+            { content: templateConfig.data.customerReport.defaultTitle.toUpperCase(), colSpan: 4, styles: { fontSize: FontSize.thirteen, textColor: Color.blue, fontStyle: FontStyle.bold } },
+            { content: timesheet.personnel.name.toUpperCase(), colSpan: 5, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold } },
+            { content: timesheet.mobilizationDate ? timesheet.mobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold } },
+            { content: timesheet.demobilizationDate ? timesheet.demobilizationDate.longFormat() : '', colSpan: 3, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold } },
+            { content: !!timesheet.project.orderNumber ? timesheet.project.orderNumber.toString() : '', colSpan: 3, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold } }
         ],
         // Excel Row 5
         [
-            { content: templateConfig.label.customerReport.customerName.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.siteName.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.purchaseOrderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.countryName.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.weekEndingDate.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+            { content: templateConfig.label.customerReport.customerName.toUpperCase(), colSpan: 6, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.siteName.toUpperCase(), colSpan: 3, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.purchaseOrderNumber.toUpperCase(), colSpan: 3, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.countryName.toUpperCase(), colSpan: 2, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.weekEndingDate.toUpperCase(), colSpan: 4, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } }
         ],
         // Excel Row 6
         [
-            { content: timesheet.customer.name.toUpperCase(), colSpan: 6, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-            { content: timesheet.site.name.toUpperCase(), colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-            { content: timesheet.project.purchaseOrderNumber, colSpan: 3, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-            { content: timesheet.site.country.toUpperCase(), colSpan: 2, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } },
-            { content: timesheetDateForLastDayOfCurrentWeek.longFormat(), colSpan: 4, styles: { fontSize: fontSizeMedium, fontStyle: fontStyleBold, lineWidth: thickBottomLineWidth } }
+            { content: timesheet.customer.name.toUpperCase(), colSpan: 6, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold, lineWidth: thickBottomLineWidth } },
+            { content: timesheet.site.name.toUpperCase(), colSpan: 3, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold, lineWidth: thickBottomLineWidth } },
+            { content: timesheet.project.purchaseOrderNumber, colSpan: 3, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold, lineWidth: thickBottomLineWidth } },
+            { content: timesheet.site.country.toUpperCase(), colSpan: 2, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold, lineWidth: thickBottomLineWidth } },
+            { content: timesheetDateForLastDayOfCurrentWeek.longFormat(), colSpan: 4, styles: { fontSize: FontSize.small, fontStyle: FontStyle.bold, lineWidth: thickBottomLineWidth } }
         ]
     ]
 }
-
-const generatePdfEntryHeaderRows = (fontAwesomeFontFamily: string, fontStyleItalic: string, fontStyleBoldItalic: string, fontSizeLarge: number, colorLightGray: string, alignLeft: string, alignCenter: string): PdfTemplateRowItem[][] => {
+const generatePdfEntryHeaderRows = (fontAwesomeFontFamily: Font): PdfTemplateRowItem[][] => {
     return [
         // Excel Row 7
         [
-            { content: templateConfig.label.customerReport.dateTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.workingTimeTitle.toUpperCase(), colSpan: 5, styles: { halign: alignLeft, fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.waitingTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: fontStyleItalic } },
-            { content: '\uf00c', colSpan: 1, rowSpan: 2, styles: { halign: alignCenter, font: fontAwesomeFontFamily, fontStyle: fontStyleItalic, fontSize: fontSizeLarge } }, // check mark indicator
-            { content: templateConfig.label.customerReport.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: fontStyleItalic } }
+            { content: templateConfig.label.customerReport.dateTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: FontStyle.boldItalic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.workingTimeTitle.toUpperCase(), colSpan: 5, styles: { halign: Align.left, fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.waitingTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.travelTimeTitle.toUpperCase(), colSpan: 2, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.totalHoursTitle.toUpperCase(), colSpan: 1, rowSpan: 2, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.locationTypeIndicatorTitle, colSpan: 1, rowSpan: 2, styles: { fontStyle: FontStyle.italic } },
+            { content: '\uf00c', colSpan: 1, rowSpan: 2, styles: { halign: Align.center, font: fontAwesomeFontFamily, fontStyle: FontStyle.italic, fontSize: FontSize.thirteen } }, // check mark indicator
+            { content: templateConfig.label.customerReport.commentTitle.toUpperCase(), colSpan: 5, rowSpan: 2, styles: { fontStyle: FontStyle.italic } }
         ],
         // Excel Row 8
         [
             { content: templateConfig.label.customerReport.periodTitle.toUpperCase(), colSpan: 1, styles: {} },
             { content: templateConfig.data.customerReport.workingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: {} },
             { content: templateConfig.data.customerReport.workingTimeSecondPeriodTitle.toString(), colSpan: 1 },
-            { content: templateConfig.data.customerReport.workingTimeThirdPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.data.customerReport.workingTimeFourthPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.data.customerReport.waitingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.data.customerReport.waitingTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.data.customerReport.travelTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } },
-            { content: templateConfig.data.customerReport.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: alignCenter } }
+            { content: templateConfig.data.customerReport.workingTimeThirdPeriodTitle.toString(), colSpan: 1, styles: { halign: Align.center } },
+            { content: templateConfig.data.customerReport.workingTimeFourthPeriodTitle.toString(), colSpan: 1, styles: { halign: Align.center } },
+            { content: templateConfig.data.customerReport.waitingTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: Align.center } },
+            { content: templateConfig.data.customerReport.waitingTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: Align.center } },
+            { content: templateConfig.data.customerReport.travelTimeFirstPeriodTitle.toString(), colSpan: 1, styles: { halign: Align.center } },
+            { content: templateConfig.data.customerReport.travelTimeSecondPeriodTitle.toString(), colSpan: 1, styles: { halign: Align.center } }
         ],
     ]
 }
 
-const generateEntryRows = (timesheet: Timesheet, weekDays: TimesheetDate[], exportOptions: ExportOptions, normalLineWidth: PdfLineWidth, zeroLineWidth: PdfLineWidth, normalBorderWidth: number, fontAwesomeFontFamily: string, fontStyleBoldItalic: string, colorLightGray: string, colorWhite: string, alignCenter: string): PdfTemplateRowItem[][] => {
+const generateEntryRows = (timesheet: Timesheet, weekDays: TimesheetDate[], exportOptions: ExportOptions, normalLineWidth: PdfBorder, zeroLineWidth: PdfBorder, normalBorderWidth: number, fontAwesomeFontFamily: string): PdfTemplateRowItem[][] => {
     let counterForInvalidEntries = 0;
     // Excel Row 9 - 22
     const _entryRows = weekDays.reduce((timesheetArrayWithPdfFormat: PdfTemplateRowItem[][], _day: TimesheetDate) => {
@@ -322,7 +297,7 @@ const generateEntryRows = (timesheet: Timesheet, weekDays: TimesheetDate[], expo
         let _updatedRow;
         if (_timesheetRecord && ClassicTemplate.isValid(_timesheetRecord, exportOptions)) {
             counterForInvalidEntries = 0; // reset the nu day counter
-            const _recordRows = generateFunctionalEntryRow(_timesheetRecord, exportOptions, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, normalLineWidth, normalBorderWidth, alignCenter);
+            const _recordRows = generateFunctionalEntryRow(_timesheetRecord, exportOptions, fontAwesomeFontFamily, normalLineWidth, normalBorderWidth);
             _updatedRow = [
                 ...timesheetArrayWithPdfFormat,
                 ..._recordRows
@@ -334,11 +309,11 @@ const generateEntryRows = (timesheet: Timesheet, weekDays: TimesheetDate[], expo
             const lineWidthForInvalidEntry = isFirstDayOfInvalidEntry ? { ...zeroLineWidth, top: normalBorderWidth } : zeroLineWidth;
 
             if (exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet) {
-                const _emptyEntryRows = generateEmptyEntryRow(normalLineWidth, zeroLineWidth, lineWidthForInvalidEntry, normalBorderWidth, colorLightGray, colorWhite, _day.dayLabel.toUpperCase(), _day.dateInDayMonthFormat.toUpperCase());
+                const _emptyEntryRows = generateEmptyEntryRow(normalLineWidth, zeroLineWidth, lineWidthForInvalidEntry, normalBorderWidth, _day.dayLabel.toUpperCase(), _day.dateInDayMonthFormat.toUpperCase());
                 _updatedRow = [...timesheetArrayWithPdfFormat, ..._emptyEntryRows]
 
             } else {
-                const _emptyEntryRows = generateEmptyEntryRow(normalLineWidth, zeroLineWidth, lineWidthForInvalidEntry, normalBorderWidth, colorLightGray, colorWhite);
+                const _emptyEntryRows = generateEmptyEntryRow(normalLineWidth, zeroLineWidth, lineWidthForInvalidEntry, normalBorderWidth);
                 _updatedRow = [...timesheetArrayWithPdfFormat, ..._emptyEntryRows]
             }
         }
@@ -355,20 +330,20 @@ const generateEntryRows = (timesheet: Timesheet, weekDays: TimesheetDate[], expo
  * @param zeroLineWidth 
  * @param normalBorderWidth 
  * @param fontAwesomeFontFamily 
- * @param fontStyleBoldItalic 
- * @param colorLightGray 
- * @param alignCenter 
+ * @param FontStyle.boldItalic 
+ * @param Color.lightGray 
+ * @param Align.center 
  * @param exportOptions 
  * @returns 
  */
-const generateEntryRowsAlternate = (timesheet: Timesheet, exportOptions: ExportOptions, normalLineWidth: PdfLineWidth, zeroLineWidth: PdfLineWidth, normalBorderWidth: number, fontAwesomeFontFamily: string, fontStyleBoldItalic: string, colorLightGray: string, alignCenter: string) => {
+const generateEntryRowsAlternate = (timesheet: Timesheet, exportOptions: ExportOptions, normalLineWidth: PdfBorder, zeroLineWidth: PdfBorder, normalBorderWidth: number, fontAwesomeFontFamily: string,) => {
     // Excel Row 9 - 22
     const _entryRows = timesheet.records.reduce((timesheetArrayWithPdfFormat: any[], _record: TimesheetRecord) => {
         let lineWidthConfig = _record && ClassicTemplate.isValid(_record, exportOptions) ? normalLineWidth : zeroLineWidth;
         let firstLineWidthConfig = lineWidthConfig
 
         if (ClassicTemplate.isValid(_record, exportOptions)) {
-            const _recordRows = generateFunctionalEntryRow(_record, exportOptions, fontAwesomeFontFamily, fontStyleBoldItalic, colorLightGray, normalLineWidth, normalBorderWidth, alignCenter);
+            const _recordRows = generateFunctionalEntryRow(_record, exportOptions, fontAwesomeFontFamily, normalLineWidth, normalBorderWidth);
             return [
                 ...timesheetArrayWithPdfFormat,
                 ..._recordRows
@@ -381,7 +356,7 @@ const generateEntryRowsAlternate = (timesheet: Timesheet, exportOptions: ExportO
     return _entryRows;
 }
 
-const generateFunctionalEntryRow = (timesheetRecord: TimesheetRecord, exportOptions: ExportOptions, fontAwesomeFontFamily: string, fontStyleBoldItalic: string, colorLightGray: string, normalLineWidth: PdfLineWidth, normalBorderWidth: number, alignCenter: string): PdfTemplateRowItem[][] => {
+const generateFunctionalEntryRow = (timesheetRecord: TimesheetRecord, exportOptions: ExportOptions, fontAwesomeFontFamily: string, normalLineWidth: PdfBorder, normalBorderWidth: number): PdfTemplateRowItem[][] => {
     // a productive day, with time records, regardless of where
     const canIncludeMultipleTimeType = exportOptions.allowMultipleTimeEntries;
 
@@ -391,7 +366,7 @@ const generateFunctionalEntryRow = (timesheetRecord: TimesheetRecord, exportOpti
     const _entryRow: PdfTemplateRowItem[][] = [
         //Row 1
         [
-            { content: timesheetRecord.dayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: fontStyleBoldItalic, fillColor: colorLightGray, lineWidth: normalLineWidth } /*Col A*/ },
+            { content: timesheetRecord.dayLabel.toUpperCase(), colSpan: 1, styles: { fontStyle: FontStyle.boldItalic, fillColor: Color.lightGray, lineWidth: normalLineWidth } /*Col A*/ },
             { content: PeriodTypeLabel.start.toUpperCase(), colSpan: 1, styles: { lineWidth: { ...normalLineWidth, left: normalBorderWidth } } /*Col B*/ },
             { content: ClassicTemplate.hasWorkingPeriod1(timesheetRecord) ? ClassicTemplate.workingPeriod1(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col C*/ },
             { content: canIncludeMultipleTimeType && ClassicTemplate.hasWorkingPeriod2(timesheetRecord) ? ClassicTemplate.workingPeriod2(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col D*/ },
@@ -403,7 +378,7 @@ const generateFunctionalEntryRow = (timesheetRecord: TimesheetRecord, exportOpti
             { content: canIncludeTravelPeriod && canIncludeMultipleTimeType && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).startTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col J*/ },
             { content: timesheetRecord.isLocationTypeOnshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col K - total hours */ },
             { content: LocationType.onshore.toUpperCase(), colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col L*/ },
-            { content: timesheetRecord.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, font: fontAwesomeFontFamily, lineWidth: normalLineWidth } /*Col M*/ },// the check mark is added elsewhere
+            { content: timesheetRecord.isLocationTypeOnshore ? '\uf00c' : '', colSpan: 1, styles: { halign: Align.center, font: fontAwesomeFontFamily, lineWidth: normalLineWidth } /*Col M*/ },// the check mark is added elsewhere
             { content: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOnshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "", colSpan: 5, styles: { lineWidth: { ...normalLineWidth, right: normalBorderWidth } }/*Col N*/ }
         ],
         // Row 2
@@ -420,16 +395,16 @@ const generateFunctionalEntryRow = (timesheetRecord: TimesheetRecord, exportOpti
             { content: canIncludeTravelPeriod && canIncludeMultipleTimeType && ClassicTemplate.hasTravelPeriod2(timesheetRecord) ? ClassicTemplate.travelPeriod2(timesheetRecord).finishTime : '', colSpan: 1, styles: { lineWidth: normalLineWidth } /*Col J*/ },
             { content: timesheetRecord.isLocationTypeOffshore ? `${ClassicTemplate.getTotalHours(timesheetRecord, exportOptions)}` : '', colSpan: 1, styles: { lineWidth: normalLineWidth }/*Col K - total hours*/ },
             { content: LocationType.offshore.toUpperCase(), colSpan: 1, styles: { lineWidth: normalLineWidth }/*Col L*/ },
-            { content: timesheetRecord.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: alignCenter, lineWidth: normalLineWidth } /*Col M*/ }, // the check mark is added elsewhere
+            { content: timesheetRecord.isLocationTypeOffshore ? '\uf00c' : '', colSpan: 1, styles: { halign: Align.center, lineWidth: normalLineWidth } /*Col M*/ }, // the check mark is added elsewhere
             { content: !!timesheetRecord.consolidatedComment && timesheetRecord.isLocationTypeOffshore ? ClassicTemplate.getComment(timesheetRecord, exportOptions) : "", colSpan: 5, styles: { lineWidth: { ...normalLineWidth, right: normalBorderWidth } } /*Col N*/ }
         ],
     ]
     return _entryRow
 }
 
-const generateEmptyEntryRow = (normalLineWidth: PdfLineWidth, zeroLineWidth: PdfLineWidth, lineWidthForInvalidEntry: PdfLineWidth, normalBorderWidth: number, colorLightGray: string, colorWhite: string, dayLabel?: string, dateInMonthYearFormat?: string): PdfTemplateRowItem[][] => {
+const generateEmptyEntryRow = (normalLineWidth: PdfBorder, zeroLineWidth: PdfBorder, lineWidthForInvalidEntry: PdfBorder, normalBorderWidth: number, dayLabel?: string, dateInMonthYearFormat?: string): PdfTemplateRowItem[][] => {
     const _topEmptyEntryRow = [
-        { content: !!dayLabel ? dayLabel : '', colSpan: 1, styles: { lineWidth: !!dayLabel ? normalLineWidth : { ...lineWidthForInvalidEntry, left: normalBorderWidth }, fillColor: !!dayLabel ? colorLightGray : colorWhite, } /*Col A*/ },
+        { content: !!dayLabel ? dayLabel : '', colSpan: 1, styles: { lineWidth: !!dayLabel ? normalLineWidth : { ...lineWidthForInvalidEntry, left: normalBorderWidth }, fillColor: !!dayLabel ? Color.lightGray : Color.white, } /*Col A*/ },
         { content: '', colSpan: 1, styles: { lineWidth: !!dayLabel ? { ...lineWidthForInvalidEntry, left: normalBorderWidth } : lineWidthForInvalidEntry } /*Col B*/ },
         { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col C*/ },
         { content: '', colSpan: 1, styles: { lineWidth: lineWidthForInvalidEntry } /*Col D*/ },
@@ -463,19 +438,19 @@ const generateEmptyEntryRow = (normalLineWidth: PdfLineWidth, zeroLineWidth: Pdf
     return [_topEmptyEntryRow, _bottomEmptyEntryRow];
 }
 
-const generateSignatureRows = (fontStyleItalic: string, colorLightGray: string, thickTopLineWidth: PdfLineWidth, signatureCellHeight: number): PdfTemplateRowItem[][] => {
+const generateSignatureRows = (thickTopLineWidth: PdfBorder, signatureCellHeight: number): PdfTemplateRowItem[][] => {
     return [
         // Excel Row 23
         [
-            { content: templateConfig.label.customerReport.personnelSignature.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } },
-            { content: templateConfig.label.customerReport.customerVerificationNote.toUpperCase(), colSpan: 14, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray, lineWidth: thickTopLineWidth } }
+            { content: templateConfig.label.customerReport.personnelSignature.toUpperCase(), colSpan: 4, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray, lineWidth: thickTopLineWidth } },
+            { content: templateConfig.label.customerReport.customerVerificationNote.toUpperCase(), colSpan: 14, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray, lineWidth: thickTopLineWidth } }
         ],
         // Excel Row 24
         [
-            { content: templateConfig.data.customerReport.personnelSignatureCertificationNote.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic } },
-            { content: templateConfig.label.customerReport.customerRepresentativeName.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.customerRepresentativeTitle.toUpperCase(), colSpan: 4, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } },
-            { content: templateConfig.label.customerReport.customerRepresentativeSignature.toUpperCase(), colSpan: 6, styles: { fontStyle: fontStyleItalic, fillColor: colorLightGray } }
+            { content: templateConfig.data.customerReport.personnelSignatureCertificationNote.toUpperCase(), colSpan: 4, styles: { fontStyle: FontStyle.italic } },
+            { content: templateConfig.label.customerReport.customerRepresentativeName.toUpperCase(), colSpan: 4, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.customerRepresentativeTitle.toUpperCase(), colSpan: 4, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } },
+            { content: templateConfig.label.customerReport.customerRepresentativeSignature.toUpperCase(), colSpan: 6, styles: { fontStyle: FontStyle.italic, fillColor: Color.lightGray } }
         ],
         // Excel Row 25 and 26
         [
@@ -485,14 +460,14 @@ const generateSignatureRows = (fontStyleItalic: string, colorLightGray: string, 
             { content: ' ', colSpan: 6, }
         ],
         [
-            { content: templateConfig.data.customerReport.defaultAgreementStatement, colSpan: 18, styles: { fontStyle: fontStyleItalic } }
+            { content: templateConfig.data.customerReport.defaultAgreementStatement, colSpan: 18, styles: { fontStyle: FontStyle.italic } }
         ]
     ]
 }
 
-const generateFooterRows = (alignLeft: string): PdfTemplateRowItem[][] => {
+const generateFooterRows = (): PdfTemplateRowItem[][] => {
     const _footerRows = templateConfig.data.customerReport.footerAddress.map((address) => {
-        return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: alignLeft } }]
+        return [{ content: '', colSpan: 3, styles: { lineWidth: 0 } }, { content: address, colSpan: 15, styles: { lineWidth: 0, halign: Align.left } }]
     })
     return _footerRows;
 }
@@ -515,9 +490,11 @@ type PdfTemplateStyle = {
     minCellHeight?: any
 }
 
-type PdfLineWidth = {
-    top: number,
-    left: number,
-    bottom: number,
-    right: number
+type PdfBorderWidth = number
+
+type PdfBorder = {
+    top: PdfBorderWidth,
+    left: PdfBorderWidth,
+    bottom: PdfBorderWidth,
+    right: PdfBorderWidth
 }

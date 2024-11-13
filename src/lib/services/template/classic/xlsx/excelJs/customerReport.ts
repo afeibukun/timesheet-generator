@@ -6,6 +6,7 @@ import templateConfig from '../../../../../../../main-timesheet-template';
 import { TimesheetDate } from '@/lib/services/timesheet/timesheetDate';
 import { ClassicTemplate } from '../../classic';
 import { TimesheetRecord } from '@/lib/services/timesheet/timesheetRecord';
+import { Align, Border, Color, FillType, Font, FontSize, BorderStyle, FillPattern } from '../../../type';
 
 const sheetNameCollection = (timesheets: Timesheet[]) => {
     let startPoint = "A"
@@ -17,7 +18,6 @@ const sheetNameCollection = (timesheets: Timesheet[]) => {
 }
 
 export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Timesheet[], exportOptions: ExportOptions) => {
-    let templateName = 'classic';
     try {
         const ExcelJS = require('exceljs');
         const workbook = new ExcelJS.Workbook();
@@ -30,50 +30,29 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
 
         const imageExtensionPng = 'png';
 
-        const fontDefault = templateConfig.style.font.default;
+        const fontDefault: Font = templateConfig.style.font.default;
 
-        const fontSizeSmall = templateConfig.style.fontSize.small;
-        const fontSizeMedium = templateConfig.style.fontSize.default;
-        const fontSizeLarge = templateConfig.style.fontSize.large;
-
-        const colorBlue = templateConfig.style.color.blueARGB
-        const colorLightGray = templateConfig.style.color.lightGrayARGB
-        const colorWhite = templateConfig.style.color.whiteARGB
-
-        const alignTop = templateConfig.style.align.top
-        const alignLeft = templateConfig.style.align.left
-        const alignRight = templateConfig.style.align.right
-        const alignCenter = templateConfig.style.align.center
-        const alignMiddle = templateConfig.style.align.middle
-
-        const cellBorderStyleThin = 'thin'
-        const cellBorderStyleThick = 'thick'
-
-        const borderAllThin = {
-            top: { style: cellBorderStyleThin },
-            left: { style: cellBorderStyleThin },
-            bottom: { style: cellBorderStyleThin },
-            right: { style: cellBorderStyleThin }
+        const borderAllThin: Border = {
+            top: { style: BorderStyle.thin },
+            left: { style: BorderStyle.thin },
+            bottom: { style: BorderStyle.thin },
+            right: { style: BorderStyle.thin }
         }
 
-        const borderThickBottom = {
-            top: { style: cellBorderStyleThin },
-            left: { style: cellBorderStyleThin },
-            bottom: { style: cellBorderStyleThick },
-            right: { style: cellBorderStyleThin }
+        const borderThickBottom: Border = {
+            top: { style: BorderStyle.thin },
+            left: { style: BorderStyle.thin },
+            bottom: { style: BorderStyle.thick },
+            right: { style: BorderStyle.thin }
         }
 
-        const borderThickTop = {
-            top: { style: cellBorderStyleThick },
-            left: { style: cellBorderStyleThin },
-            bottom: { style: cellBorderStyleThin },
-            right: { style: cellBorderStyleThin }
+        const borderThickTop: Border = {
+            top: { style: BorderStyle.thick },
+            left: { style: BorderStyle.thin },
+            bottom: { style: BorderStyle.thin },
+            right: { style: BorderStyle.thin }
         }
 
-        const fillTypePattern = 'pattern'
-
-        const fillPatternSolid = 'solid'
-        const fillPatternNone = 'none'
 
         let sheetCollection = sheetNameCollection(timesheets);
 
@@ -85,7 +64,7 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
 
             worksheet.columns = worksheetColumnDataForExcelJs();
             // Row 1
-            includeRow1(workbook, imageExtensionPng, worksheet, _timesheet, alignRight, alignTop, colorBlue, fontDefault, fontSizeSmall);
+            includeRow1(workbook, imageExtensionPng, worksheet, _timesheet, fontDefault);
 
             worksheet.addRow(['']); // Row 2 - Empty Row
 
@@ -93,13 +72,13 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
             const timesheetMetaRowsData = metaSectionData(_timesheet)
             worksheet.addRows(timesheetMetaRowsData);
             metaSectionMerges(worksheet);
-            metaSectionStyles(worksheet, borderAllThin, borderThickBottom, fontDefault, fontSizeSmall, fontSizeMedium, fontSizeLarge, fillTypePattern, fillPatternSolid, colorLightGray, colorBlue, colorWhite, alignLeft, alignRight, alignMiddle);
+            metaSectionStyles(worksheet, borderAllThin, borderThickBottom, fontDefault);
 
             // Row 7 and 8 Data
             const timesheetEntryHeaderRowsData = timesheetEntryHeadingSectionData();
             worksheet.addRows(timesheetEntryHeaderRowsData);
             timesheetEntryHeadingSectionMerges(worksheet);
-            timesheetEntryHeadingSectionStyles(worksheet, borderAllThin, fontDefault, fontSizeSmall, fontSizeMedium, fillTypePattern, fillPatternSolid, fillPatternNone, colorLightGray, alignMiddle, alignCenter, alignLeft);
+            timesheetEntryHeadingSectionStyles(worksheet, borderAllThin, fontDefault);
 
             // Row 9 to 22 - Data
             let coreEntryStartRow = 9;
@@ -110,9 +89,9 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
             // timeEntrySectionMerges(worksheet, _weekDays);
             timeEntrySectionMerges(worksheet, coreTimesheetEntryRows);
             if (exportOptions.dateDisplay === DateDisplayExportOption.showOnlyDatesWithEntry) {
-                timeEntrySectionStylesWhenEmptyEntriesAreHidden(worksheet, _timesheet, _weekDays, coreTimesheetEntryRows, exportOptions, fontDefault, fontSizeSmall, alignMiddle, alignCenter, alignLeft, borderAllThin, cellBorderStyleThin, fillTypePattern, fillPatternSolid, colorLightGray);
+                timeEntrySectionStylesWhenEmptyEntriesAreHidden(worksheet, _timesheet, _weekDays, coreTimesheetEntryRows, exportOptions, fontDefault, borderAllThin);
             } else {
-                timeEntrySectionStyles(worksheet, _timesheet, _weekDays, exportOptions, fontDefault, fontSizeSmall, alignMiddle, alignCenter, alignLeft, borderAllThin, cellBorderStyleThin, fillTypePattern, fillPatternSolid, colorLightGray);
+                timeEntrySectionStyles(worksheet, _timesheet, _weekDays, exportOptions, fontDefault, borderAllThin);
             }
 
             const signatureStartRow = coreEntryStartRow + lengthOfCoreTimesheetEntry;
@@ -120,7 +99,7 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
             const timesheetSignatureRows = timesheetSignatureSectionData();
             worksheet.addRows(timesheetSignatureRows);
             timesheetSignatureSectionMerges(worksheet, signatureStartRow);
-            timesheetSignatureSectionStyle(worksheet, signatureStartRow, borderThickTop, borderAllThin, fontDefault, fontSizeSmall, alignMiddle, alignCenter, fillTypePattern, fillPatternSolid, fillPatternNone, colorLightGray);
+            timesheetSignatureSectionStyle(worksheet, signatureStartRow, borderThickTop, borderAllThin, fontDefault);
             const lengthOfSignatureRows = 5;
 
             // Row 28 - Empty Row
@@ -130,7 +109,7 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
             // Rows 28 till end
             const footerAddressRows = footerAddressTemplatePartData();
             worksheet.addRows(footerAddressRows);
-            footerAddressStyles(worksheet, footerAddressRows, footerStartRow, fontDefault, fontSizeSmall, alignCenter);
+            footerAddressStyles(worksheet, footerAddressRows, footerStartRow, fontDefault);
         })
 
         const timesheetMonthWithZeroBasedIndex = timesheets[0].monthNumber;
@@ -147,7 +126,7 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
     }
 }
 
-const includeRow1 = (workbook: any, imageExtensionPng: any, worksheet: any, timesheet: Timesheet, alignRight: any, alignTop: any, colorBlue: any, fontDefault: any, fontSizeSmall: any) => {
+const includeRow1 = (workbook: any, imageExtensionPng: any, worksheet: any, timesheet: Timesheet, fontDefault: Font) => {
     const logoBase64 = templateConfig.logoBase64
 
     const logoId = workbook.addImage({
@@ -170,12 +149,12 @@ const includeRow1 = (workbook: any, imageExtensionPng: any, worksheet: any, time
     const timesheetTopRow = worksheet.getRow(1);
     timesheetTopRow.height = 35
 
-    weekNumberCell.alignment = { vertical: alignTop, horizontal: alignRight }
+    weekNumberCell.alignment = { vertical: Align.top, horizontal: Align.right }
     weekNumberCell.font = {
-        color: { argb: colorBlue },
+        color: { argb: Color.blueARGB },
         name: fontDefault,
         family: 2,
-        size: fontSizeSmall,
+        size: FontSize.small,
         bold: true
     }
 }
@@ -284,7 +263,7 @@ const timeEntrySectionMerges = (worksheet: any, coreTimesheetEntryRowData: Excel
     })
 }
 
-const timeEntrySectionStyles = (worksheet: any, timesheet: Timesheet, weekDays: TimesheetDate[], exportOptions: ExportOptions, fontDefault: any, fontSizeSmall: any, alignMiddle: any, alignCenter: any, alignLeft: any, borderAllThin: any, cellBorderStyleThin: any, fillTypePattern: any, fillPatternSolid: any, colorLightGray: any) => {
+const timeEntrySectionStyles = (worksheet: any, timesheet: Timesheet, weekDays: TimesheetDate[], exportOptions: ExportOptions, fontDefault: Font, borderAllThin: Border) => {
     // Row 9 to 22 - STYLES
     let counter = 0;
     let startRowForTimeEntry = 9;
@@ -292,10 +271,10 @@ const timeEntrySectionStyles = (worksheet: any, timesheet: Timesheet, weekDays: 
         singleRow.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
             cell.font = {
                 name: fontDefault,
-                size: fontSizeSmall,
+                size: FontSize.small,
                 family: 2,
             }
-            cell.alignment = { vertical: alignMiddle, horizontal: alignCenter }
+            cell.alignment = { vertical: Align.middle, horizontal: Align.center }
         })
 
         const computeDayCounter = (counter: number) => {
@@ -315,13 +294,13 @@ const timeEntrySectionStyles = (worksheet: any, timesheet: Timesheet, weekDays: 
                 worksheet.getCell(`A${counter + 9}`).font = {
                     bold: true,
                     name: fontDefault,
-                    size: fontSizeSmall,
+                    size: FontSize.small,
                     italic: true
                 }
                 worksheet.getCell(`A${counter + 9}`).fill = {
-                    type: fillTypePattern,
-                    pattern: fillPatternSolid,
-                    fgColor: { argb: colorLightGray }
+                    type: FillType.pattern,
+                    pattern: FillPattern.solid,
+                    fgColor: { argb: Color.lightGrayARGB }
                 }
                 worksheet.getCell(`A${counter + 9}`).algnment = { shrinkToFit: true }
             }
@@ -337,22 +316,22 @@ const timeEntrySectionStyles = (worksheet: any, timesheet: Timesheet, weekDays: 
         } else {
             if (exportOptions.dateDisplay === DateDisplayExportOption.showAllDatesInTimesheet) {
                 worksheet.getCell(`A${counter + startRowForTimeEntry}`).border = borderAllThin
-                worksheet.getCell(`N${counter + startRowForTimeEntry}`).border = { right: { style: cellBorderStyleThin } }
+                worksheet.getCell(`N${counter + startRowForTimeEntry}`).border = { right: { style: BorderStyle.thin } }
                 updateColorAndFontForDayNumber(counter);
             } else if (exportOptions.dateDisplay === DateDisplayExportOption.hideDatesWithoutTimesheetRecordButRetainSlot) {
-                worksheet.getCell(`A${counter + startRowForTimeEntry}`).border = { left: { style: cellBorderStyleThin } }
-                worksheet.getCell(`N${counter + startRowForTimeEntry}`).border = { right: { style: cellBorderStyleThin } }
+                worksheet.getCell(`A${counter + startRowForTimeEntry}`).border = { left: { style: BorderStyle.thin } }
+                worksheet.getCell(`N${counter + startRowForTimeEntry}`).border = { right: { style: BorderStyle.thin } }
                 // updateColorAndFontForDayNumber(counter);
             }
         }
 
-        worksheet.getCell(`A${counter + startRowForTimeEntry}`).alignment = { horizontal: alignLeft, vertical: alignMiddle }
-        worksheet.getCell(`N${counter + startRowForTimeEntry}`).alignment = { horizontal: alignLeft, vertical: alignMiddle }
+        worksheet.getCell(`A${counter + startRowForTimeEntry}`).alignment = { horizontal: Align.left, vertical: Align.middle }
+        worksheet.getCell(`N${counter + startRowForTimeEntry}`).alignment = { horizontal: Align.left, vertical: Align.middle }
 
         counter += 1
     })
 }
-const timeEntrySectionStylesWhenEmptyEntriesAreHidden = (worksheet: any, timesheet: Timesheet, weekDays: TimesheetDate[], coreTimesheetEntryRowData: ExcelTemplateRow[], exportOptions: ExportOptions, fontDefault: any, fontSizeSmall: any, alignMiddle: any, alignCenter: any, alignLeft: any, borderAllThin: any, cellBorderStyleThin: any, fillTypePattern: any, fillPatternSolid: any, colorLightGray: any) => {
+const timeEntrySectionStylesWhenEmptyEntriesAreHidden = (worksheet: any, timesheet: Timesheet, weekDays: TimesheetDate[], coreTimesheetEntryRowData: ExcelTemplateRow[], exportOptions: ExportOptions, fontDefault: Font, borderAllThin: Border) => {
     // Row 9 to 22 - STYLES
     // MIGHT NOT REACH 22
     let counter = 0;
@@ -362,10 +341,10 @@ const timeEntrySectionStylesWhenEmptyEntriesAreHidden = (worksheet: any, timeshe
         singleRow.eachCell({ includeEmpty: true }, (cell: any, colNumber: number) => {
             cell.font = {
                 name: fontDefault,
-                size: fontSizeSmall,
+                size: FontSize.small,
                 family: 2,
             }
-            cell.alignment = { vertical: alignMiddle, horizontal: alignCenter }
+            cell.alignment = { vertical: Align.middle, horizontal: Align.center }
         });
 
         const computeDayCounter = (counter: number) => {
@@ -381,13 +360,13 @@ const timeEntrySectionStylesWhenEmptyEntriesAreHidden = (worksheet: any, timeshe
                 worksheet.getCell(`A${counter + 9}`).font = {
                     bold: true,
                     name: fontDefault,
-                    size: fontSizeSmall,
+                    size: FontSize.small,
                     italic: true
                 }
                 worksheet.getCell(`A${counter + 9}`).fill = {
-                    type: fillTypePattern,
-                    pattern: fillPatternSolid,
-                    fgColor: { argb: colorLightGray }
+                    type: FillType.pattern,
+                    pattern: FillPattern.solid,
+                    fgColor: { argb: Color.lightGrayARGB }
                 }
             }
         }
@@ -399,8 +378,8 @@ const timeEntrySectionStylesWhenEmptyEntriesAreHidden = (worksheet: any, timeshe
 
         }
 
-        worksheet.getCell(`A${counter + startRowForTimeEntry}`).alignment = { horizontal: alignLeft, vertical: alignMiddle }
-        worksheet.getCell(`N${counter + startRowForTimeEntry}`).alignment = { horizontal: alignLeft, vertical: alignMiddle }
+        worksheet.getCell(`A${counter + startRowForTimeEntry}`).alignment = { horizontal: Align.left, vertical: Align.middle }
+        worksheet.getCell(`N${counter + startRowForTimeEntry}`).alignment = { horizontal: Align.left, vertical: Align.middle }
         counter += 1
     })
 }
@@ -474,7 +453,7 @@ const metaSectionMerges = (worksheet: any) => {
     worksheet.mergeCells('M6:N6');
     worksheet.mergeCells('O6:R6');
 }
-const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom: any, fontDefault: any, fontSizeSmall: any, fontSizeMedium: any, fontSizeLarge: any, fillTypePattern: any, fillPatternSolid: any, colorLightGray: any, colorBlue: any, colorWhite: any, alignLeft: any, alignCenter: any, alignMiddle: any) => {
+const metaSectionStyles = (worksheet: any, borderAllThin: Border, borderThickBottom: Border, fontDefault: Font) => {
     // Row 3 STYLES
     worksheet.getRow(3).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
         cell.border = borderAllThin
@@ -482,26 +461,26 @@ const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom
             name: fontDefault,
             family: 2,
             italic: true,
-            size: fontSizeSmall
+            size: FontSize.small
         }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorLightGray }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.lightGrayARGB }
         }
     })
     worksheet.getCell('A3').font = {
         name: fontDefault,
-        color: { argb: colorBlue },
+        color: { argb: Color.blueARGB },
         family: 2,
-        size: fontSizeMedium,
+        size: FontSize.medium,
         bold: true,
         italic: false
     }
     worksheet.getCell('A3').fill = {
-        type: fillTypePattern,
-        pattern: fillPatternSolid,
-        fgColor: { argb: colorWhite }
+        type: FillType.pattern,
+        pattern: FillPattern.solid,
+        fgColor: { argb: Color.whiteARGB }
     }
 
     // Row 4 STYLES
@@ -509,17 +488,17 @@ const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom
         cell.border = borderAllThin
         cell.font = {
             name: fontDefault,
-            size: fontSizeMedium,
+            size: FontSize.medium,
             bold: true
         }
         cell.alignment = {
-            horizontal: alignLeft,
-            vertical: alignMiddle
+            horizontal: Align.left,
+            vertical: Align.middle
         }
     })
     worksheet.getCell('A4').font = {
-        color: { argb: colorBlue },
-        size: fontSizeLarge,
+        color: { argb: Color.blueARGB },
+        size: FontSize.large,
         bold: true,
         name: fontDefault
     }
@@ -532,13 +511,13 @@ const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom
         cell.font = {
             name: fontDefault,
             family: 2,
-            size: fontSizeSmall,
+            size: FontSize.small,
             italic: true
         }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorLightGray }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.lightGrayARGB }
         }
     })
     // Row 6 STYLES
@@ -546,13 +525,13 @@ const metaSectionStyles = (worksheet: any, borderAllThin: any, borderThickBottom
         cell.border = borderThickBottom
         cell.font = {
             name: fontDefault,
-            size: fontSizeMedium,
+            size: FontSize.medium,
             family: 2,
             bold: true
         }
         cell.alignment = {
-            horizontal: alignLeft,
-            vertical: alignMiddle
+            horizontal: Align.left,
+            vertical: Align.middle
         }
     })
     worksheet.getCell('O6').numFmt = templateConfig.style.format.defaultDate;
@@ -606,44 +585,44 @@ const timesheetEntryHeadingSectionMerges = (worksheet: any) => {
     worksheet.mergeCells('N7:R8');
 
 }
-const timesheetEntryHeadingSectionStyles = (worksheet: any, borderAllThin: any, fontDefault: any, fontSizeSmall: any, fontSizeMedium: any, fillTypePattern: any, fillPatternSolid: any, fillPatternNone: any, colorLightGray: any, alignMiddle: any, alignCenter: any, alignLeft: any,) => {
+const timesheetEntryHeadingSectionStyles = (worksheet: any, borderAllThin: Border, fontDefault: Font) => {
     // Row 7 STYLES
     worksheet.getRow(7).eachCell({ includeEmpty: true },
         (cell: any, colNumber: number) => {
             cell.border = borderAllThin
             cell.font = {
                 name: fontDefault,
-                size: fontSizeSmall,
+                size: FontSize.small,
                 family: 2,
                 italic: true
             }
             cell.fill = {
-                type: fillTypePattern,
-                pattern: fillPatternSolid,
-                fgColor: { argb: colorLightGray }
+                type: FillType.pattern,
+                pattern: FillPattern.solid,
+                fgColor: { argb: Color.lightGrayARGB }
             }
             cell.alignment = {
-                vertical: alignMiddle,
-                horizontal: alignLeft,
+                vertical: Align.middle,
+                horizontal: Align.left,
             }
 
         }
     )
     worksheet.getCell('K7').numFmt = '@';
-    worksheet.getCell('K7').alignment = { wrapText: true, vertical: alignMiddle, horizontal: alignCenter, shrinkToFit: true }
-    worksheet.getCell('K7').font = { size: fontSizeSmall, name: fontDefault, italic: true }
-    // worksheet.getCell('L7').fill = { type: fillTypePattern, pattern: fillPatternNone }
+    worksheet.getCell('K7').alignment = { wrapText: true, vertical: Align.middle, horizontal: Align.center, shrinkToFit: true }
+    worksheet.getCell('K7').font = { size: FontSize.small, name: fontDefault, italic: true }
+    // worksheet.getCell('L7').fill = { type: FillType.pattern, pattern: FillPattern.none }
     worksheet.getCell('L7').alignment = { wrapText: true }
-    // worksheet.getCell('M7').fill = { type: fillTypePattern, pattern: fillPatternNone }
-    worksheet.getCell('M7').alignment = { vertical: alignMiddle, horizontal: alignCenter }
-    worksheet.getCell('M7').font = { size: fontSizeMedium, name: fontDefault }
-    // worksheet.getCell('N7').fill = { type: fillTypePattern, pattern: fillPatternNone }
-    worksheet.getCell('N7').alignment = { vertical: alignMiddle, horizontal: alignLeft }
+    // worksheet.getCell('M7').fill = { type: FillType.pattern, pattern: FillPattern.none }
+    worksheet.getCell('M7').alignment = { vertical: Align.middle, horizontal: Align.center }
+    worksheet.getCell('M7').font = { size: FontSize.medium, name: fontDefault }
+    // worksheet.getCell('N7').fill = { type: FillType.pattern, pattern: FillPattern.none }
+    worksheet.getCell('N7').alignment = { vertical: Align.middle, horizontal: Align.left }
 
     worksheet.getCell('A7').font = {
         bold: true,
         name: fontDefault,
-        size: fontSizeSmall,
+        size: FontSize.small,
         family: 2,
         italic: true
     };
@@ -653,17 +632,17 @@ const timesheetEntryHeadingSectionStyles = (worksheet: any, borderAllThin: any, 
         cell.border = borderAllThin
         cell.font = {
             name: fontDefault,
-            size: fontSizeSmall,
+            size: FontSize.small,
             family: 2,
         }
-        cell.alignment = { vertical: alignMiddle, horizontal: alignCenter }
+        cell.alignment = { vertical: Align.middle, horizontal: Align.center }
     })
     worksheet.getCell('A8').border = borderAllThin
-    worksheet.getCell('B8').alignment = { wrapText: true, vertical: alignMiddle, horizontal: alignCenter, shrinkToFit: true }
+    worksheet.getCell('B8').alignment = { wrapText: true, vertical: Align.middle, horizontal: Align.center, shrinkToFit: true }
     worksheet.getCell('K8').numFmt = '@';
-    worksheet.getCell('K8').alignment = { wrapText: true, vertical: alignMiddle, horizontal: alignCenter, shrinkToFit: true }
-    worksheet.getCell('L8').alignment = { wrapText: true, vertical: alignMiddle, horizontal: alignCenter, shrinkToFit: true }
-    worksheet.getCell('N8').alignment = { vertical: alignMiddle, horizontal: alignLeft }
+    worksheet.getCell('K8').alignment = { wrapText: true, vertical: Align.middle, horizontal: Align.center, shrinkToFit: true }
+    worksheet.getCell('L8').alignment = { wrapText: true, vertical: Align.middle, horizontal: Align.center, shrinkToFit: true }
+    worksheet.getCell('N8').alignment = { vertical: Align.middle, horizontal: Align.left }
 }
 
 
@@ -718,22 +697,22 @@ const timesheetSignatureSectionMerges = (worksheet: any, startRow: number = 23) 
     _cursorRow += 2;
     worksheet.mergeCells(`A${_cursorRow}:R${_cursorRow}`);
 }
-const timesheetSignatureSectionStyle = (worksheet: any, startRow: number = 23, borderThickTop: any, borderAllThin: any, fontDefault: any, fontSizeSmall: any, alignMiddle: any, alignCenter: any, fillTypePattern: any, fillPatternSolid: any, fillPatternNone: any, colorLightGray: any) => {
+const timesheetSignatureSectionStyle = (worksheet: any, startRow: number = 23, borderThickTop: Border, borderAllThin: Border, fontDefault: Font) => {
     let _cursorRow = startRow;
     // Row 23 - STYLE
     worksheet.getRow(_cursorRow).eachCell((cell: any, colNumber: number) => {
         cell.border = borderThickTop
         cell.font = {
             name: fontDefault,
-            size: fontSizeSmall,
+            size: FontSize.small,
             family: 2,
             italic: true
         }
-        cell.alignment = { vertical: alignMiddle }
+        cell.alignment = { vertical: Align.middle }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorLightGray }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.lightGrayARGB }
         }
     })
 
@@ -743,18 +722,18 @@ const timesheetSignatureSectionStyle = (worksheet: any, startRow: number = 23, b
         cell.border = borderAllThin
         cell.font = {
             name: fontDefault,
-            size: fontSizeSmall,
+            size: FontSize.small,
             family: 2,
             italic: true
         }
-        cell.alignment = { vertical: alignMiddle }
+        cell.alignment = { vertical: Align.middle }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorLightGray }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.lightGrayARGB }
         }
     })
-    worksheet.getCell(`A${_cursorRow}`).fill = { type: fillTypePattern, pattern: fillPatternNone }
+    worksheet.getCell(`A${_cursorRow}`).fill = { type: FillType.pattern, pattern: FillPattern.none }
 
     _cursorRow += 1
     // Row 25 to 26 - STYLE
@@ -768,15 +747,15 @@ const timesheetSignatureSectionStyle = (worksheet: any, startRow: number = 23, b
         cell.border = borderAllThin
         cell.font = {
             name: fontDefault,
-            size: fontSizeSmall,
+            size: FontSize.small,
             family: 2,
             italic: true
         }
-        cell.alignment = { vertical: alignMiddle }
+        cell.alignment = { vertical: Align.middle }
         cell.fill = {
-            type: fillTypePattern,
-            pattern: fillPatternSolid,
-            fgColor: { argb: colorLightGray }
+            type: FillType.pattern,
+            pattern: FillPattern.solid,
+            fgColor: { argb: Color.lightGrayARGB }
         }
     })
 
@@ -847,17 +826,17 @@ const footerAddressTemplatePartData = () => {
         return { column_d: address, }
     })
 }
-const footerAddressStyles = (worksheet: any, footerAddressData: any[], startRow: number = 28, fontDefault: any, fontSizeSmall: any, alignMiddle: any) => {
+const footerAddressStyles = (worksheet: any, footerAddressData: any[], startRow: number = 28, fontDefault: Font) => {
     let _cursorRow = startRow;
     // Row 28 to end of Page - STYLE
     worksheet.getRows(_cursorRow, footerAddressData.length + 1).forEach((singleRow: any) => {
         singleRow.eachCell((cell: any, colNumber: number) => {
             cell.font = {
                 name: fontDefault,
-                size: fontSizeSmall,
+                size: FontSize.small,
                 family: 2,
             }
-            cell.alignment = { vertical: alignMiddle }
+            cell.alignment = { vertical: Align.middle }
         })
     })
 }
