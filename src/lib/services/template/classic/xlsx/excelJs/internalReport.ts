@@ -1,7 +1,7 @@
 import { LocationType, PeriodTypeLabel, EntryTypeExportOption, DateDisplayExportOption } from '@/lib/constants/constant';
 import { saveAs } from 'file-saver';
 import { ExportOptions } from '@/lib/types/timesheet';
-import templateConfig from '../../../../../../../main-timesheet-template';
+import templateConfig from '../../template.config';
 import { ClassicTemplate, InternalReportTimesheetCollection, InternalReportTimesheetRecord } from '../../classic';
 import { capitalize, titleize } from '@/lib/helpers';
 import { Align, Border, BorderStyle, Color, FillPattern, FillType, Font, FontSize } from '../../../type';

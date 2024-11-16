@@ -5,7 +5,7 @@ import { defaultLogoBase64, originalDefaultImageDimension } from "@/lib/constant
 import { fontAwesomeSolidBase64String } from "@/lib/constants/fontAwesomeBase64Font";
 import { ExportOptions } from "@/lib/types/timesheet";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
-import templateConfig from "../../../../../../../main-timesheet-template";
+import templateConfig from "../../template.config";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { ClassicTemplate } from "../../classic";
 import { defaultSansProBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64, defaultSansProItalicBase64 } from "@/lib/constants/defaultSansProBase64Font";
@@ -170,9 +170,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
             styles: {
                 font: defaultFontFamily,
                 fontSize: FontSize.tiny,
-                lineColor: templateConfig.style.color.black,
-                textColor: templateConfig.style.color.black,
-                valign: templateConfig.style.align.middle as VAlignType,
+                lineColor: Color.black,
+                textColor: Color.black,
+                valign: Align.middle as VAlignType,
                 cellPadding: { horizontal: 2, vertical: 1.5 }
             }
         })

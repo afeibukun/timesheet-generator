@@ -2,11 +2,11 @@ import { LocationType, PeriodTypeLabel, EntryTypeExportOption, DateDisplayExport
 import { saveAs } from 'file-saver';
 import { ExportOptions } from '@/lib/types/timesheet';
 import { Timesheet } from '@/lib/services/timesheet/timesheet';
-import templateConfig from '../../../../../../../main-timesheet-template';
+import templateConfig from '../../template.config';
 import { TimesheetDate } from '@/lib/services/timesheet/timesheetDate';
 import { ClassicTemplate } from '../../classic';
 import { TimesheetRecord } from '@/lib/services/timesheet/timesheetRecord';
-import { Align, Border, Color, FillType, Font, FontSize, BorderStyle, FillPattern } from '../../../type';
+import { Align, Border, Color, FillType, Font, FontSize, BorderStyle, FillPattern, Format } from '../../../type';
 
 const sheetNameCollection = (timesheets: Timesheet[]) => {
     let startPoint = "A"
@@ -502,8 +502,8 @@ const metaSectionStyles = (worksheet: any, borderAllThin: Border, borderThickBot
         bold: true,
         name: fontDefault
     }
-    worksheet.getCell('J4').numFmt = templateConfig.style.format.defaultDate;
-    worksheet.getCell('M4').numFmt = templateConfig.style.format.defaultDate;
+    worksheet.getCell('J4').numFmt = Format.date;
+    worksheet.getCell('M4').numFmt = Format.date;
 
     // Row 5 STYLES
     worksheet.getRow(5).eachCell({ includeEmpty: true }, (cell: any, colNumber: any) => {
@@ -534,7 +534,7 @@ const metaSectionStyles = (worksheet: any, borderAllThin: Border, borderThickBot
             vertical: Align.middle
         }
     })
-    worksheet.getCell('O6').numFmt = templateConfig.style.format.defaultDate;
+    worksheet.getCell('O6').numFmt = Format.date;
 
 }
 

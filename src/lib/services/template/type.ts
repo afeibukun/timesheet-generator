@@ -87,6 +87,10 @@ export enum FillPattern {
     none = 'none'
 }
 
+export enum Format {
+    date = "[$-x-sysdate]dddd, mmmm dd, yyyy"
+}
+
 export type Fill = {
     type: FillType,
     pattern: FillPattern,

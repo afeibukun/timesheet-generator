@@ -6,15 +6,12 @@ import { Personnel } from "../../meta/personnel";
 import { Project } from "../../meta/project";
 import { Site } from "../../meta/site";
 import { TimesheetDate } from "../../timesheet/timesheetDate";
-import { openDB } from "idb";
-import { timesheetDatabaseName } from "@/lib/constants/storage";
 import { getTimesheetsInDates } from "../../indexedDB/indexedDBService";
 import { Timesheet } from "../../timesheet/timesheet";
-import { TimesheetEntryPeriod } from "../../timesheet/timesheetEntryPeriod";
 import { TimesheetEntry } from "../../timesheet/timesheetEntry";
 import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
 import { Customer } from "../../meta/customer";
-import templateConfig from "../../../../../main-timesheet-template";
+import templateConfig from "./template.config";
 
 export class ClassicTemplate {
     static workingPeriods(timesheetRecord: TimesheetRecord) {
