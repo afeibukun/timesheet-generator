@@ -20,6 +20,7 @@ import { createXlsxClassicCustomerTimesheetReport } from "../template/classic/xl
 import { createPdfWithJsPdfAutoTable } from "../template/classic/pdf/jspdfAutoTable/customerReport";
 import { createXlsxClassicInternalTimesheetReport } from "../template/classic/xlsx/excelJs/internalReport";
 import { ClassicTemplate } from "../template/classic/classic";
+import { createInternalPdfReportWithJsPdfAutoTable } from "../template/classic/pdf/jspdfAutoTable/internalReport";
 
 /**
  * class: Timesheet
@@ -476,15 +477,19 @@ export class Timesheet implements PlainTimesheet {
             let includePreviousMonth = false
             if (cutOffDay) includePreviousMonth = true
             const _internalReportTimesheet = await ClassicTemplate.generateInternalTimesheetReportCollection(month, year, personnel, cutOffDay, includePreviousMonth)
-            console.log("Internal Report Timesheet - ")
-            console.log(_internalReportTimesheet);
             createXlsxClassicInternalTimesheetReport(_internalReportTimesheet, exportOption);
         }
     }
 
-    static exportPdfTimesheets(timesheets: Timesheet[], reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions) {
-        if (reportType == ReportType.customer && templateType === TemplateType.classic) {
-            createPdfWithJsPdfAutoTable(timesheets, exportOption)
+    static async exportPdfTimesheets(reportType: ReportType, templateType: TemplateType, exportOption: ExportOptions, timesheetReference?: Timesheet[] | number, year?: number, cutOffDay?: number, personnel?: Personnel) {
+        if (reportType == ReportType.customer && templateType === TemplateType.classic && timesheetReference && Array.isArray(timesheetReference)) {
+            createPdfWithJsPdfAutoTable(timesheetReference, exportOption)
+        } else if (reportType == ReportType.internal && templateType === TemplateType.classic && timesheetReference && typeof timesheetReference == "number" && year && personnel) {
+            const month = timesheetReference
+            let includePreviousMonth = false
+            if (cutOffDay) includePreviousMonth = true
+            const _internalReportTimesheet = await ClassicTemplate.generateInternalTimesheetReportCollection(month, year, personnel, cutOffDay, includePreviousMonth)
+            createInternalPdfReportWithJsPdfAutoTable(_internalReportTimesheet, exportOption);
         }
     }
 

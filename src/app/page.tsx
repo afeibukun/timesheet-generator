@@ -128,10 +128,18 @@ export default function Home() {
               <h4 className="font-bold text-sm">{annualReport.year}</h4>
               {annualReport && annualReport.monthlyReports ? annualReport.monthlyReports.map((_report) =>
                 <div key={_report.monthName}>
-                  <button className="w-full grid grid-cols-3 gap-x-1 mb-1" onClick={() => { Timesheet.exportXlsxTimesheets(ReportType.internal, TemplateType.classic, exportOption, findMonthIndex(_report.monthName), annualReport.year, 25, localActivePersonnel) }}>
-                    <span className="col-span-2 capitalize text-left text-sm">{_report.monthName}</span>
-                    <span className="text-xs text-right">{_report.totalHoursInMonth}</span>
-                  </button>
+                  <div className="w-full mb-1">
+                    <div className="flex  justify-between items-center">
+                      <span className="col-span-2 capitalize text-left text-sm">{_report.monthName}</span>
+                      <span className="text-xs text-right">{_report.totalHoursInMonth}</span>
+                    </div>
+                    {_report.totalHoursInMonth != "00:00" ?
+                      <div className="flex gap-x-2">
+                        <button type="button" className="px-2 py-1 text-xs bg-blue-600" onClick={() => { Timesheet.exportPdfTimesheets(ReportType.internal, TemplateType.classic, exportOption, findMonthIndex(_report.monthName), annualReport.year, 25, localActivePersonnel) }}>PDF</button>
+                        <button type="button" className="px-2 py-1 text-xs bg-green-600" onClick={() => { Timesheet.exportXlsxTimesheets(ReportType.internal, TemplateType.classic, exportOption, findMonthIndex(_report.monthName), annualReport.year, 25, localActivePersonnel) }}>XLSX</button>
+                      </div>
+                      : ''}
+                  </div>
                 </div>
               ) : ''}
             </div>

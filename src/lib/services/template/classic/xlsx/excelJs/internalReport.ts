@@ -5,6 +5,7 @@ import templateConfig from '../../template.config';
 import { ClassicTemplate, InternalReportTimesheetCollection, InternalReportTimesheetRecord } from '../../classic';
 import { capitalize, titleize } from '@/lib/helpers';
 import { Align, Border, BorderStyle, Color, FillPattern, FillType, Font, FontSize } from '../../../type';
+import { logoBase64 } from '../../asset/logo';
 
 export const createXlsxClassicInternalTimesheetReport = async (internalReportTimesheet: InternalReportTimesheetCollection, exportOptions: ExportOptions) => {
     try {
@@ -127,8 +128,6 @@ export const createXlsxClassicInternalTimesheetReport = async (internalReportTim
 
 const headerRowData = (workbook: any, imageExtensionPng: any, worksheet: any) => {
     const _startRow = 1
-
-    const logoBase64 = templateConfig.logoBase64
 
     const logoId = workbook.addImage({
         base64: logoBase64,

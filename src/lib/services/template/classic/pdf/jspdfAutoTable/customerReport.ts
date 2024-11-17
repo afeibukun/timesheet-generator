@@ -11,6 +11,8 @@ import { ClassicTemplate } from "../../classic";
 import { defaultSansProBase64, defaultSansProBoldBase64, defaultSansProBoldItalicBase64, defaultSansProItalicBase64 } from "@/lib/constants/defaultSansProBase64Font";
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
 import { Align, Color, Font, FontSize, FontStyle } from "../../../type";
+import { logoBase64 as templateLogoInBase64 } from "../../asset/logo";
+
 
 export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptions: ExportOptions): void => {
     const doc = new jsPDF(
@@ -71,10 +73,9 @@ export const createPdfWithJsPdfAutoTable = (timesheets: Timesheet[], exportOptio
     const signatureCellHeight = 24.84;
 
     const pngImageFormat = "PNG"
-    const isLogoDefinedInTemplateConfig = templateConfig && templateConfig.logoBase64 != undefined && templateConfig.logoBase64 != '' && templateConfig.logoBase64 != null;
-    const logoBase64 = isLogoDefinedInTemplateConfig ? templateConfig.logoBase64 : defaultLogoBase64;
+    const logoBase64 = templateLogoInBase64 ? templateLogoInBase64 : defaultLogoBase64;
 
-    const originalImageDimension = isLogoDefinedInTemplateConfig ? templateConfig.originalImageDimension : originalDefaultImageDimension;
+    const originalImageDimension = templateLogoInBase64 ? templateConfig.originalImageDimension : originalDefaultImageDimension;
     const imageDimension = computeImageDimension(originalImageDimension);
 
 

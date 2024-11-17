@@ -7,6 +7,7 @@ import { TimesheetDate } from '@/lib/services/timesheet/timesheetDate';
 import { ClassicTemplate } from '../../classic';
 import { TimesheetRecord } from '@/lib/services/timesheet/timesheetRecord';
 import { Align, Border, Color, FillType, Font, FontSize, BorderStyle, FillPattern, Format } from '../../../type';
+import { logoBase64 as templateLogoInBase64 } from '../../asset/logo';
 
 const sheetNameCollection = (timesheets: Timesheet[]) => {
     let startPoint = "A"
@@ -127,7 +128,7 @@ export const createXlsxClassicCustomerTimesheetReport = async (timesheets: Times
 }
 
 const includeRow1 = (workbook: any, imageExtensionPng: any, worksheet: any, timesheet: Timesheet, fontDefault: Font) => {
-    const logoBase64 = templateConfig.logoBase64
+    const logoBase64 = templateLogoInBase64
 
     const logoId = workbook.addImage({
         base64: logoBase64,
