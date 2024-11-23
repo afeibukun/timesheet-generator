@@ -5,12 +5,13 @@ import { TimesheetHour } from "./timesheetHour";
 import { ErrorMessage, LocationType, OptionLabel, TimesheetEntryType, } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { TimesheetEntryError } from "@/lib/types/primitive";
+import { generateUniqueID } from "@/lib/helpers";
 
 /**
  * Refers to a daily record of timesheet entries, it holds entries within the same day together
  */
 export class TimesheetRecord implements PlainTimesheetRecord {
-    id: number;
+    id: number | string;
     date: TimesheetDate;
     entries: TimesheetEntry[];
     comment: string;
@@ -120,10 +121,12 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return _plainRecord;
     }
 
-    static createId() {
-        const randomCode = 895
-        const id = randomCode.toString() + Date.now().toString();
-        return Number(id);
+    static createTimesheetRecordId(date?: TimesheetDate, index?: number) {
+        const dayInMonth = date ? date.dayInMonth : 0
+        let _index = index ?? 0
+        const randomCode = 167 + dayInMonth + _index
+        const id = randomCode + '' + generateUniqueID();
+        return id;
     }
 
     static getEntriesWithOverlappingPeriod(record: TimesheetRecord) {

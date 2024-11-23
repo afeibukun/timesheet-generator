@@ -147,7 +147,7 @@ export default function EntryEditView({ entry, uiElementId, updateEntryInRecord,
         return { error: false, message: '' }
     }
 
-    function handleEntryDelete(e: any, entryId: number) {
+    function handleEntryDelete(e: any, entryId: number | string) {
         deleteEntryInRecord(entryId);
     }
 

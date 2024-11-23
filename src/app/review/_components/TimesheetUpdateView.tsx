@@ -7,6 +7,8 @@ import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord";
 import TimesheetExportUI from "./TimesheetExportUI";
 import ManageRecordView from "./ManageRecordView";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
+import { useRouter } from "next/navigation";
+import { ComponentType, SearchParamsLabel } from "@/lib/constants/constant";
 
 type TimesheetTableProps = {
     timesheet: Timesheet,
@@ -19,7 +21,7 @@ type TimesheetDatePlusRecords = {
 }
 
 export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: TimesheetTableProps) {
-
+    const router = useRouter();
     const [localTimesheet, setLocalTimesheet] = useState(timesheet);
 
     const [timesheetRecordsErrorState, setTimesheetRecordsErrorState] = useState(Array(7).fill(false));
@@ -89,16 +91,16 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
     }
 
     const handleUpdateRecordInTimesheet = (record: TimesheetRecord) => {
-        const doesRecordExistInLocalTimesheet = localTimesheet.records.some(_record => _record.id === record.id)
+        const doesRecordExistInLocalTimesheet = localTimesheet.records.some(_rec => _rec.id === record.id)
         let _updatedTimesheet: Timesheet;
         if (doesRecordExistInLocalTimesheet) {
             // update it,
-            let _updatedRecords = localTimesheet.records.map((_record) => {
-                if (_record.id === record.id) return record
-                else return _record
+            let _updatedRecords = localTimesheet.records.map((_rec) => {
+                if (_rec.id === record.id) return record
+                else return _rec
             })
             // remove empty records
-            _updatedRecords = _updatedRecords.filter((_record) => _record.entries && _record.entries.length > 0)
+            _updatedRecords = _updatedRecords.filter((_rec) => _rec.entries && _rec.entries.length > 0)
 
             _updatedTimesheet = new Timesheet({
                 ...localTimesheet, records: _updatedRecords
@@ -110,7 +112,6 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                 ...localTimesheet, records: [...localTimesheet.records, record]
             })
         }
-
         setLocalTimesheet(_updatedTimesheet);
         const _weekDaysPlusRecords = generateWeekDaysPlusRecords(_updatedTimesheet, daysInCurrentTimesheetWeek)
         setDaysInCurrentWeekPlusRecords(_weekDaysPlusRecords);
@@ -134,6 +135,11 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
         }
     }
 
+    const deleteTimesheetEventHandler = (e: any) => {
+        Timesheet.deleteTimesheet(localTimesheet)
+        router.push(`/create?${SearchParamsLabel.component}=${ComponentType.timesheet}`);
+    }
+
     const copyRecordToOtherDays = (referenceRecord: TimesheetRecord, otherDays: string[]) => {
         let _records = localTimesheet.records;
         otherDays.forEach((_day) => {
@@ -142,16 +148,16 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
             let _updatedRecord: TimesheetRecord;
             if (_recordForDate) {
                 if (_recordForDate.entries) {
-                    _updatedRecord = new TimesheetRecord({ ..._recordForDate, entries: [..._recordForDate.entries, ...referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createId(), date: _timesheetDate }))] })
+                    _updatedRecord = new TimesheetRecord({ ..._recordForDate, entries: [..._recordForDate.entries, ...referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createTimesheetEntryId(), date: _timesheetDate }))] })
                 } else {
-                    _updatedRecord = new TimesheetRecord({ ..._recordForDate, entries: [...referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createId(), date: _timesheetDate }))] })
+                    _updatedRecord = new TimesheetRecord({ ..._recordForDate, entries: [...referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createTimesheetEntryId(), date: _timesheetDate }))] })
                 }
                 _records = _records.map(_record => {
                     if (_record.id === _recordForDate.id) return _updatedRecord
                     else return _record
                 })
             } else {
-                _updatedRecord = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _timesheetDate, entries: referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createId(), date: _timesheetDate })), comment: referenceRecord.comment })
+                _updatedRecord = new TimesheetRecord({ id: TimesheetRecord.createTimesheetRecordId(_timesheetDate), date: _timesheetDate, entries: referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createTimesheetEntryId(), date: _timesheetDate })), comment: referenceRecord.comment })
                 _records = [..._records, _updatedRecord]
             }
         })
@@ -181,12 +187,15 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                                 <span>Week </span>
                                 <span>{timesheet.weekNumber}</span>
                                 <>{timesheetHasRecord() ?
-                                    <span>
+                                    <span className="inline-block ml-2">
                                         <small className="capitalize">({getTimesheetMonth()})</small>
                                     </span> : ''
                                 }</>
                             </h4>
-                            <div className="">
+                            <div className="flex gap-x-2">
+                                <button type="button" className="px-4 py-1.5 bg-red-800 rounded text-sm text-white hover:bg-red-900" onClick={(e) => deleteTimesheetEventHandler(e)}>
+                                    <span>Discard Timesheet</span>
+                                </button>
                                 <button type="button" className="px-4 py-1.5 bg-green-800 rounded text-sm text-white hover:bg-green-900" onClick={(e) => handleTimesheetSaveButtonClick(e)}>
                                     <span>Save Timesheet</span>
                                 </button>

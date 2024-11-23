@@ -66,7 +66,7 @@ export interface PlainTimesheetHour {
 }
 
 export interface PlainTimesheetRecord {
-    id?: number,
+    id?: number | string,
     date: PlainTimesheetDate,
     entries: PlainTimesheetEntry[],
     comment?: string,
@@ -79,7 +79,7 @@ export interface TimesheetRecordOption {
 }
 
 export interface PlainTimesheetEntry {
-    id?: number,
+    id?: number | string,
     date: PlainTimesheetDate,
     entryType: PlainTimesheetEntryType
     entryPeriod: PlainTimesheetEntryPeriod,

@@ -50,13 +50,14 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
     }
 
     const addNewEntry = (dayString: string) => {
-        const _newEntry: TimesheetEntry = new TimesheetEntry({ id: TimesheetEntry.createId(), date: new TimesheetDate(dayString), entryType: { slug: '', name: '' }, hasPremium: false, entryPeriod: new TimesheetEntryPeriod({}), locationType: LocationType.onshore, comment: '' });
+        const _date = new TimesheetDate(dayString)
+        const _newEntry: TimesheetEntry = new TimesheetEntry({ id: TimesheetEntry.createTimesheetEntryId(), date: _date, entryType: { slug: '', name: '' }, hasPremium: false, entryPeriod: new TimesheetEntryPeriod({}), locationType: LocationType.onshore, comment: '' });
         let _record: TimesheetRecord;
 
         if (doesRecordHaveEntries(record) && record?.entries) {
             _record = new TimesheetRecord({ ...record, entries: [...record?.entries, _newEntry] })
         } else {
-            _record = new TimesheetRecord({ id: TimesheetRecord.createId(), date: new TimesheetDate(dayString), entries: [_newEntry] })
+            _record = new TimesheetRecord({ id: TimesheetRecord.createTimesheetRecordId(_date), date: _date, entries: [_newEntry] })
         }
         updateRecordInTimesheet(_record);
         const _updatedEntryErrors = [...entryErrorsInRecord, addNewEntryError(_newEntry.id)]
@@ -64,20 +65,20 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
         checkForEntryErrors(_record, _updatedEntryErrors)
     }
 
-    const addNewEntryError = (entryId: number) => {
+    const addNewEntryError = (entryId: number | string) => {
         return { id: entryId, entryType: defaultErrorObject, locationType: defaultErrorObject, entryPeriodStartTime: defaultErrorObject, entryPeriodFinishTime: defaultErrorObject, breakPeriodStartTime: defaultErrorObject, breakPeriodFinishTime: defaultErrorObject } as TimesheetEntryError
     }
 
     const handleUpdateEntryInRecord = (entry: TimesheetEntry) => {
         if (record) {
-            const doesEntryExistInRecord = record.entries.some(_entry => _entry.id === entry.id)
+            const doesEntryExistInRecord = record.entries.some(_et => _et.id === entry.id)
             let _updatedRecord: TimesheetRecord;
             if (doesEntryExistInRecord) {
                 // update the record
                 _updatedRecord = new TimesheetRecord({
-                    ...record, entries: record.entries.map((_entry) => {
-                        if (_entry.id === entry.id) return entry
-                        else return _entry
+                    ...record, entries: record.entries.map((_e) => {
+                        if (_e.id === entry.id) return entry
+                        else return _e
                     })
                 })
             } else {
@@ -99,7 +100,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
         }
     }
 
-    const getEntryError = (entryId: number) => {
+    const getEntryError = (entryId: number | string) => {
         if (entryErrorsInRecord && entryErrorsInRecord.length > 0)
             return entryErrorsInRecord.filter(e => e.id === entryId)[0]
     }

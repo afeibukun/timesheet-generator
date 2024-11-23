@@ -19,7 +19,7 @@ export interface PrimitiveDefaultTimesheetEntry {
 
 
 export interface TimesheetEntryError {
-    id: number,
+    id: number | string,
     entryType: { error: boolean, message: string },
     locationType: { error: boolean, message: string },
     entryPeriodStartTime: { error: boolean, message: string },

@@ -4,7 +4,7 @@ import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption, ExportOptions } from "@/lib/types/timesheet";
 import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, getAllFromIndexInStore, getFromIndexInStore, getInStore, getTimesheetRecordsInMonth, updateDataInStore } from "../indexedDB/indexedDBService";
+import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, deleteDataInStore, getAllFromIndexInStore, getFromIndexInStore, getInStore, getTimesheetRecordsInMonth, updateDataInStore } from "../indexedDB/indexedDBService";
 import { PersonnelSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
 import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType } from "@/lib/constants/constant";
 import { TimesheetHour } from "./timesheetHour";
@@ -161,6 +161,18 @@ export class Timesheet implements PlainTimesheet {
         }
     }
 
+    static async createTimesheetId() {
+        let _key = getUniqueIDBasedOnTime();
+        while (!await Timesheet.isKeyUnique(_key)) _key = getUniqueIDBasedOnTime();
+        return _key
+    }
+
+    static async createTimesheetCollectionId() {
+        let _timesheetCollectionKey = getUniqueIDBasedOnTime();
+        while (!await Timesheet.isKeyUniqueForCollection(_timesheetCollectionKey)) _timesheetCollectionKey = getUniqueIDBasedOnTime();
+        return _timesheetCollectionKey
+    }
+
     static async createTimesheet(personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false, timesheetOptions: TimesheetOption[] = [], week?: number, year?: number, month?: number) {
         let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
@@ -184,22 +196,23 @@ export class Timesheet implements PlainTimesheet {
         let _records: TimesheetRecord[] = []
         if (shouldPopulateEntry) {
             const _weekDays = TimesheetDate.getWeekDays(_lastDayOfTheSelectedWeek)
-            _records = _weekDays.reduce((_recordsAccumulator, _date) => {
+            _records = _weekDays.reduce((_recordsAccumulator, _date, index) => {
                 if (_date.monthNumber === _month) {
                     const _newEntry = new TimesheetEntry({
-                        id: TimesheetEntry.createId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
+                        id: TimesheetEntry.createTimesheetEntryId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
                     });
-                    const _newRecord = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _date, entries: [_newEntry] });
+                    let _timesheetRecordId = ''
+                    while (_recordsAccumulator.some((_record) => _record.id === _timesheetRecordId) || _timesheetRecordId == '') {
+                        _timesheetRecordId = TimesheetRecord.createTimesheetRecordId(_date, index);
+                    }
+                    const _newRecord = new TimesheetRecord({ id: _timesheetRecordId, date: _date, entries: [_newEntry] });
                     return [..._recordsAccumulator, _newRecord]
                 } else {
                     return _recordsAccumulator
                 }
             }, _records);
         }
-
-        let _key = getUniqueIDBasedOnTime();
-        while (!await Timesheet.isKeyUnique(_key)) _key = getUniqueIDBasedOnTime();
-
+        let _key = await Timesheet.createTimesheetId()
         const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, month: _month, customer: customer, site: site, project: project, options: timesheetOptions, records: _records, comment: '' });
         let _timesheetSchema: TimesheetSchema = _newTimesheet.convertToSchema();
 
@@ -223,8 +236,8 @@ export class Timesheet implements PlainTimesheet {
 
         const monthCollection = TimesheetDate.getMonthsWithinATimePeriod(_preMobTravelDate, _postDemobTravelDate);
         const timesheetCollectionByMonth: Array<Timesheet[]> = new Array(monthCollection.length).fill([]);
-        let _timesheetCollectionKey = getUniqueIDBasedOnTime();
-        while (!await Timesheet.isKeyUniqueForCollection(_timesheetCollectionKey)) _timesheetCollectionKey = getUniqueIDBasedOnTime();
+
+        let _timesheetCollectionKey = await Timesheet.createTimesheetCollectionId()
         let timesheetCollection: TimesheetCollection = { key: _timesheetCollectionKey, collection: [] };
 
         let _cursorDate = _preMobTravelDate;
@@ -249,7 +262,7 @@ export class Timesheet implements PlainTimesheet {
         }
 
         let _timesheetCount = 0;
-        let _entriesCount = 0;
+        let _recordCount = 0;
         let _cursorWeekNumber = _cursorDate.weekNumber;
         let _cursorWeekEndingDate = _cursorDate.getLastDayOfTheWeek;
         let _cursorMonthNumber = _cursorDate.monthNumber;
@@ -260,8 +273,7 @@ export class Timesheet implements PlainTimesheet {
         while (isDateSameOrBeforeAnotherDate(_cursorDate, _postDemobTravelDate)) {
             // if (!timesheetCollection[_monthCount][_timesheetCount]) {
             if (_startNewTimesheet) {
-                let _timesheetKey = getUniqueIDBasedOnTime();
-                while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
+                let _timesheetKey = await Timesheet.createTimesheetId();
                 _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, month: _cursorMonthNumber, customer: customer, site: site, project: project, options: [{ key: OptionLabel.mobilizationDate, value: _mobDate }, { key: OptionLabel.demobilizationDate, value: _demobDate }, { key: OptionLabel.timesheetCollectionKey, value: _timesheetCollectionKey }], records: [], comment: '' });
                 timesheetCollectionByMonth[_monthCount] = [...timesheetCollectionByMonth[_monthCount], _cursorTimesheet];
                 _startNewTimesheet = false;
@@ -270,27 +282,31 @@ export class Timesheet implements PlainTimesheet {
             }
 
             const _entryForCurrentDate = new TimesheetEntry({
-                id: TimesheetEntry.createId(), date: _cursorDate, entryType: getEntryType(_cursorDate), entryPeriod: getEntryPeriod(_cursorDate), locationType: defaultData.locationType, comment: defaultData.comment
+                id: TimesheetEntry.createTimesheetEntryId(), date: _cursorDate, entryType: getEntryType(_cursorDate), entryPeriod: getEntryPeriod(_cursorDate), locationType: defaultData.locationType, comment: defaultData.comment
             });
-            const _entryGroupForCurrentDate = new TimesheetRecord({ id: TimesheetRecord.createId(), date: _cursorDate, entries: [_entryForCurrentDate] });
+            let _timesheetRecordId = ''
+            while (_cursorTimesheet.records.some((_record) => _record.id === _timesheetRecordId) || _timesheetRecordId == '') {
+                _timesheetRecordId = TimesheetRecord.createTimesheetRecordId(_cursorDate, _recordCount);
+            }
+            const _entryGroupForCurrentDate = new TimesheetRecord({ id: _timesheetRecordId, date: _cursorDate, entries: [_entryForCurrentDate] });
             _cursorTimesheet.records = [..._cursorTimesheet.records, _entryGroupForCurrentDate]
             timesheetCollectionByMonth[_monthCount][_timesheetCount].records = _cursorTimesheet.records;
 
-            _entriesCount += 1;
+            _recordCount += 1;
 
             _cursorDate = _cursorDate.dateIncrementByDay(1);
             _dateCount += 1;
 
             if (!isDateWithinWeek(_cursorDate, _cursorWeekNumber)) {
                 _timesheetCount += 1;
-                _entriesCount = 0;
+                _recordCount = 0;
                 _startNewTimesheet = true
             }
 
             if (!isDateWithinMonth(_cursorDate, _cursorMonthNumber)) {
                 _monthCount += 1;
                 _timesheetCount = 0;
-                _entriesCount = 0;
+                _recordCount = 0;
                 _startNewTimesheet = true
             }
 
@@ -320,6 +336,13 @@ export class Timesheet implements PlainTimesheet {
         }
 
         return { timesheetCollection: timesheetCollectionFromDb, timesheetCollectionByMonth: timesheetCollectionByMonth };
+    }
+
+    static async deleteTimesheet(timesheet: Timesheet) {
+        if (timesheet.id) {
+            await deleteDataInStore(timesheet.id, StoreName.timesheet)
+        }
+        return true
     }
 
     static async hasUpdatedDefaultInformation() {

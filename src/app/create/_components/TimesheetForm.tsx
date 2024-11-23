@@ -62,7 +62,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         initializer();
     }, []);
 
-    function handleInputChange(e: any, metaKey: string) {
+    function FormInputChangeEventHandler(e: any, metaKey: string) {
         let metaValue = e.target.value;
         setTimesheetForm({ ...timesheetForm, [metaKey]: metaValue });
     }
@@ -95,6 +95,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         const _timesheet = await Timesheet.createTimesheet(_personnel, _customer, _site, _project, timesheetForm.autoPopulateEntry, _options, week, year, timesheetForm.selectedMonth);
 
         router.push(`/review?${SearchParamsLabel.component}=${ComponentType.timesheet}&${SearchParamsLabel.key}=${_timesheet.key}`);
+
     }
 
     return (
@@ -105,7 +106,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                         <label htmlFor="personnel" >
                             <DefaultLabelText>Personnel Name</DefaultLabelText>
                         </label>
-                        <select name="personnel" id="personnel" value={timesheetForm.personnelSlug} onChange={(e) => handleInputChange(e, 'personnelSlug')}>
+                        <select name="personnel" id="personnel" value={timesheetForm.personnelSlug} onChange={(e) => FormInputChangeEventHandler(e, 'personnelSlug')}>
                             <option value={undefined} >Select Personnel</option>
                             {personnels.map((personnel) => {
                                 return (
@@ -171,7 +172,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                         </label>
                         <input type="date"
                             value={timesheetForm.mobilizationDate}
-                            onChange={(e) => handleInputChange(e, 'mobilizationDate')}
+                            onChange={(e) => FormInputChangeEventHandler(e, 'mobilizationDate')}
                             name="mobilizationDate" id="mobilizationDate" className="border rounded" />
                     </DefaultFormItem>
                     <DefaultFormItem>
@@ -184,7 +185,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                             name="demobilizationDate"
                             id="demobilizationDate"
                             value={timesheetForm.demobilizationDate}
-                            onChange={e => handleInputChange(e, 'demobilizationDate')}
+                            onChange={e => FormInputChangeEventHandler(e, 'demobilizationDate')}
                             className="border rounded" />
                     </DefaultFormItem>
                 </DefaultFormGroup>
@@ -196,7 +197,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                                 <DefaultLabelText>Customer Name
                                 </DefaultLabelText>
                             </label>
-                            <select name="customer" id="customer" value={timesheetForm.customerSlug} onChange={(e) => handleInputChange(e, 'customerSlug')}>
+                            <select name="customer" id="customer" value={timesheetForm.customerSlug} onChange={(e) => FormInputChangeEventHandler(e, 'customerSlug')}>
                                 <option value={undefined} >Select Customer</option>
                                 {customers.map((customer) => {
                                     return (
@@ -216,7 +217,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                             <label htmlFor="site">
                                 <DefaultLabelText>Site Name</DefaultLabelText>
                             </label>
-                            <select name="site" id="site" value={timesheetForm.siteSlug} onChange={(e) => handleInputChange(e, 'siteSlug')}>
+                            <select name="site" id="site" value={timesheetForm.siteSlug} onChange={(e) => FormInputChangeEventHandler(e, 'siteSlug')}>
                                 <option value={undefined} >Select Site</option>
                                 {customers.filter((c) => c.slug == timesheetForm.customerSlug)[0]?.sites?.map((site, index) => {
                                     return (
@@ -240,7 +241,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                             <DefaultLabelText>Project Information:</DefaultLabelText>
                         </label>
                         <div>
-                            <select name="project" id="project" value={timesheetForm.projectPurchaseOrderNumber} onChange={(e) => handleInputChange(e, 'projectPurchaseOrderNumber')} className="w-full">
+                            <select name="project" id="project" value={timesheetForm.projectPurchaseOrderNumber} onChange={(e) => FormInputChangeEventHandler(e, 'projectPurchaseOrderNumber')} className="w-full">
                                 <option value={undefined} >Select Project</option>
                                 {projects.map((project, index) => {
                                     return (
