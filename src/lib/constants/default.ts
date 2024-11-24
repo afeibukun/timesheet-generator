@@ -1,5 +1,4 @@
-import { PrimitiveDefaultTimesheetEntry } from "../types/primitive";
-import { ExportOptions, PlainTimesheetEntryType } from "../types/timesheet";
+import { ExportOptions, PlainDefaultTimesheetData, PlainTimesheetEntryType } from "../types/timesheet";
 import { DateDisplayExportOption, EntryTypeExportOption, LocationType, TimesheetEntryType } from "./constant";
 
 export const defaultTimesheetEntryType: PlainTimesheetEntryType[] = [
@@ -30,7 +29,7 @@ export const defaultTimesheetEntryType: PlainTimesheetEntryType[] = [
     }
 ];
 
-export const defaultTimesheetEntryData: PrimitiveDefaultTimesheetEntry = {
+export const defaultTimesheetEntryData: PlainDefaultTimesheetData = {
     startTime: '06:00',
     finishTime: '18:00',
     locationType: LocationType.onshore,

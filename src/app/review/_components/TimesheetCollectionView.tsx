@@ -49,7 +49,7 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                 const updatedCorrespondingTimesheet = new Timesheet(updatedTimesheet);
                 // update the collection too
                 setTimesheetCollection({
-                    ...timesheetCollection, collection: timesheetCollection.collection.map((t) => {
+                    ...timesheetCollection, collection: timesheetCollection.timesheets.map((t) => {
                         if (t.id === updatedTimesheet.id) return updatedCorrespondingTimesheet
                         else return t
                     })
@@ -84,9 +84,9 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                                 </div>
                             </div>
                             <div className="preview-header-group group-2 flex justify-between">
-                                {timesheetCollection?.collection ?
+                                {timesheetCollection?.timesheets ?
                                     <div className="timesheet-owner-group  ">
-                                        <h5 className="text-2xl font-medium rounded  p-2 bg-slate-100">Personnel Name: <span className="text-blue-900">{timesheetCollection?.collection[0].personnel.name}</span></h5>
+                                        <h5 className="text-2xl font-medium rounded  p-2 bg-slate-100">Personnel Name: <span className="text-blue-900">{timesheetCollection?.timesheets[0].personnel.name}</span></h5>
                                     </div> : ''}
                                 {/* <div className="timesheet-owner-hours border p-2 rounded-md">
                                         <p className="text-center">Total hours</p>
@@ -115,27 +115,27 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                     }
                     <div className="timesheet-collection-container w-full">
                         <div className="timesheet-collection-navigation">
-                            <>{timesheetCollection?.collection ?
+                            <>{timesheetCollection?.timesheets ?
                                 <div className="flex justify-between mb-2">
                                     <button type="button" onClick={(e) => activeTimesheetIndexInCollection > 0 ? setActiveTimesheetIndexInCollection(activeTimesheetIndexInCollection - 1) : ''} className={`px-3 py-1 text-xs rounded ${activeTimesheetIndexInCollection == 0 ? 'bg-slate-300 text-gray-400' : 'bg-slate-600 text-white'}`}>Prev</button>
 
                                     <div className="flex gap-x-1">
                                         {
-                                            timesheetCollection.collection.map((collection: any, index: number) =>
+                                            timesheetCollection.timesheets.map((collection: any, index: number) =>
                                                 <span key={index} className={`inline-flex w-2 h-2 rounded-full transition ease-in-out duration-100 ${index == activeTimesheetIndexInCollection ? 'bg-slate-700' : 'bg-slate-200'}`}></span>
                                             )
                                         }
                                     </div>
 
-                                    <button type="button" onClick={(e) => activeTimesheetIndexInCollection < timesheetCollection.collection.length - 1 ? setActiveTimesheetIndexInCollection(activeTimesheetIndexInCollection + 1) : ''} className={`px-3 py-1 text-xs rounded ${activeTimesheetIndexInCollection == timesheetCollection.collection.length - 1 ? 'bg-slate-300 text-gray-400' : 'bg-slate-600 text-white'}`}>Next</button>
+                                    <button type="button" onClick={(e) => activeTimesheetIndexInCollection < timesheetCollection.timesheets.length - 1 ? setActiveTimesheetIndexInCollection(activeTimesheetIndexInCollection + 1) : ''} className={`px-3 py-1 text-xs rounded ${activeTimesheetIndexInCollection == timesheetCollection.timesheets.length - 1 ? 'bg-slate-300 text-gray-400' : 'bg-slate-600 text-white'}`}>Next</button>
                                 </div>
                                 : ''
                             }</>
                         </div>
-                        {timesheetCollection?.collection ? (
+                        {timesheetCollection?.timesheets ? (
                             <div className="timesheet-collection w-full overflow-x-hidden">
                                 <div className="flex flex-nowrap flex-row w-full">
-                                    {timesheetCollection.collection.map((timesheet: Timesheet) =>
+                                    {timesheetCollection.timesheets.map((timesheet: Timesheet) =>
                                         <div className="shrink-0 w-full transition ease-in-out duration-500" key={timesheet.id} style={{ transform: `translateX(-${activeTimesheetIndexInCollection * 100}%)` }}>
                                             {timesheet?.records ?
                                                 <div className="timesheet-table text-left">
@@ -154,10 +154,10 @@ export default function TimesheetCollectionView({ timesheetCollection, setTimesh
                     <div className="">
                         <div className="flex gap-x-4 mb-4">
                             <div>
-                                <button type="button" className="inline-block px-4 py-1 rounded uppercase text-sm bg-purple-700 text-white" onClick={(e) => Timesheet.exportXlsxTimesheets(timesheetCollection.collection, ReportType.customer, TemplateType.classic, exportOption)}>Export Timesheet Collection Excel</button>
+                                <button type="button" className="inline-block px-4 py-1 rounded uppercase text-sm bg-purple-700 text-white" onClick={(e) => Timesheet.exportXlsxTimesheets(timesheetCollection.timesheets, ReportType.customer, TemplateType.classic, exportOption)}>Export Timesheet Collection Excel</button>
                             </div>
                             <div>
-                                <button type="button" className="inline-block px-4 py-1 rounded uppercase text-sm bg-green-700 text-white" onClick={(e) => Timesheet.exportPdfTimesheets(timesheetCollection.collection, ReportType.customer, TemplateType.classic, exportOption)}>Export Timesheet Collection PDF</button>
+                                <button type="button" className="inline-block px-4 py-1 rounded uppercase text-sm bg-green-700 text-white" onClick={(e) => Timesheet.exportPdfTimesheets(timesheetCollection.timesheets, ReportType.customer, TemplateType.classic, exportOption)}>Export Timesheet Collection PDF</button>
                             </div>
 
                             <div>

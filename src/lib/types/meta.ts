@@ -1,17 +1,21 @@
+import { OptionLabel } from "../constants/constant"
+import { StorageLabel } from "../constants/storage"
 
 // PERSONNEL
 export interface PlainPersonnel {
-    id: number,
+    id?: number,
     slug: string,
     name: string,
-    options?: PlainPersonnelOption[],
+    options: PersonnelOption[],
 }
 
-export interface PlainPersonnelOption {
+export interface PersonnelOption {
     id?: number,
-    key: string,
+    key: PersonnelOptionKey,
     value: string,
 }
+
+export type PersonnelOptionKey = OptionLabel.personnelCodeA | OptionLabel.personnelCodeB | OptionLabel.costCenter | OptionLabel.approverManager
 
 // SITE
 export interface PlainSite {
@@ -24,9 +28,11 @@ export interface PlainSite {
 
 // CUSTOMER
 export interface PlainCustomer {
-    id: number,
+    id?: number,
     slug: string,
     name: string,
+    activeSite?: PlainSite,
+    sites?: PlainSite[]
 }
 
 // PROJECT
@@ -36,3 +42,11 @@ export interface PlainProject {
     orderNumber?: string,
     description?: string
 }
+
+export interface PlainAppOption {
+    id?: number
+    key: AppOptionKey,
+    value: any,
+}
+
+export type AppOptionKey = StorageLabel.exportOptionLabel | StorageLabel.activePersonnel | StorageLabel.activeTimesheetIdLabel | StorageLabel.activeComponentType | StorageLabel.activeTimesheetCollectionIdLabel | StorageLabel.activeComponentType

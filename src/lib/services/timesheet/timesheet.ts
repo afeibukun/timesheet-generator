@@ -1,11 +1,10 @@
 import { defaultTimesheetEntryType } from "@/lib/constants/default";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
-import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption, ExportOptions } from "@/lib/types/timesheet";
+import { TimesheetCollectionByMonth, TimesheetCollection, PlainTimesheet, TimesheetOption, ExportOptions, PlainDefaultTimesheetData, PlainTimesheetCollection } from "@/lib/types/timesheet";
 import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, deleteDataInStore, getAllFromIndexInStore, getFromIndexInStore, getInStore, getTimesheetRecordsInMonth, updateDataInStore } from "../indexedDB/indexedDBService";
-import { PersonnelSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
 import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType } from "@/lib/constants/constant";
 import { TimesheetHour } from "./timesheetHour";
 import { TimesheetRecord } from "./timesheetRecord";
@@ -15,7 +14,6 @@ import { Customer } from "../meta/customer";
 import { Site } from "../meta/site";
 import { Project } from "../meta/project";
 import { PlainCustomer, PlainProject, PlainSite } from "@/lib/types/meta";
-import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
 import { createXlsxClassicCustomerTimesheetReport } from "../template/classic/xlsx/excelJs/customerReport";
 import { createPdfWithJsPdfAutoTable } from "../template/classic/pdf/jspdfAutoTable/customerReport";
 import { createXlsxClassicInternalTimesheetReport } from "../template/classic/xlsx/excelJs/internalReport";
@@ -120,9 +118,9 @@ export class Timesheet implements PlainTimesheet {
         return _totalHoursForDay
     }
 
-    convertToSchema() {
-        let _timesheetSchema: TimesheetSchema = { id: this.id, key: this.key, personnel: this.personnel.convertToSchema(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), site: this.site.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.date, month: this.month, comment: this.comment }
-        return _timesheetSchema;
+    convertToPlain() {
+        let _plainTimesheet: PlainTimesheet = { id: this.id, key: this.key, personnel: this.personnel.convertToPlain(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), site: this.site.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.convertToPlain(), month: this.month, comment: this.comment }
+        return _plainTimesheet;
     }
 
     get mobilizationDate() {
@@ -143,8 +141,8 @@ export class Timesheet implements PlainTimesheet {
 
     async updateTimesheetInDb() {
         if (!this.id) throw Error(ErrorMessage.invalidTimesheet) //Invalid-Timesheet (We can't update what's not existing)
-        let _timesheetSchema: TimesheetSchema = this.convertToSchema();
-        const newTimesheet = await updateDataInStore(_timesheetSchema, this.id, StoreName.timesheet);
+        let _plainTimesheet: PlainTimesheet = this.convertToPlain();
+        const newTimesheet = await updateDataInStore(_plainTimesheet, this.id, StoreName.timesheet);
         return newTimesheet;
     }
 
@@ -174,7 +172,7 @@ export class Timesheet implements PlainTimesheet {
     }
 
     static async createTimesheet(personnel: Personnel, customer: Customer, site: Site, project: Project, shouldPopulateEntry: boolean = false, timesheetOptions: TimesheetOption[] = [], week?: number, year?: number, month?: number) {
-        let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+        let defaultData: PlainDefaultTimesheetData = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
 
         const _currentWeek = TimesheetDate.getCurrentWeekNumber();
@@ -201,11 +199,11 @@ export class Timesheet implements PlainTimesheet {
                     const _newEntry = new TimesheetEntry({
                         id: TimesheetEntry.createTimesheetEntryId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
                     });
-                    let _timesheetRecordId = ''
-                    while (_recordsAccumulator.some((_record) => _record.id === _timesheetRecordId) || _timesheetRecordId == '') {
-                        _timesheetRecordId = TimesheetRecord.createTimesheetRecordId(_date, index);
+                    let _timesheetRecordKey = ''
+                    while (_recordsAccumulator.some((_record) => _record.key === _timesheetRecordKey) || _timesheetRecordKey == '') {
+                        _timesheetRecordKey = TimesheetRecord.createTimesheetRecordId(_date, index);
                     }
-                    const _newRecord = new TimesheetRecord({ id: _timesheetRecordId, date: _date, entries: [_newEntry] });
+                    const _newRecord = new TimesheetRecord({ key: _timesheetRecordKey, date: _date, entries: [_newEntry], customer: customer, project: project });
                     return [..._recordsAccumulator, _newRecord]
                 } else {
                     return _recordsAccumulator
@@ -214,20 +212,20 @@ export class Timesheet implements PlainTimesheet {
         }
         let _key = await Timesheet.createTimesheetId()
         const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, month: _month, customer: customer, site: site, project: project, options: timesheetOptions, records: _records, comment: '' });
-        let _timesheetSchema: TimesheetSchema = _newTimesheet.convertToSchema();
+        let _plainTimesheet: PlainTimesheet = _newTimesheet.convertToPlain();
 
-        const _stringifiedTimesheet = JSON.stringify(_timesheetSchema)
-        const _returnedTimesheet = await createTimesheet(JSON.parse(_stringifiedTimesheet));
+        const _stringifiedTimesheet = JSON.stringify(_plainTimesheet)
+        const _returnedTimesheet: PlainTimesheet = await createTimesheet(JSON.parse(_stringifiedTimesheet));
 
         if (_returnedTimesheet.id) {
             await createOrUpdateAppOption(StorageLabel.activeTimesheetIdLabel, _returnedTimesheet.id);
             await createOrUpdateAppOption(StorageLabel.activeComponentType, ComponentType.timesheet);
         }
-        return Timesheet.convertSchemaToTimesheet(_returnedTimesheet);
+        return new Timesheet(_returnedTimesheet);
     }
 
     static async createTimesheetCollectionFromMobilizationPeriod(mobilizationDate: TimesheetDate, demobilizationDate: TimesheetDate, personnel: Personnel, customer: Customer, site: Site, project: Project) {
-        let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+        let defaultData: PlainDefaultTimesheetData = await TimesheetEntry.defaultInformation();
         TimesheetDate.updateWeekStartDay(defaultData.weekStartDay); // to keep the week start day as monday.
         const _mobDate = mobilizationDate; // the date you got to the site
         const _demobDate = demobilizationDate; // the date you left the site
@@ -238,7 +236,7 @@ export class Timesheet implements PlainTimesheet {
         const timesheetCollectionByMonth: Array<Timesheet[]> = new Array(monthCollection.length).fill([]);
 
         let _timesheetCollectionKey = await Timesheet.createTimesheetCollectionId()
-        let timesheetCollection: TimesheetCollection = { key: _timesheetCollectionKey, collection: [] };
+        let timesheetCollection: TimesheetCollection = { key: _timesheetCollectionKey, timesheets: [] };
 
         let _cursorDate = _preMobTravelDate;
         let _dateCount = 0;
@@ -284,12 +282,12 @@ export class Timesheet implements PlainTimesheet {
             const _entryForCurrentDate = new TimesheetEntry({
                 id: TimesheetEntry.createTimesheetEntryId(), date: _cursorDate, entryType: getEntryType(_cursorDate), entryPeriod: getEntryPeriod(_cursorDate), locationType: defaultData.locationType, comment: defaultData.comment
             });
-            let _timesheetRecordId = ''
-            while (_cursorTimesheet.records.some((_record) => _record.id === _timesheetRecordId) || _timesheetRecordId == '') {
-                _timesheetRecordId = TimesheetRecord.createTimesheetRecordId(_cursorDate, _recordCount);
+            let _timesheetRecordKey = ''
+            while (_cursorTimesheet.records.some((_record) => _record.key === _timesheetRecordKey) || _timesheetRecordKey == '') {
+                _timesheetRecordKey = TimesheetRecord.createTimesheetRecordId(_cursorDate, _recordCount);
             }
-            const _entryGroupForCurrentDate = new TimesheetRecord({ id: _timesheetRecordId, date: _cursorDate, entries: [_entryForCurrentDate] });
-            _cursorTimesheet.records = [..._cursorTimesheet.records, _entryGroupForCurrentDate]
+            const _entryRecordForCurrentDate = new TimesheetRecord({ key: _timesheetRecordKey, date: _cursorDate, entries: [_entryForCurrentDate], customer: customer, project: project });
+            _cursorTimesheet.records = [..._cursorTimesheet.records, _entryRecordForCurrentDate]
             timesheetCollectionByMonth[_monthCount][_timesheetCount].records = _cursorTimesheet.records;
 
             _recordCount += 1;
@@ -315,11 +313,11 @@ export class Timesheet implements PlainTimesheet {
                 let _timesheetKey = getUniqueIDBasedOnTime();
                 while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
 
-                let _timesheetSchema: TimesheetSchema = { key: _timesheetKey, customer: customer, personnel: personnel.convertToSchema(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.date, month: _cursorMonthNumber, comment: _cursorTimesheet.comment }
+                let _plainTimesheet: PlainTimesheet = { key: _timesheetKey, customer: customer, personnel: personnel.convertToPlain(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.convertToPlain(), month: _cursorMonthNumber, comment: _cursorTimesheet.comment }
 
-                const stringifiedTimesheet = JSON.stringify(_timesheetSchema)
+                const stringifiedTimesheet = JSON.stringify(_plainTimesheet)
                 const timesheet = await createTimesheet(JSON.parse(stringifiedTimesheet));
-                timesheetCollection.collection = [...timesheetCollection.collection, timesheet];
+                timesheetCollection.timesheets = [...timesheetCollection.timesheets, timesheet];
             }
 
             _cursorWeekNumber = _cursorDate.weekNumber;
@@ -327,8 +325,8 @@ export class Timesheet implements PlainTimesheet {
             _cursorWeekEndingDate = _cursorDate.getLastDayOfTheWeek;
         }
 
-        const timesheetIdCollection = timesheetCollection.collection.map((timesheet) => timesheet.id).filter(t => t != undefined)
-        const timesheetCollectionFromDb: TimesheetCollection = await createTimesheetCollection({ key: timesheetCollection.key, timesheetIdCollection: timesheetIdCollection });
+        const timesheetIdCollection = timesheetCollection.timesheets.map((timesheet) => timesheet.id).filter(t => t != undefined)
+        const timesheetCollectionFromDb: TimesheetCollection = await createTimesheetCollection({ key: timesheetCollection.key, timesheetIds: timesheetIdCollection });
 
         if (timesheetCollectionFromDb.id) {
             await createOrUpdateAppOption(StorageLabel.activeTimesheetCollectionIdLabel, timesheetCollectionFromDb.id);
@@ -351,49 +349,19 @@ export class Timesheet implements PlainTimesheet {
         return true
     }
 
-    static async convertSchemaToTimesheet(timesheetSchema: TimesheetSchema) {
-        const _personnelSchema: PersonnelSchema = await getFromIndexInStore(StoreName.personnel, IndexName.slugIndex, timesheetSchema.personnelSlug);
-        const _personnel = Personnel.convertPersonnelSchemaToPersonnel(_personnelSchema);
-
-        const _customerInterface: PlainCustomer = timesheetSchema.customer;
-        const _customer = new Customer(_customerInterface)
-
-        const _siteInterface: PlainSite = timesheetSchema.site;
-        const _site: Site = new Site(_siteInterface);
-
-        const _projectInterface: PlainProject = timesheetSchema.project;
-        const _project: Project = new Project(_projectInterface);
-
-        const _weekEndingDate = new TimesheetDate(timesheetSchema.weekEndingDate);
-
-        let _options: TimesheetOption[] = [];
-        if (timesheetSchema.options) _options = timesheetSchema.options
-
-        if (!timesheetSchema.records) throw Error(ErrorMessage.timesheetEntriesNotFound) //entry is undefined or null, bad situation.
-        const _timesheetRecord = timesheetSchema.records.map((_recordAsInterface) => {
-            return new TimesheetRecord(_recordAsInterface)
-        });
-
-        if (!timesheetSchema.id) throw new Error("Cannot Change Timesheet Schema to Timesheet Object");
-        const timesheet = new Timesheet({
-            id: timesheetSchema.id, key: timesheetSchema.key, personnel: _personnel, customer: _customer, site: _site, project: _project, weekEndingDate: _weekEndingDate, options: _options, records: _timesheetRecord, comment: timesheetSchema.comment, month: timesheetSchema.month
-        });
-        return timesheet
-    }
-
     static async getTimesheetFromId(id: number) {
-        const _timesheetSchema: TimesheetSchema = await getInStore(id, StoreName.timesheet);
-        if (!_timesheetSchema) throw new Error("Timesheet Not Found");
-        const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetSchema);
+        const _plainTimesheet: PlainTimesheet = await getInStore(id, StoreName.timesheet);
+        if (!_plainTimesheet) throw new Error("Timesheet Not Found");
+        const _timesheet = new Timesheet(_plainTimesheet);
         if (_timesheet) return _timesheet;
         throw Error(ErrorMessage.timesheetNotFound) // timesheet not found
     }
 
     static async getTimesheetFromKey(key: number) {
         try {
-            const _timesheetSchema: TimesheetSchema = await getFromIndexInStore(StoreName.timesheet, IndexName.keyIndex, key);
-            if (!_timesheetSchema) throw new Error("Timesheet Data Not Found using key");
-            const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetSchema);
+            const _plainTimesheet: PlainTimesheet = await getFromIndexInStore(StoreName.timesheet, IndexName.keyIndex, key);
+            if (!_plainTimesheet) throw new Error("Timesheet Data Not Found using key");
+            const _timesheet = new Timesheet(_plainTimesheet);
             if (_timesheet) return _timesheet;
         } catch (e) {
             throw Error(ErrorMessage.timesheetNotFound) // timesheet not found
@@ -402,12 +370,13 @@ export class Timesheet implements PlainTimesheet {
 
     static async getTimesheetCollectionFromId(id: number) {
         try {
-            const _timesheetCollectionSchema: TimesheetCollectionSchema = await getInStore(id, StoreName.timesheetCollection);
-            let _timesheetCollection: TimesheetCollection = { id: _timesheetCollectionSchema.id, key: _timesheetCollectionSchema.key, collection: [] }
-            await Promise.all(_timesheetCollectionSchema.timesheetIdCollection.map(async (id) => {
-                const timesheetDbData: TimesheetSchema = (await getInStore(id, StoreName.timesheet)) || undefined;
-                const timesheet = await Timesheet.convertSchemaToTimesheet(timesheetDbData);
-                if (timesheet) _timesheetCollection.collection = [..._timesheetCollection.collection, timesheet];
+            const _plainTimesheetCollection: PlainTimesheetCollection = await getInStore(id, StoreName.timesheetCollection);
+            let _timesheetCollection: TimesheetCollection = { id: _plainTimesheetCollection.id, key: _plainTimesheetCollection.key, timesheets: [] }
+            if (!_plainTimesheetCollection.timesheetIds) throw new Error("Timesheet Collection Not Found", { cause: "timesheet Ids not found" })
+            await Promise.all(_plainTimesheetCollection.timesheetIds.map(async (id) => {
+                const timesheetDbData: PlainTimesheet = (await getInStore(id, StoreName.timesheet)) || undefined;
+                const timesheet = new Timesheet(timesheetDbData);
+                if (timesheet) _timesheetCollection.timesheets = [..._timesheetCollection.timesheets, timesheet];
             }));
             return _timesheetCollection
         } catch (e) {
@@ -416,28 +385,33 @@ export class Timesheet implements PlainTimesheet {
     }
 
     static async getTimesheetCollectionFromKey(key: number) {
-        const _timesheetCollectionSchema: TimesheetCollectionSchema = await getFromIndexInStore(StoreName.timesheetCollection, IndexName.keyIndex, key);
-        if (!_timesheetCollectionSchema) throw new Error("Timesheet Collection Not Found Using Key");
-        let _timesheetCollection: TimesheetCollection = { id: _timesheetCollectionSchema.id, key: _timesheetCollectionSchema.key, collection: [] }
-        await Promise.all(_timesheetCollectionSchema.timesheetIdCollection.map(async (id) => {
-            const timesheetDbData: TimesheetSchema = (await getInStore(id, StoreName.timesheet)) || undefined;
-            const timesheet = await Timesheet.convertSchemaToTimesheet(timesheetDbData);
-            if (timesheet) _timesheetCollection.collection = [..._timesheetCollection.collection, timesheet];
+        const _plainTimesheetCollection: PlainTimesheetCollection = await getFromIndexInStore(StoreName.timesheetCollection, IndexName.keyIndex, key);
+        if (!_plainTimesheetCollection) throw new Error("Timesheet Collection Not Found Using Key");
+        let _timesheetCollection: TimesheetCollection = { id: _plainTimesheetCollection.id, key: _plainTimesheetCollection.key, timesheets: [] }
+
+        if (!_plainTimesheetCollection.timesheetIds) throw new Error("Timesheet Collection Not Found", { cause: "timesheet Ids not found" })
+
+        await Promise.all(_plainTimesheetCollection.timesheetIds.map(async (id) => {
+            const timesheetDbData: PlainTimesheet = (await getInStore(id, StoreName.timesheet)) || undefined;
+            const timesheet = new Timesheet(timesheetDbData);
+            if (timesheet) _timesheetCollection.timesheets = [..._timesheetCollection.timesheets, timesheet];
         }));
         return _timesheetCollection
     }
 
     static async getTimesheetCollectionGroupedMonthlyFromId(timesheetCollectionId: number) {
-        const timesheetCollectionFromDb: TimesheetCollectionSchema = await getInStore(timesheetCollectionId, StoreName.timesheetCollection);
+        const timesheetCollectionFromDb: PlainTimesheetCollection = await getInStore(timesheetCollectionId, StoreName.timesheetCollection);
         let _timesheetCollectionByMonth: TimesheetCollectionByMonth = { id: timesheetCollectionFromDb.id, collection: [[]] }
 
         let _monthCount = 0;
         let _currentMonthNumber: number;
         let _newMonth = true;
 
-        await Promise.all(timesheetCollectionFromDb.timesheetIdCollection.map(async (id) => {
-            const timesheetDbData: TimesheetSchema = await getInStore(id, StoreName.timesheet);
-            const timesheet = await Timesheet.convertSchemaToTimesheet(timesheetDbData);
+        if (!timesheetCollectionFromDb.timesheetIds) throw new Error("Timesheet Collection Not Found", { cause: "timesheet Ids not found" })
+
+        await Promise.all(timesheetCollectionFromDb.timesheetIds.map(async (id) => {
+            const timesheetDbData: PlainTimesheet = await getInStore(id, StoreName.timesheet);
+            const timesheet = new Timesheet(timesheetDbData);
 
             if (_currentMonthNumber && timesheet.monthNumber > _currentMonthNumber) _newMonth = true;
             else _newMonth = false;
@@ -455,16 +429,16 @@ export class Timesheet implements PlainTimesheet {
         return _timesheetCollectionByMonth
     }
 
-    static async getTimesheetSchemasFromPersonnel(personnel: Personnel) {
-        const _timesheetSchemasByPersonnel: TimesheetSchema[] = await getAllFromIndexInStore(StoreName.timesheet, IndexName.personnelSlugIndex, personnel.slug);
-        return _timesheetSchemasByPersonnel
+    static async getPlainTimesheetFromPersonnel(personnel: Personnel) {
+        const _plainTimesheetsByPersonnel: PlainTimesheet[] = await getAllFromIndexInStore(StoreName.timesheet, IndexName.personnelSlugIndex, personnel.slug);
+        return _plainTimesheetsByPersonnel
     }
 
     static async getTimesheetsFromPersonnel(personnel: Personnel) {
-        const _timesheetSchemas = await Timesheet.getTimesheetSchemasFromPersonnel(personnel);
+        const _plainTimesheets = await Timesheet.getPlainTimesheetFromPersonnel(personnel);
         let _timesheets: Timesheet[] = [];
-        for (let i = 0; i < _timesheetSchemas.length; i++) {
-            const _timesheet = await Timesheet.convertSchemaToTimesheet(_timesheetSchemas[i]);
+        for (let i = 0; i < _plainTimesheets.length; i++) {
+            const _timesheet = new Timesheet(_plainTimesheets[i]);
             _timesheets = [..._timesheets, _timesheet];
         }
         return _timesheets

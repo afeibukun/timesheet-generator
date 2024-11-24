@@ -9,7 +9,7 @@ import { TimesheetDate } from "../../timesheet/timesheetDate";
 import { getTimesheetsInDates } from "../../indexedDB/indexedDBService";
 import { Timesheet } from "../../timesheet/timesheet";
 import { TimesheetEntry } from "../../timesheet/timesheetEntry";
-import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
+import { PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import { Customer } from "../../meta/customer";
 import templateConfig from "./template.config";
 
@@ -267,7 +267,7 @@ export class ClassicTemplate {
         const isRecordOnASaturday = TimesheetDate.isSaturday(date)
         if (isRecordOnAWeekDay && !hasPremium && !isPublicHoliday) {
             let defaultNormalWorkingTime = new TimesheetHour('08:00');
-            let defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+            let defaultData: PlainDefaultTimesheetData = await TimesheetEntry.defaultInformation();
             if (defaultData.normalWorkingHours && defaultData.normalWorkingHours != '00:00') defaultNormalWorkingTime = new TimesheetHour(defaultData.normalWorkingHours);
             const overtimeHours = TimesheetHour.subtractTimesheetHours(totalHours, defaultNormalWorkingTime);
             return overtimeHours

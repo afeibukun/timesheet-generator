@@ -10,12 +10,12 @@ import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constant
 import { createOrUpdateTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
-import { PrimitiveDefaultTimesheetEntry as PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
+import { PlainDefaultTimesheetData as PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function ManageDefaultTimesheetEntryInformation() {
-    let _initialDefaultInfo: PrimitiveDefaultTimesheetEntry = defaultTimesheetEntryData
+    let _initialDefaultInfo: PlainDefaultTimesheetData = defaultTimesheetEntryData
 
     const [defaultTimesheetEntryForm, setDefaultTimesheetEntryForm] = useState(_initialDefaultInfo);
     const [status, setStatus] = useState(Status.enteringData);

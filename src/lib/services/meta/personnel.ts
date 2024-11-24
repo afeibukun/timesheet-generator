@@ -1,47 +1,35 @@
 import { StorageLabel, StoreName } from "../../constants/storage";
-import { PersonnelSchema } from "../../types/schema";
 import { AppOptionInterface } from "../../types/generalType";
 import { createOrUpdateAppOption, deleteDataInStore, getAllPersonnel, getAppOptionData, updateDataInStore } from "../indexedDB/indexedDBService";
-import { PlainPersonnel, PlainPersonnelOption } from "@/lib/types/meta";
+import { PlainPersonnel, PersonnelOption } from "@/lib/types/meta";
 
 export class Personnel implements PlainPersonnel {
     id: number;
     slug: string;
     name: string;
-    options?: PlainPersonnelOption[];
+    options: PersonnelOption[];
     isActive?: boolean
 
     constructor({ id, name, slug, options }: PlainPersonnel) {
+        if (!id) throw new Error("Invalid Personnel")
         this.id = id;
         this.name = name;
         this.slug = slug;
         this.options = options;
     }
-    convertToSchema() {
-        let _personnelSchema: PersonnelSchema = { id: this.id, slug: this.slug, name: this.name, options: this.options }
-        return _personnelSchema;
+    convertToPlain() {
+        let _plainPersonnel: PlainPersonnel = { id: this.id, slug: this.slug, name: this.name, options: this.options }
+        return _plainPersonnel;
     }
 
     static async getAllPersonnel() {
         try {
-            const _personnelSchemas: PersonnelSchema[] = await getAllPersonnel();
-            const _personnel: Personnel[] = _personnelSchemas.map((_personnelSchema) => Personnel.convertPersonnelSchemaToPersonnel(_personnelSchema));
+            const _plainPersonnels: PlainPersonnel[] = await getAllPersonnel();
+            const _personnel: Personnel[] = _plainPersonnels.map((_plainPersonnel) => new Personnel(_plainPersonnel));
             return _personnel
         } catch (e) {
         }
         return [] as Personnel[]
-    }
-
-    static convertPersonnelSchemaToPersonnel(personnelFromSchema: PersonnelSchema): Personnel {
-        if (personnelFromSchema.id) {
-            return new Personnel({
-                id: personnelFromSchema.id,
-                name: personnelFromSchema.name,
-                slug: personnelFromSchema.slug,
-                options: personnelFromSchema.options as PlainPersonnelOption[]
-            });
-        }
-        throw Error // no id, then no personnel
     }
 
     static async getActivePersonnel() {

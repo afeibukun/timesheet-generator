@@ -1,19 +1,19 @@
 
 import { CannotParsePrimitiveDataToDefaultTimesheetInformationError } from "./timesheetErrors";
 import { Timesheet } from "./timesheet";
-import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
+import { PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import { StorageLabel } from "@/lib/constants/storage";
 
 export class TimesheetLocalStorage {
-    static setDefaultInformationInLocalStorage(timesheetDefaultInformation: PrimitiveDefaultTimesheetEntry) {
+    static setDefaultInformationInLocalStorage(timesheetDefaultInformation: PlainDefaultTimesheetData) {
         localStorage.setItem(StorageLabel.timesheetDefaultInformationLabel, JSON.stringify(timesheetDefaultInformation));
     }
 
-    static getDefaultInformationFromLocalStorage(): PrimitiveDefaultTimesheetEntry {
+    static getDefaultInformationFromLocalStorage(): PlainDefaultTimesheetData {
         const rawDefaultTimesheetInformation = localStorage.getItem(StorageLabel.timesheetDefaultInformationLabel);
         try {
             if (rawDefaultTimesheetInformation != null) {
-                return JSON.parse(rawDefaultTimesheetInformation) as PrimitiveDefaultTimesheetEntry;
+                return JSON.parse(rawDefaultTimesheetInformation) as PlainDefaultTimesheetData;
             }
         } catch (e) { }
         throw new CannotParsePrimitiveDataToDefaultTimesheetInformationError('');

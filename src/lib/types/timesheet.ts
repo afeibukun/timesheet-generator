@@ -1,42 +1,83 @@
-import { DateDisplayExportOption, EntryStateLabel, EntryTypeExportOption, LocationType } from "../constants/constant"
-import { Personnel } from "../services/meta/personnel";
+import { DateDisplayExportOption, EntryTypeExportOption, LocationType } from "../constants/constant"
 import { Timesheet } from "../services/timesheet/timesheet";
-import { TimesheetRecord } from "../services/timesheet/timesheetRecord";
-import { TimesheetDate } from "../services/timesheet/timesheetDate"
-import { TimesheetEntry } from "../services/timesheet/timesheetEntry";
-import { Customer } from "../services/meta/customer";
-import { Site } from "../services/meta/site";
-import { Project } from "../services/meta/project";
 import { PlainCustomer, PlainPersonnel, PlainProject, PlainSite } from "./meta";
+
+export interface TimesheetCollection {
+    id?: number,
+    key: number,
+    timesheets: Timesheet[];
+}
+
+export interface TimesheetCollectionByMonth {
+    id?: number,
+    collection: Timesheet[][];
+}
+
+// TIMESHEET OPTIONS examples (mobilization date, demob date)
+export interface TimesheetOption {
+    id?: number,
+    key: any,
+    value: any,
+}
+
+export type MobilizationDateInformation = {
+    mobilizationDate: string,
+    demobilizationDate: string
+}
+
+export interface TimesheetRecordOption {
+    key: any,
+    value: any,
+}
+
+export interface TimesheetEntryOption {
+    key: any,
+    value: any,
+}
+
+export interface TimesheetCollectionOptions {
+    key: string,
+    value: any
+}
+
+export type ExportOptions = {
+    dateDisplay: DateDisplayExportOption,
+    entryTypeDisplay: EntryTypeExportOption,
+    allowMultipleTimeEntries: boolean
+}
+
+/////
 
 // A timesheet refers to a week group of timesheet entries. it cannot overlap months though
 export interface PlainTimesheet {
     id?: number,
     key: number,
     personnel: PlainPersonnel;
+    personnelSlug?: string;
     weekEndingDate: PlainTimesheetDate;
     month: number;
     customer: PlainCustomer;
     site: PlainSite;
     project: PlainProject;
-    options: TimesheetOption[];
+    options: PlainTimesheetOption[];
     records: PlainTimesheetRecord[];
     comment: string;
 }
 
-export interface TimesheetCollection {
+export interface PlainTimesheetCollection {
     id?: number,
     key: number,
-    collection: Timesheet[];
+    timesheets?: PlainTimesheet[];
+    timesheetIds?: number[]
 }
 
-export interface TimesheetCollectionByMonth {
+export interface PlainTimesheetCollectionByMonth {
     id?: number,
     collection: PlainTimesheet[][];
 }
 
 // TIMESHEET OPTIONS examples (mobilization date, demob date)
-export interface TimesheetOption {
+export interface PlainTimesheetOption {
     id?: number,
     key: any,
     value: any,
@@ -47,7 +88,7 @@ export interface PlainTimesheetDate {
     date: string,
 }
 
-export type MobilizationDateInformation = {
+export type PlainMobilizationDate = {
     mobilizationDate: string,
     demobilizationDate: string
 }
@@ -66,14 +107,17 @@ export interface PlainTimesheetHour {
 }
 
 export interface PlainTimesheetRecord {
-    id?: number | string,
+    id?: number,
+    key: number | string,
     date: PlainTimesheetDate,
     entries: PlainTimesheetEntry[],
+    customer: PlainCustomer, // plain customer should have active site selected
+    project: PlainProject,
     comment?: string,
-    options?: TimesheetRecordOption[]
+    options?: PlainTimesheetRecordOption[]
 }
 
-export interface TimesheetRecordOption {
+export interface PlainTimesheetRecordOption {
     key: any,
     value: any,
 }
@@ -86,10 +130,10 @@ export interface PlainTimesheetEntry {
     locationType?: LocationType,
     hasPremium?: boolean
     comment?: string,
-    options?: TimesheetEntryOption[]
+    options?: PlainTimesheetEntryOption[]
 }
 
-export interface TimesheetEntryOption {
+export interface PlainTimesheetEntryOption {
     key: any,
     value: any,
 }
@@ -100,13 +144,29 @@ export interface PlainTimesheetEntryType {
     name: string
 }
 
-export interface TimesheetCollectionOptions {
+export interface PlainTimesheetCollectionOptions {
     key: string,
     value: any
 }
 
-export type ExportOptions = {
-    dateDisplay: DateDisplayExportOption,
-    entryTypeDisplay: EntryTypeExportOption,
-    allowMultipleTimeEntries: boolean
+export interface PlainDefaultTimesheetData {
+    id?: number
+    startTime: string,
+    finishTime: string,
+    locationType: LocationType,
+    comment: string,
+    weekStartDay: string,
+    updatedAt: string,
+    timesheetEntryType: PlainTimesheetEntryType,
+    normalWorkingHours: string,
+}
+
+export interface TimesheetEntryError {
+    id: number | string,
+    entryType: { error: boolean, message: string },
+    locationType: { error: boolean, message: string },
+    entryPeriodStartTime: { error: boolean, message: string },
+    entryPeriodFinishTime: { error: boolean, message: string },
+    breakPeriodStartTime: { error: boolean, message: string },
+    breakPeriodFinishTime: { error: boolean, message: string },
 }

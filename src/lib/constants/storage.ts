@@ -17,6 +17,7 @@ export enum StoreName {
     personnel = "personnel",
     timesheet = "timesheet",
     timesheetCollection = "timesheet_collection",
+    timesheetRecord = "timesheet_record",
     customer = "customer",
     project = "project",
     appOption = "app_option"
@@ -26,6 +27,7 @@ export enum IndexName {
     slugIndex = "slug_index",
     nameIndex = "name_index",
     personnelSlugIndex = "personnelSlug_index",
+    dateIndex = "date_index",
     weekEndingDateIndex = "weekEndDate_index",
     purchaseOrderNumberIndex = "purchaseOrderNumber_index",
     keyIndex = "key_index"
@@ -37,6 +39,7 @@ export enum FieldName {
     name = "name",
     personnel = "personnel",
     personnelSlug = "personnelSlug",
+    date = "date",
     weekEndingDate = "weekEndingDate",
     weekEndingDateString = "weekEndingDateString",
     purchaseOrderNumber = "purchaseOrderNumber",

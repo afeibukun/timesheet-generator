@@ -3,7 +3,7 @@ import { createPersonnel } from "@/lib/services/indexedDB/indexedDBService";
 import { Personnel } from "@/lib/services/meta/personnel";
 import { PersonnelSchema } from "@/lib/types/schema";
 import { OptionLabel } from "@/lib/constants/constant";
-import { PlainPersonnelOption } from "@/lib/types/meta";
+import { PersonnelOption } from "@/lib/types/meta";
 import Modal from "@/app/_components/Modal";
 import DefaultLabelText from "@/app/_components/DefaultLabelText";
 
@@ -28,7 +28,7 @@ export default function UpdatePersonnelModal({ showModal, personnel, selectedPer
         selectedPersonnelUpdateEventHandler(updatedPersonnel);
     }
 
-    const updateExistingOptionValueEventHandler = (e: any, existingOption: PlainPersonnelOption) => {
+    const updateExistingOptionValueEventHandler = (e: any, existingOption: PersonnelOption) => {
         if (!personnel.options || !Array.isArray(personnel.options)) return //options do not exist
         const updatedPersonnelOptions = personnel.options.map((_opt) => {
             if (_opt.key == existingOption.key) return { key: existingOption.key, value: e.target.value }
@@ -38,7 +38,7 @@ export default function UpdatePersonnelModal({ showModal, personnel, selectedPer
         selectedPersonnelUpdateEventHandler(updatedPersonnel);
     }
 
-    const deleteExistingOptionEventHandler = (existingOption: PlainPersonnelOption) => {
+    const deleteExistingOptionEventHandler = (existingOption: PersonnelOption) => {
         if (!personnel.options || !Array.isArray(personnel.options)) return //options do not exist
         const updatedOptions = personnel.options?.filter((_option) => _option.key != existingOption.key)
         const _updatedPersonnels = { ...personnel, options: updatedOptions }

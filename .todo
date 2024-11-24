@@ -1,4 +1,6 @@
 # TODO
+### 24th Nov 2024
+- Save timesheet record in db, not a collection.
 
 ### *Date: 06th November 2024*
 - Display Total Hours Worked In each month

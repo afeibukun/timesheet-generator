@@ -10,6 +10,8 @@ import CreateTimesheetCollectionForm from "./_components/TimesheetCollectionForm
 import CreateTimesheetForm from "./_components/TimesheetForm";
 import { Customer } from "@/lib/services/meta/customer";
 import { Project } from "@/lib/services/meta/project";
+import { defaultLogoBase64 } from "@/lib/constants/defaultLogoBase64Image";
+import Link from "next/link";
 
 export default function Create() {
     const router = useRouter();
@@ -45,13 +47,20 @@ export default function Create() {
         <main className="container">
             <DefaultSection>
                 <DefaultSectionHeader>
-                    <DefaultSectionTitle>
-                        <span>
-                            <span>{viewState == Status.new ? 'Create ' : 'Edit '}</span>
-                            <span>{component === ComponentType.timesheet ? 'Timesheet' : 'Timesheet Collection'} </span>
-                            <span>{viewState == Status.new ? '🆕' : '✍'}</span>
-                        </span>
-                    </DefaultSectionTitle>
+                    <div className="">
+                        <div className="mb-8">
+                            <Link href={'/'}>
+                                <img src={defaultLogoBase64} alt="timesheet generator app" className="h-12" />
+                            </Link>
+                        </div>
+                        <DefaultSectionTitle>
+                            <span>
+                                <span>{viewState == Status.new ? 'Create ' : 'Edit '}</span>
+                                <span>{component === ComponentType.timesheet ? 'Timesheet' : 'Timesheet Collection'} </span>
+                                <span>{viewState == Status.new ? '🆕' : '✍'}</span>
+                            </span>
+                        </DefaultSectionTitle>
+                    </div>
                 </DefaultSectionHeader>
                 <div className="section-body">
                     {component === ComponentType.timesheetCollection ?

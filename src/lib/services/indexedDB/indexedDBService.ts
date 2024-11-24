@@ -1,11 +1,9 @@
 import { openDB, IDBPDatabase } from 'idb';
 import { StorageLabel, FieldName, IndexName, StoreName, timesheetDatabaseName } from "@/lib/constants/storage";
-import { CustomerSchema, PersonnelSchema, ProjectSchema, TimesheetCollectionSchema, TimesheetSchema } from "@/lib/types/schema";
 import { slugify } from '@/lib/helpers';
-import { PrimitiveDefaultTimesheetEntry } from '@/lib/types/primitive';
-import { PlainSite } from '@/lib/types/meta';
+import { PlainCustomer, PlainPersonnel, PlainProject, PlainSite } from '@/lib/types/meta';
 import { TimesheetDate } from '../timesheet/timesheetDate';
-import { PlainTimesheetRecord } from '@/lib/types/timesheet';
+import { PlainDefaultTimesheetData, PlainTimesheet, PlainTimesheetCollection, PlainTimesheetRecord } from '@/lib/types/timesheet';
 
 const databaseVersion = 1;
 const readWriteFlag = "readwrite"
@@ -16,6 +14,13 @@ export const initalizeDatabase = (db: IDBDatabase | IDBPDatabase) => {
         const _personnelObjectStore = db.createObjectStore(StoreName.personnel, { keyPath: FieldName.id, autoIncrement: true });
         _personnelObjectStore.createIndex(IndexName.slugIndex, FieldName.slug, { unique: true })
         _personnelObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
+    }
+
+    if (!db.objectStoreNames.contains(StoreName.timesheetRecord)) {
+        const _recordObjectStore = db.createObjectStore(StoreName.timesheetRecord, { keyPath: FieldName.id, autoIncrement: true });
+        _recordObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
+        _recordObjectStore.createIndex(IndexName.personnelSlugIndex, FieldName.personnelSlug, { unique: false })
+        _recordObjectStore.createIndex(IndexName.dateIndex, FieldName.date, { unique: false })
     }
 
     if (!db.objectStoreNames.contains(StoreName.timesheet)) {
@@ -73,6 +78,46 @@ const useDb = async () => {
         }
     })
     return db;
+}
+
+export const updateDataInStore = async (dataToBeUpdated: any, dataKey: number, storeName: string) => {
+    const _db = await useDb();
+    const res = await _db.put(storeName, dataToBeUpdated);
+    if (res) {
+        const updatedData = await _db.get(storeName, dataKey);
+        return updatedData
+    } else {
+        throw Error
+    }
+}
+
+export const deleteDataInStore = async (dataKey: number, storeName: string) => {
+    const _db = await useDb();
+    await _db.delete(storeName, dataKey);
+}
+
+export const getFromIndexInStore = async (storeName: string, indexName: string, query: any) => {
+    const _db = await useDb();
+    const data = await _db.getFromIndex(storeName, indexName, query);
+    return data;
+}
+
+export const getInStore = async (dataKey: any, storeName: string) => {
+    const _db = await useDb();
+    const data = await _db.get(storeName, dataKey);
+    return data;
+}
+
+export const getAllInStore = async (storeName: string) => {
+    const _db = await useDb();
+    const data = await _db.getAll(storeName);
+    return data;
+}
+
+export const getAllFromIndexInStore = async (storeName: string, indexName: string, query: any) => {
+    const _db = await useDb();
+    const data = await _db.getAllFromIndex(storeName, indexName, query);
+    return data;
 }
 
 /* export const createIDBData = async (db: IDBDatabase, storeName: string, data: any) => {
@@ -144,7 +189,7 @@ export const getDataIndexDB = async (db: IDBDatabase, storeName: string, searchI
 
 } */
 
-export const createOrUpdateTimesheetEntryDefaultData = async (timesheetEntryDefaultData: PrimitiveDefaultTimesheetEntry) => {
+export const createOrUpdateTimesheetEntryDefaultData = async (timesheetEntryDefaultData: PlainDefaultTimesheetData) => {
     const _db = await useDb();
     const _transaction = _db.transaction(StoreName.appOption, readWriteFlag)
     const appOptionStoreObject = _transaction.objectStore(StoreName.appOption);
@@ -178,12 +223,12 @@ export const createOrUpdateAppOption = async (appOptionLabel: string, appOptionD
 /* export const getTimesheetEntryDefaultData = () => {
     let appOptionStoreObject = _db.transaction(StoreName.appOption, readWriteFlag).objectStore(StoreName.appOption);
     const keyIndex = appOptionStoreObject.index("key");
-
+ 
     let getRequestWithKeyIndex = keyIndex.get(storageOptionLabel.timesheetEntryDefaultDataLabel);
-
+ 
     getRequestWithKeyIndex.onsuccess = (event) => {
         const data = getRequestWithKeyIndex.result;
-
+ 
         const updateRequest = appOptionStoreObject.put(data);
         updateRequest.onsuccess = (event) => {
             // console.log("Data updated on the store", updateRequest.result);
@@ -204,46 +249,6 @@ export const getAppOptionData = async (appOptionLabel: string) => {
     return data;
 }
 
-export const updateDataInStore = async (dataToBeUpdated: any, dataKey: number, storeName: string) => {
-    const _db = await useDb();
-    const res = await _db.put(storeName, dataToBeUpdated);
-    if (res) {
-        const updatedData = await _db.get(storeName, dataKey);
-        return updatedData
-    } else {
-        throw Error
-    }
-}
-
-export const deleteDataInStore = async (dataKey: number, storeName: string) => {
-    const _db = await useDb();
-    await _db.delete(storeName, dataKey);
-}
-
-export const getFromIndexInStore = async (storeName: string, indexName: string, query: any) => {
-    const _db = await useDb();
-    const data = await _db.getFromIndex(storeName, indexName, query);
-    return data;
-}
-
-export const getInStore = async (dataKey: any, storeName: string) => {
-    const _db = await useDb();
-    const data = await _db.get(storeName, dataKey);
-    return data;
-}
-
-export const getAllInStore = async (storeName: string) => {
-    const _db = await useDb();
-    const data = await _db.getAll(storeName);
-    return data;
-}
-
-export const getAllFromIndexInStore = async (storeName: string, indexName: string, query: any) => {
-    const _db = await useDb();
-    const data = await _db.getAllFromIndex(storeName, indexName, query);
-    return data;
-}
-
 export const getAllPersonnel = async () => {
     const _db = await useDb();
     const data = await _db.getAll(StoreName.personnel);
@@ -252,7 +257,7 @@ export const getAllPersonnel = async () => {
 
 export const createPersonnel = async (personnelName: string) => {
     const _db = await useDb();
-    const personnelData: PersonnelSchema = {
+    const personnelData: PlainPersonnel = {
         slug: slugify(personnelName),
         name: personnelName,
         options: []
@@ -270,7 +275,7 @@ export const getAllCustomers = async () => {
 
 export const createCustomer = async (customerName: string) => {
     const _db = await useDb();
-    const customerData: CustomerSchema = {
+    const customerData: PlainCustomer = {
         slug: slugify(customerName),
         name: customerName,
         sites: []
@@ -296,21 +301,21 @@ export const getAllProjects = async () => {
     return data;
 }
 
-export const createProject = async (projectData: ProjectSchema) => {
+export const createProject = async (projectData: PlainProject) => {
     const _db = await useDb();
     const projectKey = await _db.add(StoreName.project, projectData);
     const newProject = await _db.get(StoreName.project, projectKey);
     return newProject;
 }
 
-export const createTimesheet = async (timesheetData: TimesheetSchema) => {
+export const createTimesheet = async (timesheetData: PlainTimesheet) => {
     const _db = await useDb();
     const timesheetKey = await _db.add(StoreName.timesheet, timesheetData);
     const newTimesheet = await _db.get(StoreName.timesheet, timesheetKey);
     return newTimesheet;
 }
 
-export const createTimesheetCollection = async (timesheetCollection: TimesheetCollectionSchema) => {
+export const createTimesheetCollection = async (timesheetCollection: PlainTimesheetCollection) => {
     const _db = await useDb();
     const timesheetCollectionKey = await _db.add(StoreName.timesheetCollection, timesheetCollection);
     const newTimesheetCollection = await _db.get(StoreName.timesheetCollection, timesheetCollectionKey);
@@ -320,9 +325,9 @@ export const createTimesheetCollection = async (timesheetCollection: TimesheetCo
 export const getTimesheetsInDates = async (timesheetDates: TimesheetDate[]) => {
     const _db = await useDb();
     const tx = _db.transaction(StoreName.timesheet);
-    let result: TimesheetSchema[] = []
+    let result: PlainTimesheet[] = []
     for await (const cursor of tx.store) {
-        const timesheetSchema: TimesheetSchema = cursor.value;
+        const timesheetSchema: PlainTimesheet = cursor.value;
         const timesheetHasRecordWithinDateRange = timesheetSchema.records?.some((_record) => {
             const isRecordDateWithinTimesheetDates = timesheetDates.some((_timesheetDate) => {
                 const _isTimesheetDateSameAsCurrentRecordDate = TimesheetDate.areDateStringsSameDay(_timesheetDate.defaultFormat(), _record.date.date)
@@ -342,7 +347,7 @@ export const getTimesheetRecordsInMonth = async (month: number, year: number) =>
     const tx = _db.transaction(StoreName.timesheet);
     let result: PlainTimesheetRecord[] = []
     for await (const cursor of tx.store) {
-        const _timesheetSchema: TimesheetSchema = cursor.value;
+        const _timesheetSchema: PlainTimesheet = cursor.value;
         const _timesheetRecordInRange = !!_timesheetSchema.records ? _timesheetSchema.records.filter((_record) => {
             const _date = new TimesheetDate(_record.date);
             const isRecordDateInMonth = _date.monthNumber == month && _date.yearNumber === year
@@ -358,7 +363,7 @@ export const getTimesheetRecordsInYear = async (year: number) => {
     const tx = _db.transaction(StoreName.timesheet);
     let result: PlainTimesheetRecord[] = []
     for await (const cursor of tx.store) {
-        const _timesheetSchema: TimesheetSchema = cursor.value;
+        const _timesheetSchema: PlainTimesheet = cursor.value;
         const _timesheetRecordInDateRange = !!_timesheetSchema.records ? _timesheetSchema.records.filter((_record) => {
             const _date = new TimesheetDate(_record.date);
             const isRecordDateInYear = _date.yearNumber === year

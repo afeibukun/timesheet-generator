@@ -3,7 +3,7 @@ import { InvalidTimesheetDateError } from "./timesheetErrors";
 import { PlainTimesheetDate } from "@/lib/types/timesheet";
 import { TimesheetEntry } from "./timesheetEntry";
 import { ErrorMessage } from "@/lib/constants/constant";
-import { PrimitiveDefaultTimesheetEntry } from "@/lib/types/primitive";
+import { PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import { defaultTimesheetEntryData } from "@/lib/constants/default";
 
 export class TimesheetDate implements PlainTimesheetDate {
@@ -166,7 +166,7 @@ export class TimesheetDate implements PlainTimesheetDate {
     static initializeWeekStartDay = async () => {
         // I will remove the database check for now
         let weekStartDay;
-        const defaultData: PrimitiveDefaultTimesheetEntry = await TimesheetEntry.defaultInformation();
+        const defaultData: PlainDefaultTimesheetData = await TimesheetEntry.defaultInformation();
         weekStartDay = defaultData.weekStartDay
         TimesheetDate.updateWeekStartDay(weekStartDay);
     }

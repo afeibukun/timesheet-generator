@@ -1,28 +1,39 @@
-import { PlainTimesheetRecord, PlainTimesheetDate, TimesheetRecordOption } from "@/lib/types/timesheet";
+import { PlainTimesheetRecord, PlainTimesheetDate, TimesheetRecordOption, TimesheetEntryError } from "@/lib/types/timesheet";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
 import { TimesheetHour } from "./timesheetHour";
 import { ErrorMessage, LocationType, OptionLabel, TimesheetEntryType, } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { TimesheetEntryError } from "@/lib/types/primitive";
 import { generateUniqueID } from "@/lib/helpers";
+import { Customer } from "../meta/customer";
+import { Site } from "../meta/site";
+import { Project } from "../meta/project";
 
 /**
  * Refers to a daily record of timesheet entries, it holds entries within the same day together
  */
 export class TimesheetRecord implements PlainTimesheetRecord {
-    id: number | string;
+    id?: number;
+    key: number | string;
     date: TimesheetDate;
     entries: TimesheetEntry[];
+    customer: Customer;
+    project: Project;
     comment: string;
     options?: TimesheetRecordOption[]
 
-    constructor(timesheetRecordInput: PlainTimesheetRecord) {
-        this.id = timesheetRecordInput.id!;
-        this.date = new TimesheetDate(timesheetRecordInput.date);
-        this.entries = timesheetRecordInput.entries.map((entry) => new TimesheetEntry(entry));
-        this.comment = timesheetRecordInput.comment ? timesheetRecordInput.comment : '';
-        this.options = timesheetRecordInput.options
+    constructor(plainRecord: PlainTimesheetRecord) {
+
+        if (!plainRecord.customer.activeSite) throw new Error("Invalid Timesheet Record", { cause: "Active site not set for the customer" })
+
+        this.id = plainRecord.id;
+        this.key = plainRecord.key;
+        this.date = new TimesheetDate(plainRecord.date);
+        this.entries = plainRecord.entries.map((entry) => new TimesheetEntry(entry));
+        this.customer = new Customer(plainRecord.customer) // should have an active site
+        this.project = new Project(plainRecord.project)
+        this.comment = plainRecord.comment ? plainRecord.comment : '';
+        this.options = plainRecord.options
     }
 
     /**
@@ -117,7 +128,7 @@ export class TimesheetRecord implements PlainTimesheetRecord {
             const _plainTimesheetEntry = entry.convertToPlain();
             return _plainTimesheetEntry
         });
-        const _plainRecord: PlainTimesheetRecord = { id: this.id, date: this.date.convertToPlain(), entries: _plainEntries }
+        const _plainRecord: PlainTimesheetRecord = { id: this.id, key: this.key, date: this.date.convertToPlain(), entries: _plainEntries, customer: this.customer.convertToPlain(), project: this.project.convertToPlain() }
         return _plainRecord;
     }
 

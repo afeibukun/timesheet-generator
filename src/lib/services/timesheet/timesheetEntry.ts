@@ -6,7 +6,7 @@ import { AppOptionSchema } from "@/lib/types/schema";
 import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
 import { TimesheetHour } from "./timesheetHour";
-import { PrimitiveDefaultTimesheetEntry, TimesheetEntryError } from "@/lib/types/primitive";
+import { PlainDefaultTimesheetData, TimesheetEntryError } from "@/lib/types/primitive";
 import { generateUniqueID, getRandomDigits } from "@/lib/helpers";
 
 /**
@@ -138,7 +138,7 @@ export class TimesheetEntry implements PlainTimesheetEntry {
     }
 
     static async defaultInformation() {
-        let defaultData: PrimitiveDefaultTimesheetEntry = defaultTimesheetEntryData
+        let defaultData: PlainDefaultTimesheetData = defaultTimesheetEntryData
         try {
             const retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
             if (retrievedData) {
