@@ -6,19 +6,19 @@ import { Personnel } from "../meta/personnel";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { createOrUpdateAppOption, createTimesheet, createTimesheetCollection, deleteDataInStore, getAllFromIndexInStore, getFromIndexInStore, getInStore, getTimesheetRecordsInMonth, updateDataInStore } from "../indexedDB/indexedDBService";
 import { ComponentType, ErrorMessage, OptionLabel, ReportType, TemplateType } from "@/lib/constants/constant";
-import { TimesheetHour } from "./timesheetHour";
 import { TimesheetRecord } from "./timesheetRecord";
 import { getUniqueIDBasedOnTime, slugify } from "@/lib/helpers";
 import { StorageLabel, IndexName, StoreName } from "@/lib/constants/storage";
 import { Customer } from "../meta/customer";
 import { Site } from "../meta/site";
 import { Project } from "../meta/project";
-import { PlainCustomer, PlainProject, PlainSite } from "@/lib/types/meta";
 import { createXlsxClassicCustomerTimesheetReport } from "../template/classic/xlsx/excelJs/customerReport";
 import { createPdfWithJsPdfAutoTable } from "../template/classic/pdf/jspdfAutoTable/customerReport";
 import { createXlsxClassicInternalTimesheetReport } from "../template/classic/xlsx/excelJs/internalReport";
 import { ClassicTemplate } from "../template/classic/classic";
 import { createInternalPdfReportWithJsPdfAutoTable } from "../template/classic/pdf/jspdfAutoTable/internalReport";
+import { Time } from "@/lib/types/generalType";
+import { TimesheetTime } from "./timesheetTime";
 
 /**
  * class: Timesheet
@@ -50,16 +50,12 @@ export class Timesheet implements PlainTimesheet {
         this.comment = plainTimesheet.comment;
     }
 
-    get totalHours(): TimesheetHour {
+    get totalHours(): Time {
         let hours = this.records.reduce((accumulator, _record) => {
-            accumulator = TimesheetHour.sumTimesheetHours(_record.totalHours, accumulator)
+            accumulator = TimesheetTime.sumTime(_record.totalHours, accumulator)
             return accumulator
-        }, new TimesheetHour("00:00"));
+        }, "00:00" as Time);
         return hours;
-    }
-
-    get totalHourString(): string {
-        return this.totalHours.time
     }
 
     get totalDays(): number {
@@ -104,7 +100,7 @@ export class Timesheet implements PlainTimesheet {
     }
 
     getTotalHoursOnADay(date: TimesheetDate) {
-        const nullHour = new TimesheetHour("00:00");
+        const nullHour: Time = "00:00";
 
         if (!this.hasEntryOnDate(date)) return nullHour
         let _totalHoursForDay = nullHour;
@@ -184,7 +180,7 @@ export class Timesheet implements PlainTimesheet {
         const _defaultEntryTypeSlug = "working-time";
         const getDefaultEntryType = () => defaultTimesheetEntryType.filter((entryType) => entryType.slug == _defaultEntryTypeSlug)[0];
 
-        const getDefaultEntryPeriod = () => new TimesheetEntryPeriod({ startTime: new TimesheetHour(defaultData.startTime), finishTime: new TimesheetHour(defaultData.finishTime) })
+        const getDefaultEntryPeriod = () => new TimesheetEntryPeriod({ startTime: defaultData.startTime as Time, finishTime: defaultData.finishTime as Time })
 
         let _records: TimesheetRecord[] = []
         if (shouldPopulateEntry) {
@@ -196,7 +192,7 @@ export class Timesheet implements PlainTimesheet {
                     });
                     let _timesheetRecordKey = ''
                     while (_recordsAccumulator.some((_record) => _record.key === _timesheetRecordKey) || _timesheetRecordKey == '') {
-                        _timesheetRecordKey = TimesheetRecord.createTimesheetRecordId(_date, index);
+                        _timesheetRecordKey = TimesheetRecord.createTimesheetRecordKey(_date, index);
                     }
                     const _newRecord = new TimesheetRecord({ key: _timesheetRecordKey, date: _date, entries: [_newEntry] });
                     return [..._recordsAccumulator, _newRecord]
@@ -250,8 +246,8 @@ export class Timesheet implements PlainTimesheet {
         const getEntryType = (date: TimesheetDate) => defaultTimesheetEntryType.filter((entryType) => entryType.slug == getEntryTypeSlug(date))[0];
 
         const getEntryPeriod = (currentDate: TimesheetDate) => {
-            if (currentDate.isDateSame(_preMobTravelDate) || currentDate.isDateSame(_postDemobTravelDate)) return new TimesheetEntryPeriod({ startTime: new TimesheetHour("06:00"), finishTime: new TimesheetHour("14:00") })
-            else return new TimesheetEntryPeriod({ startTime: new TimesheetHour(defaultData.startTime), finishTime: new TimesheetHour(defaultData.finishTime) })
+            if (currentDate.isDateSame(_preMobTravelDate) || currentDate.isDateSame(_postDemobTravelDate)) return new TimesheetEntryPeriod({ startTime: "06:00", finishTime: "14:00" })
+            else return new TimesheetEntryPeriod({ startTime: defaultData.startTime as Time, finishTime: defaultData.finishTime as Time })
         }
 
         let _timesheetCount = 0;
@@ -280,7 +276,7 @@ export class Timesheet implements PlainTimesheet {
             });
             let _timesheetRecordKey = ''
             while (_cursorTimesheet.records.some((_record) => _record.key === _timesheetRecordKey) || _timesheetRecordKey == '') {
-                _timesheetRecordKey = TimesheetRecord.createTimesheetRecordId(_cursorDate, _recordCount);
+                _timesheetRecordKey = TimesheetRecord.createTimesheetRecordKey(_cursorDate, _recordCount);
             }
             const _entryRecordForCurrentDate = new TimesheetRecord({ key: _timesheetRecordKey, date: _cursorDate, entries: [_entryForCurrentDate] });
             _cursorTimesheet.records = [..._cursorTimesheet.records, _entryRecordForCurrentDate]
@@ -497,11 +493,11 @@ export class Timesheet implements PlainTimesheet {
             let _dailyReports: TimesheetDailyReport[] = _timesheetRecordInMonth.reduce((accumulator, record) => {
                 const recordObject = new TimesheetRecord(record)
                 const _day = recordObject.date.dayInMonth
-                const _totalHours = recordObject.totalHoursInString
+                const _totalHours = recordObject.totalHours
                 if (accumulator.some(acc => acc.day == _day)) {
                     return accumulator.map((acc) => {
                         if (acc.day == _day) {
-                            const _recalculatedHours = TimesheetHour.sumTimesheetHours(new TimesheetHour(acc.totalHoursInDay), new TimesheetHour(_totalHours)).time
+                            const _recalculatedHours = TimesheetTime.sumTime(acc.totalHoursInDay, _totalHours)
                             return { ...acc, totalHoursInDay: _recalculatedHours }
                         } else return acc
                     })
@@ -512,8 +508,8 @@ export class Timesheet implements PlainTimesheet {
             }, [] as TimesheetDailyReport[])
 
             let _totalHoursInMonth = _dailyReports.reduce((acc, _dayReport) => {
-                return TimesheetHour.sumTimesheetHours(acc, new TimesheetHour(_dayReport.totalHoursInDay))
-            }, new TimesheetHour('00:00')).time
+                return TimesheetTime.sumTime(acc, _dayReport.totalHoursInDay)
+            }, '00:00' as Time)
             const _monthReport: TimesheetMonthlyReport = { monthName: _monthName, totalHoursInMonth: _totalHoursInMonth, dailyReports: _dailyReports }
             monthlyReports = [...monthlyReports, _monthReport];
         }
@@ -543,5 +539,5 @@ type TimesheetMonthlyReport = {
 
 type TimesheetDailyReport = {
     day: number,
-    totalHoursInDay: string
+    totalHoursInDay: Time
 }

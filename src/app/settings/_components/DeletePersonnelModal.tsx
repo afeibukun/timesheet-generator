@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Personnel } from "@/lib/services/meta/personnel";
-import { PersonnelSchema } from "@/lib/types/schema";
 import Modal from "@/app/_components/Modal";
+import { PlainPersonnel } from "@/lib/types/meta";
 
 type DeletePersonnelPropType = {
     showModal: boolean,
-    personnel: PersonnelSchema
-    removePersonnelEventHandler: (personnel: Personnel | PersonnelSchema) => {},
+    personnel: PlainPersonnel
+    removePersonnelEventHandler: (personnel: Personnel | PlainPersonnel) => {},
     closeModalEventHandler: Function
 }
 

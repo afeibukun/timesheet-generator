@@ -2,7 +2,7 @@ import DefaultFormGroup from "@/app/_components/DefaultFormGroup";
 import DefaultFormGroupTitle from "@/app/_components/DefaultFormGroupTitle";
 import DefaultFormItem from "@/app/_components/DefaultFormItem"
 import DefaultLabelText from "@/app/_components/DefaultLabelText"
-import { ComponentType, SearchParamsLabel, SettingSection, Status } from "@/lib/constants/constant";
+import { ComponentType, OptionLabel, SearchParamsLabel, SettingSection, Status } from "@/lib/constants/constant";
 import { Personnel } from "@/lib/services/meta/personnel";
 import { Timesheet } from "@/lib/services/timesheet/timesheet";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
@@ -53,8 +53,8 @@ export default function CreateTimesheetCollectionForm({ personnels, customers, p
         let _project = projects.filter((p) => p.purchaseOrderNumber == timesheetCollectionForm.projectPurchaseOrderNumber)[0];
 
         let _options: TimesheetOption[] = [
-            { key: 'MOBILIZATION_DATE', value: timesheetCollectionForm.mobilizationDate },
-            { key: 'DEMOBILIZATION_DATE', value: timesheetCollectionForm.demobilizationDate }
+            { key: OptionLabel.mobilizationDate, value: timesheetCollectionForm.mobilizationDate },
+            { key: OptionLabel.demobilizationDate, value: timesheetCollectionForm.demobilizationDate }
         ];
 
         const mobDate = new TimesheetDate(timesheetCollectionForm.mobilizationDate);

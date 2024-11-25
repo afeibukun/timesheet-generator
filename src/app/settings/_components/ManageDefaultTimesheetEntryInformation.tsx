@@ -10,7 +10,7 @@ import { defaultTimesheetEntryData, possibleWeekStartDays } from "@/lib/constant
 import { createOrUpdateTimesheetEntryDefaultData } from "@/lib/services/indexedDB/indexedDBService";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry";
-import { PlainDefaultTimesheetData as PlainDefaultTimesheetData } from "@/lib/types/primitive";
+import { PlainDefaultTimesheetData } from "@/lib/types/timesheet";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

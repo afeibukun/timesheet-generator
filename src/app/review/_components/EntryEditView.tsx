@@ -3,7 +3,8 @@ import { LocationType, OptionLabel, ReportType } from "@/lib/constants/constant"
 import { defaultTimesheetEntryType } from "@/lib/constants/default"
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry"
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
-import { TimesheetHour } from "@/lib/services/timesheet/timesheetHour"
+import { TimesheetTime } from "@/lib/services/timesheet/timesheetTime"
+import { Time } from "@/lib/types/generalType"
 import { TimesheetEntryError, TimesheetEntryOption } from "@/lib/types/timesheet"
 import { useEffect, useState } from "react"
 
@@ -49,35 +50,37 @@ export default function EntryEditView({ entry, uiElementId, updateEntryInRecord,
     }
 
     const handleEntryStartTimeChange = (e: any) => {
-        const _entryStartTimeString: string = e.target.value
-        let _entryStartTime: TimesheetHour | undefined
-        try {
-            _entryStartTime = new TimesheetHour(_entryStartTimeString)
-        } catch (e) { }
-        const _entryPeriod = new TimesheetEntryPeriod({ ...entry.entryPeriod, startTime: _entryStartTime });
-        const _updatedLocalEntry = new TimesheetEntry({ ...entry, entryPeriod: _entryPeriod })
-        updateEntryInRecord(_updatedLocalEntry)
+        const _entryStartTimeString: Time = e.target.value
+        if (TimesheetTime.isValid(_entryStartTimeString)) {
+            let _entryStartTime: Time | undefined
+            try {
+                _entryStartTime = _entryStartTimeString
+            } catch (e) { }
+            const _entryPeriod = new TimesheetEntryPeriod({ ...entry.entryPeriod, startTime: _entryStartTime });
+            const _updatedLocalEntry = new TimesheetEntry({ ...entry, entryPeriod: _entryPeriod })
+            updateEntryInRecord(_updatedLocalEntry)
+        }
     }
 
     const handleEntryFinishTimeChange = (e: any) => {
-        const _entryFinishTimeString: string = e.target.value
-        const _entryFinishTime: TimesheetHour = new TimesheetHour(_entryFinishTimeString)
+        const _entryFinishTimeString: Time = e.target.value
+        const _entryFinishTime: Time = _entryFinishTimeString
         const _entryPeriod = new TimesheetEntryPeriod({ ...entry.entryPeriod, finishTime: _entryFinishTime });
         const _updatedLocalEntry = new TimesheetEntry({ ...entry, entryPeriod: _entryPeriod })
         updateEntryInRecord(_updatedLocalEntry)
     }
 
     const handleBreakStartTimeChange = (e: any) => {
-        const _breakStartTimeString: string = e.target.value
-        const _breakStartTime: TimesheetHour = new TimesheetHour(_breakStartTimeString)
+        const _breakStartTimeString: Time = e.target.value
+        const _breakStartTime: Time = _breakStartTimeString
         const _entryPeriod = new TimesheetEntryPeriod({ ...entry.entryPeriod, breakTimeStart: _breakStartTime });
         const _updatedLocalEntry = new TimesheetEntry({ ...entry, entryPeriod: _entryPeriod })
         updateEntryInRecord(_updatedLocalEntry)
     }
 
     const handleBreakFinishTimeChange = (e: any) => {
-        const _breakFinishTimeString: string = e.target.value
-        const _breakFinishTime: TimesheetHour = new TimesheetHour(_breakFinishTimeString)
+        const _breakFinishTimeString: Time = e.target.value
+        const _breakFinishTime: Time = (_breakFinishTimeString)
         const _entryPeriod = new TimesheetEntryPeriod({ ...entry.entryPeriod, finishTime: _breakFinishTime });
         const _updatedLocalEntry = new TimesheetEntry({ ...entry, entryPeriod: _entryPeriod })
         updateEntryInRecord(_updatedLocalEntry)

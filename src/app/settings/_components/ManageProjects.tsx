@@ -1,5 +1,4 @@
 'use client'
-import { ProjectSchema } from "@/lib/types/schema";
 import { useEffect, useState } from "react";
 import { createProject, deleteDataInStore, getAllProjects } from "@/lib/services/indexedDB/indexedDBService";
 import DefaultSection from "../../_components/DefaultSection";
@@ -9,9 +8,10 @@ import DefaultLabelText from "../../_components/DefaultLabelText";
 import { Status } from "@/lib/constants/constant";
 import { StoreName } from "@/lib/constants/storage";
 import Modal from "@/app/_components/Modal";
+import { PlainProject } from "@/lib/types/meta";
 
 export default function ManageProjects() {
-    const [projects, setProjects] = useState([] as ProjectSchema[]);
+    const [projects, setProjects] = useState([] as PlainProject[]);
     const defaultProject = { purchaseOrderNumber: '', orderNumber: '', state: Status.hideForm, notification: { active: false, type: '', message: '' } };
     const [projectForm, setProjectForm] = useState(defaultProject);
 
@@ -30,7 +30,7 @@ export default function ManageProjects() {
     useEffect(() => {
         const initializer = async () => {
             try {
-                let _projects: ProjectSchema[] = await getAllProjects();
+                let _projects: PlainProject[] = await getAllProjects();
                 setProjects(_projects);
 
             } catch (e) { }
@@ -41,7 +41,7 @@ export default function ManageProjects() {
     async function handleSaveProjectEvent(e: any) {
         e.preventDefault(); e.stopPropagation();
         if (projectForm.purchaseOrderNumber) {
-            let projectData: ProjectSchema = { purchaseOrderNumber: projectForm.purchaseOrderNumber };
+            let projectData: PlainProject = { purchaseOrderNumber: projectForm.purchaseOrderNumber };
             if (projectForm.orderNumber) {
                 projectData.orderNumber = projectForm.orderNumber;
             }
@@ -51,7 +51,7 @@ export default function ManageProjects() {
         }
     }
 
-    async function handleDeleteProjectEvent(e: any, project: ProjectSchema) {
+    async function handleDeleteProjectEvent(e: any, project: PlainProject) {
         e.preventDefault(); e.stopPropagation();
         if (project.id) {
             await deleteDataInStore(project.id, StoreName.project);

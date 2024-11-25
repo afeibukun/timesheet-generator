@@ -1,13 +1,12 @@
 import { ErrorMessage, LocationType, OptionLabel } from "@/lib/constants/constant";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
-import { PlainTimesheetEntry, PlainTimesheetEntryType, TimesheetEntryOption } from "@/lib/types/timesheet";
-import { AppOptionSchema } from "@/lib/types/schema";
-import { defaultTimesheetEntryData, defaultTimesheetEntryType } from "@/lib/constants/default";
+import { PlainDefaultTimesheetData, PlainTimesheetEntry, PlainTimesheetEntryType, TimesheetEntryOption } from "@/lib/types/timesheet";
+import { defaultTimesheetEntryData } from "@/lib/constants/default";
 import { getTimesheetEntryDefaultData } from "../indexedDB/indexedDBService";
-import { TimesheetHour } from "./timesheetHour";
-import { PlainDefaultTimesheetData, TimesheetEntryError } from "@/lib/types/primitive";
 import { generateUniqueID, getRandomDigits } from "@/lib/helpers";
+import { Time } from "@/lib/types/generalType";
+import { PlainAppOption } from "@/lib/types/meta";
 
 /**
  * Refers to actual timesheet activity entries, working time, travel time e.t.c.
@@ -33,12 +32,12 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         this.options = timesheetEntryInput.options
     }
 
-    get totalHours(): TimesheetHour {
+    get totalHours(): Time {
         return new TimesheetEntryPeriod(this.entryPeriod!).totalHours
     }
 
     get totalHoursInString(): string {
-        return new TimesheetEntryPeriod(this.entryPeriod!).totalHoursInString
+        return new TimesheetEntryPeriod(this.entryPeriod!).totalHours
     }
 
     get entryDateDayLabel(): string {
@@ -51,30 +50,26 @@ export class TimesheetEntry implements PlainTimesheetEntry {
         return date
     }
 
-    get entryPeriodStartTime(): string {
-        let time = this.entryPeriod?.startTime?.time
+    get entryPeriodStartTime(): Time | undefined {
+        let time = this.entryPeriod?.startTime
         if (time) return time
         // throw new Error(ErrorMessage.startTimeNotFound) // Time not found 
-        return ""
     }
 
-    get entryPeriodFinishTime(): string {
-        let time = this.entryPeriod?.finishTime?.time
+    get entryPeriodFinishTime(): Time | undefined {
+        let time = this.entryPeriod?.finishTime
         if (time) return time
-        return ""
         // throw new Error(ErrorMessage.finishTimeNotFound) // finish time not found
     }
 
-    get breakPeriodStartTime(): string {
-        let time = this.entryPeriod?.breakTimeStart?.time
+    get breakPeriodStartTime(): Time | undefined {
+        let time = this.entryPeriod?.breakTimeStart
         if (time) return time
-        return ""
     }
 
-    get breakPeriodFinishTime(): string {
-        let time = this.entryPeriod?.breakTimeFinish?.time
+    get breakPeriodFinishTime(): Time | undefined {
+        let time = this.entryPeriod?.breakTimeFinish
         if (time) return time
-        return ""
     }
 
     get weekNumber(): number {
@@ -140,7 +135,7 @@ export class TimesheetEntry implements PlainTimesheetEntry {
     static async defaultInformation() {
         let defaultData: PlainDefaultTimesheetData = defaultTimesheetEntryData
         try {
-            const retrievedData: AppOptionSchema = await getTimesheetEntryDefaultData()
+            const retrievedData: PlainAppOption = await getTimesheetEntryDefaultData()
             if (retrievedData) {
                 defaultData = { ...defaultData, ...retrievedData.value }
             } else throw Error(ErrorMessage.defaultDataNotFound)

@@ -1,5 +1,4 @@
 'use client'
-import { PersonnelSchema } from "@/lib/types/schema";
 import { useEffect, useState } from "react";
 import AddPersonnel from "../../_components/AddPersonnel";
 import { Personnel } from "@/lib/services/meta/personnel";
@@ -16,10 +15,10 @@ import DeletePersonnelModal from "./DeletePersonnelModal";
 import UpdatePersonnelModal from "./UpdatePersonnelModal";
 
 export default function ManagePersonnel() {
-    const [personnels, setPersonnels] = useState([] as PersonnelSchema[]);
+    const [personnels, setPersonnels] = useState([] as PlainPersonnel[]);
     const [primitiveActivePersonnel, setPrimitiveActivePersonnel] = useState({ displayForm: false, personnelSlug: '' })
     const [localActivePersonnel, setLocalActivePersonnel] = useState({} as Personnel)
-    let _selectedPersonnel: PersonnelSchema | undefined
+    let _selectedPersonnel: PlainPersonnel | undefined
     const [selectedPersonnel, setSelectedPersonnel] = useState(_selectedPersonnel)
     const [showAddNewPersonnelModal, setShowAddNewPersonnelModal] = useState(false)
     const [showUpdatePersonnelModal, setShowUpdatePersonnelModal] = useState(false)
@@ -47,7 +46,7 @@ export default function ManagePersonnel() {
     useEffect(() => {
         const initializer = async () => {
             try {
-                let _personnels: PersonnelSchema[] = await getAllPersonnel();
+                let _personnels: PlainPersonnel[] = await getAllPersonnel();
                 setPersonnels(_personnels);
 
                 try {
@@ -60,7 +59,7 @@ export default function ManagePersonnel() {
         initializer();
     }, []);
 
-    const saveActivePersonnelEventHandler = async (newActivePersonnel: PersonnelSchema) => {
+    const saveActivePersonnelEventHandler = async (newActivePersonnel: PlainPersonnel) => {
         if (!!newActivePersonnel.slug) {
             const _selectedPersonnelSchema = personnels.filter(p => p.slug === newActivePersonnel.slug)[0];
             if (_selectedPersonnelSchema.id) {
@@ -72,12 +71,12 @@ export default function ManagePersonnel() {
         }
     }
 
-    const initiateDeletePersonnelEventHandler = (personnel: PersonnelSchema) => {
+    const initiateDeletePersonnelEventHandler = (personnel: PlainPersonnel) => {
         setSelectedPersonnel(personnel)
         setPersonnelFormView(PersonnelFormView.displayDeleteConfirmationFormView);
     }
 
-    const removePersonnelEventHandler = async (personnel: Personnel | PersonnelSchema) => {
+    const removePersonnelEventHandler = async (personnel: Personnel | PlainPersonnel) => {
         const isPersonnelInPersonnelArray = !!personnel.id && personnels.some((p) => p.id === personnel.id);
         if (isPersonnelInPersonnelArray) {
             setPersonnels(personnels.filter((_personnel) => _personnel.id !== personnel.id));
@@ -93,7 +92,7 @@ export default function ManagePersonnel() {
                 if (_personnel.slug === selectedPersonnel?.slug) return selectedPersonnel
                 return _personnel
             })
-            const _personnel = Personnel.convertPersonnelSchemaToPersonnel(selectedPersonnel)
+            const _personnel = new Personnel(selectedPersonnel)
             await Personnel.updatePersonnel(_personnel);
             setPersonnels(_updatedPersonnels)
         }
@@ -178,7 +177,7 @@ export default function ManagePersonnel() {
 
                 {/* Update Personnel */}
                 <>{selectedPersonnel ?
-                    <UpdatePersonnelModal updatePersonnelEventHandler={updatePersonnelsEventHandler} showModal={showUpdatePersonnelModal && !!selectedPersonnel} personnel={selectedPersonnel} selectedPersonnelUpdateEventHandler={(_updatedPersonnel: PersonnelSchema) => { setSelectedPersonnel(_updatedPersonnel) }} closeModalEventHandler={() => {
+                    <UpdatePersonnelModal updatePersonnelEventHandler={updatePersonnelsEventHandler} showModal={showUpdatePersonnelModal && !!selectedPersonnel} personnel={selectedPersonnel} selectedPersonnelUpdateEventHandler={(_updatedPersonnel: PlainPersonnel) => { setSelectedPersonnel(_updatedPersonnel) }} closeModalEventHandler={() => {
                         setSelectedPersonnel(undefined)
                         setShowUpdatePersonnelModal(false)
                     }} ></UpdatePersonnelModal> : ''
@@ -186,7 +185,7 @@ export default function ManagePersonnel() {
 
                 {/* Delete Personnel */}
                 <>{selectedPersonnel ?
-                    <DeletePersonnelModal showModal={personnelFormView === PersonnelFormView.displayDeleteConfirmationFormView} personnel={selectedPersonnel} removePersonnelEventHandler={(personnel: Personnel | PersonnelSchema) => removePersonnelEventHandler(personnel)} closeModalEventHandler={() => setPersonnelFormView(Status.hidden)} ></DeletePersonnelModal> : ''
+                    <DeletePersonnelModal showModal={personnelFormView === PersonnelFormView.displayDeleteConfirmationFormView} personnel={selectedPersonnel} removePersonnelEventHandler={(personnel: Personnel | PlainPersonnel) => removePersonnelEventHandler(personnel)} closeModalEventHandler={() => setPersonnelFormView(Status.hidden)} ></DeletePersonnelModal> : ''
                 }</>
             </DefaultSection>
         </div>

@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { createPersonnel } from "@/lib/services/indexedDB/indexedDBService";
 import { Personnel } from "@/lib/services/meta/personnel";
-import { PersonnelSchema } from "@/lib/types/schema";
 import { OptionLabel } from "@/lib/constants/constant";
-import { PersonnelOption } from "@/lib/types/meta";
+import { PersonnelOption, PlainPersonnel } from "@/lib/types/meta";
 import Modal from "@/app/_components/Modal";
 import DefaultLabelText from "@/app/_components/DefaultLabelText";
 
 type UpdatePersonnelPropType = {
     showModal: boolean,
-    personnel: PersonnelSchema
+    personnel: PlainPersonnel
     selectedPersonnelUpdateEventHandler: Function,
     updatePersonnelEventHandler: Function,
     closeModalEventHandler: Function

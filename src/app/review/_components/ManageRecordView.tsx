@@ -1,13 +1,12 @@
 'use client'
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate"
-import { TimesheetEntryError } from "@/lib/types/primitive"
 import { useEffect, useState } from "react"
 import EntryEditView from "./EntryEditView"
 import { TimesheetEntry } from "@/lib/services/timesheet/timesheetEntry"
 import { LocationType, OptionLabel } from "@/lib/constants/constant"
 import { TimesheetRecord } from "@/lib/services/timesheet/timesheetRecord"
 import { TimesheetEntryPeriod } from "@/lib/services/timesheet/timesheetEntryPeriod"
-import { TimesheetRecordOption } from "@/lib/types/timesheet"
+import { TimesheetEntryError, TimesheetRecordOption } from "@/lib/types/timesheet"
 
 type ManageRecordViewProps = {
     record: TimesheetRecord | undefined,
@@ -45,7 +44,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
     }
 
     const getTotalHoursForRecord = () => {
-        if (record) return record.totalHoursInString;
+        if (record) return record.totalHours;
         return '00:00'
     }
 
@@ -57,7 +56,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
         if (doesRecordHaveEntries(record) && record?.entries) {
             _record = new TimesheetRecord({ ...record, entries: [...record?.entries, _newEntry] })
         } else {
-            _record = new TimesheetRecord({ id: TimesheetRecord.createTimesheetRecordId(_date), date: _date, entries: [_newEntry] })
+            _record = new TimesheetRecord({ key: TimesheetRecord.createTimesheetRecordKey(_date), date: _date, entries: [_newEntry] })
         }
         updateRecordInTimesheet(_record);
         const _updatedEntryErrors = [...entryErrorsInRecord, addNewEntryError(_newEntry.id)]
@@ -218,7 +217,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                     <div className="action-group justify-self-end">
                         <div className="flex gap-x-2">
                             <div className="">
-                                <button type="button" className="text-white" onClick={() => setShowRecordOptionsDropdown(!showRecordOptionsDropdown)}>
+                                <button type="button" className="text-white" onClick={() => setShowRecordOptionsDropdown(!showRecordOptionsDropdown)} title="Show Record Options">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
                                     </svg>
@@ -256,7 +255,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                             </div>
                             <>{canRecordMakeCopies() ?
                                 <div className="flex items-center">
-                                    <button type="button" className="px-3 text-xs text-white" id="duplicateRecordDropdownButton" data-dropdown-toggle="dropdownDuplicate" onClick={() => setShowRecordDuplicateOption(!showRecordDuplicateOption)}>
+                                    <button type="button" className="px-3 text-xs text-white" id="duplicateRecordDropdownButton" data-dropdown-toggle="dropdownDuplicate" onClick={() => setShowRecordDuplicateOption(!showRecordDuplicateOption)} title="Duplicate Records">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" />
                                         </svg>
@@ -291,7 +290,7 @@ export default function ManageRecordView({ record, uiElementId, date, canAddEntr
                             }</>
                             <>{canAddEntry ?
                                 <div className="flex items-center">
-                                    <button className="px-3 rounded-sm text-xs text-white" type="button" onClick={(e) => addNewEntry(date.defaultFormat())}>
+                                    <button className="px-3 rounded-sm text-xs text-white" type="button" onClick={(e) => addNewEntry(date.defaultFormat())} title="Add New Time Entry">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                         </svg>

@@ -1,5 +1,6 @@
 import { DateDisplayExportOption, EntryTypeExportOption, LocationType, OptionLabel } from "../constants/constant"
 import { Timesheet } from "../services/timesheet/timesheet";
+import { Time } from "./generalType";
 import { PlainCustomer, PlainPersonnel, PlainProject, PlainSite } from "./meta";
 
 export interface TimesheetCollection {
@@ -19,7 +20,7 @@ export interface TimesheetOption {
     key: TimesheetOptionKey,
     value: any,
 }
-export type TimesheetOptionKey = OptionLabel.timesheetWeek | OptionLabel.mobilizationDate | OptionLabel.demobilizationDate | OptionLabel.timesheetCollectionKey
+export type TimesheetOptionKey = OptionLabel.timesheetWeek | OptionLabel.mobilizationDate | OptionLabel.demobilizationDate | OptionLabel.timesheetCollectionKey | OptionLabel.teamLeadName
 
 export type MobilizationDateInformation = {
     mobilizationDate: string,
@@ -84,15 +85,10 @@ export type PlainMobilizationDate = {
 
 // TIMESHEET ENTRY
 export interface PlainTimesheetEntryPeriod {
-    startTime?: PlainTimesheetHour,
-    finishTime?: PlainTimesheetHour,
-    breakTimeStart?: PlainTimesheetHour,
-    breakTimeFinish?: PlainTimesheetHour
-}
-
-export interface PlainTimesheetHour {
-    hour?: number,
-    minute?: number,
+    startTime?: Time,
+    finishTime?: Time,
+    breakTimeStart?: Time,
+    breakTimeFinish?: Time
 }
 
 export interface PlainTimesheetRecord {
@@ -108,7 +104,7 @@ export interface TimesheetRecordOption {
     key: TimesheetRecordOptionKey,
     value: any,
 }
-export type TimesheetRecordOptionKey = OptionLabel.isPublicHoliday | 'randomkey' | 'anotherrandomkey'
+export type TimesheetRecordOptionKey = OptionLabel.isPublicHoliday | OptionLabel.isColaRequired
 
 export interface PlainTimesheetEntry {
     id?: number | string,

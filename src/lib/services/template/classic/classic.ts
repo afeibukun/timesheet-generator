@@ -1,7 +1,6 @@
 import { EntryTypeExportOption, LocationType, OptionLabel, ReportType, TimesheetEntryType } from "@/lib/constants/constant"
 import { TimesheetRecord } from "../../timesheet/timesheetRecord"
-import { ExportOptions, TimesheetOption } from "@/lib/types/timesheet";
-import { TimesheetHour } from "../../timesheet/timesheetHour";
+import { ExportOptions, PlainDefaultTimesheetData, PlainTimesheet, TimesheetOption } from "@/lib/types/timesheet";
 import { Personnel } from "../../meta/personnel";
 import { Project } from "../../meta/project";
 import { Site } from "../../meta/site";
@@ -9,9 +8,10 @@ import { TimesheetDate } from "../../timesheet/timesheetDate";
 import { getTimesheetsInDates } from "../../indexedDB/indexedDBService";
 import { Timesheet } from "../../timesheet/timesheet";
 import { TimesheetEntry } from "../../timesheet/timesheetEntry";
-import { PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import { Customer } from "../../meta/customer";
 import templateConfig from "./template.config";
+import { Time } from "@/lib/types/generalType";
+import { TimesheetTime } from "../../timesheet/timesheetTime";
 
 export class ClassicTemplate {
     static workingPeriods(timesheetRecord: TimesheetRecord) {
@@ -201,8 +201,8 @@ export class ClassicTemplate {
      * @param exportOptions ExportOptions
      */
     static getTotalHours(timesheetRecord: TimesheetRecord, exportOptions: ExportOptions): string {
-        const _initialHours: TimesheetHour = new TimesheetHour("00:00");
-        if (!ClassicTemplate.isValid(timesheetRecord, exportOptions)) return _initialHours.time
+        const _initialHours: Time = "00:00";
+        if (!ClassicTemplate.isValid(timesheetRecord, exportOptions)) return _initialHours
 
         let _referenceRecord: TimesheetRecord
 
@@ -219,7 +219,7 @@ export class ClassicTemplate {
         } else {
             _referenceRecord = timesheetRecord
         }
-        return _referenceRecord.totalHours.time;
+        return _referenceRecord.totalHours;
     }
 
     static getComment(timesheetRecord: TimesheetRecord, exportOptions: ExportOptions) {
@@ -242,51 +242,51 @@ export class ClassicTemplate {
 
     static getWorkingTimeForInternalReport(timesheetRecord: TimesheetRecord) {
         const _workingTimeTotalHours = timesheetRecord.entries.filter((_entry) => _entry.entryType.slug == TimesheetEntryType.workingTime && !TimesheetEntry.isExcludedFromReport(_entry, ReportType.internal)).reduce((_accumulator, _workingTimeEntry) => {
-            return TimesheetHour.sumTimesheetHours(_accumulator, _workingTimeEntry.totalHours)
-        }, new TimesheetHour("00:00"))
+            return TimesheetTime.sumTime(_accumulator, _workingTimeEntry.totalHours)
+        }, "00:00" as Time)
         return _workingTimeTotalHours
     }
 
     static getTravelTimeForInternalReport(timesheetRecord: TimesheetRecord) {
         const _travelTimeTotalHours = timesheetRecord.entries.filter((_entry) => (_entry.entryType.slug == TimesheetEntryType.travelMobilization || _entry.entryType.slug == TimesheetEntryType.travelDemobilization || _entry.entryType.slug == TimesheetEntryType.travelTimeToOrFromSite) && !TimesheetEntry.isExcludedFromReport(_entry, ReportType.internal)).reduce((_accumulator, _travelTimeEntry) => {
-            return TimesheetHour.sumTimesheetHours(_accumulator, _travelTimeEntry.totalHours)
-        }, new TimesheetHour("00:00"))
+            return TimesheetTime.sumTime(_accumulator, _travelTimeEntry.totalHours)
+        }, ("00:00" as Time))
         return _travelTimeTotalHours
     }
 
     static getTotalHoursForInternalReport(timesheetRecord: TimesheetRecord) {
         const hours = timesheetRecord.entries.filter((_entry) => !TimesheetEntry.isExcludedFromReport(_entry, ReportType.internal)).reduce((accumulator, timesheetEntry) => {
-            accumulator = TimesheetHour.sumTimesheetHours(timesheetEntry.totalHours, accumulator)
+            accumulator = TimesheetTime.sumTime(timesheetEntry.totalHours, accumulator)
             return accumulator
-        }, new TimesheetHour("00:00"));
+        }, ("00:00" as Time));
         return hours
     }
 
-    static async overtimeAInternalReport(date: TimesheetDate, hasPremium: boolean, isPublicHoliday: boolean, totalHours: TimesheetHour) {
+    static async overtimeAInternalReport(date: TimesheetDate, hasPremium: boolean, isPublicHoliday: boolean, totalHours: Time) {
         const isRecordOnAWeekDay = TimesheetDate.isWeekDay(date)
         const isRecordOnASaturday = TimesheetDate.isSaturday(date)
         if (isRecordOnAWeekDay && !hasPremium && !isPublicHoliday) {
-            let defaultNormalWorkingTime = new TimesheetHour('08:00');
+            let defaultNormalWorkingTime: Time = '08:00';
             let defaultData: PlainDefaultTimesheetData = await TimesheetEntry.defaultInformation();
-            if (defaultData.normalWorkingHours && defaultData.normalWorkingHours != '00:00') defaultNormalWorkingTime = new TimesheetHour(defaultData.normalWorkingHours);
-            const overtimeHours = TimesheetHour.subtractTimesheetHours(totalHours, defaultNormalWorkingTime);
+            if (defaultData.normalWorkingHours && defaultData.normalWorkingHours != '00:00') defaultNormalWorkingTime = defaultData.normalWorkingHours as Time;
+            const overtimeHours = TimesheetTime.subtractTime(totalHours, defaultNormalWorkingTime);
             return overtimeHours
         } else if ((isRecordOnAWeekDay && hasPremium) || (isRecordOnASaturday && !hasPremium && !isPublicHoliday)) {
             const overtimeHours = totalHours;
             return overtimeHours
         } else {
-            return new TimesheetHour('00:00')
+            return ('00:00' as Time)
         }
     }
 
-    static async overtimeBInternalReport(date: TimesheetDate, hasPremium: boolean, isPublicHoliday: boolean, totalHours: TimesheetHour) {
+    static async overtimeBInternalReport(date: TimesheetDate, hasPremium: boolean, isPublicHoliday: boolean, totalHours: Time) {
         const isRecordOnASunday = TimesheetDate.isSunday(date)
         const isRecordOnASaturday = TimesheetDate.isSaturday(date)
         if (isRecordOnASunday || isPublicHoliday || (isRecordOnASaturday && hasPremium)) {
             const overtimeHours = totalHours;
             return overtimeHours
         } else {
-            return new TimesheetHour('00:00')
+            return ('00:00' as Time)
         }
     }
 
@@ -336,11 +336,11 @@ export class ClassicTemplate {
     }
 
     static async getTimesheetsWithinDates(dates: TimesheetDate[]) {
-        const timesheetSchemas = await getTimesheetsInDates(dates)
+        const _plainTimesheets: PlainTimesheet[] = await getTimesheetsInDates(dates)
         let timesheets: Timesheet[] = [];
-        for (let i = 0; i < timesheetSchemas.length; i++) {
-            const timesheet: Timesheet = await Timesheet.convertSchemaToTimesheet(timesheetSchemas[i]);
-            timesheets = [...timesheets, timesheet]
+        for (let i = 0; i < _plainTimesheets.length; i++) {
+            const _plainTimesheet: Timesheet = new Timesheet(_plainTimesheets[i]);
+            timesheets = [...timesheets, _plainTimesheet]
         }
         return timesheets
     }
@@ -369,8 +369,8 @@ export class ClassicTemplate {
                     const totalWorkingTime = this.getWorkingTimeForInternalReport(_recordForDate)
                     _internalRecordForDate = {
                         ..._internalRecordForDate,
-                        startTime: new TimesheetHour(workingPeriod.startTime),
-                        finishTime: new TimesheetHour(workingPeriod.finishTime),
+                        startTime: workingPeriod.startTime,
+                        finishTime: workingPeriod.finishTime,
                         workingTime: totalWorkingTime
                     };
                 } catch (e) { }
@@ -448,10 +448,12 @@ export class ClassicTemplate {
         let sites: Site[] = []
 
         for (let i = 0; i < timesheets.length; i++) {
-            const _site = timesheets[i].site
-            const alreadyInSites = sites.some((_s) => _s.slug === _site.slug)
-            if (!alreadyInSites) {
-                sites = [...sites, _site]
+            const _site = timesheets[i].customer.activeSite
+            if (_site) {
+                const alreadyInSites = sites.some((_s) => _s.slug === _site.slug)
+                if (!alreadyInSites) {
+                    sites = [...sites, _site]
+                }
             }
         }
         return sites
@@ -482,17 +484,17 @@ export class ClassicTemplate {
 
     static getTotalOvertimeAInInternalReport(internalReportRecords: InternalReportTimesheetRecord[],) {
         const totalOvertimeA = internalReportRecords.reduce((acc, _internalReport) => {
-            if (_internalReport.overtime.typeA) return TimesheetHour.sumTimesheetHours(acc, _internalReport.overtime.typeA);
+            if (_internalReport.overtime.typeA) return TimesheetTime.sumTime(acc, _internalReport.overtime.typeA);
             else return acc
-        }, new TimesheetHour('00:00'))
+        }, ('00:00' as Time))
         return totalOvertimeA
     }
 
     static getTotalOvertimeBInInternalReport(internalReportRecords: InternalReportTimesheetRecord[],) {
         const totalOvertimeB = internalReportRecords.reduce((acc, _internalReport) => {
-            if (_internalReport.overtime.typeB) return TimesheetHour.sumTimesheetHours(acc, _internalReport.overtime.typeB);
+            if (_internalReport.overtime.typeB) return TimesheetTime.sumTime(acc, _internalReport.overtime.typeB);
             else return acc
-        }, new TimesheetHour('00:00'))
+        }, ('00:00' as Time))
         return totalOvertimeB
     }
 
@@ -573,8 +575,8 @@ export class ClassicTemplate {
     static getPersonnelCodeForInternalReport(internalReportTimesheet: InternalReportTimesheetCollection) {
         let personnelCode = ''
         try {
-            const codeAs = internalReportTimesheet.options.filter((option) => option.key == OptionLabel.personnelCodeA);
-            const codeBs = internalReportTimesheet.options.filter((option) => option.key == OptionLabel.personnelCodeB);
+            const codeAs = internalReportTimesheet.personnel.options.filter((option) => option.key == OptionLabel.personnelCodeA);
+            const codeBs = internalReportTimesheet.personnel.options.filter((option) => option.key == OptionLabel.personnelCodeB);
             if (codeAs) personnelCode = codeAs[0].value
             if (codeBs) personnelCode = `${personnelCode != '' ? personnelCode + ' / ' : ''}${codeBs[0].value}`
         } catch (err) { }
@@ -621,8 +623,8 @@ export interface InternalReportTimesheetCollection {
     options: TimesheetOption[],
     total: {
         overtime: {
-            typeA: TimesheetHour,
-            typeB: TimesheetHour,
+            typeA: Time,
+            typeB: Time,
         },
         hardship: {
             cola: number,
@@ -636,15 +638,15 @@ export interface InternalReportTimesheetCollection {
 
 export interface InternalReportTimesheetRecord {
     date: TimesheetDate,
-    workingTime?: TimesheetHour,
-    travelTime?: TimesheetHour,
-    nightShift?: TimesheetHour,
-    startTime?: TimesheetHour,
-    finishTime?: TimesheetHour,
-    totalHours?: TimesheetHour,
+    workingTime?: Time,
+    travelTime?: Time,
+    nightShift?: Time,
+    startTime?: Time,
+    finishTime?: Time,
+    totalHours?: Time,
     overtime: {
-        typeA?: TimesheetHour,
-        typeB?: TimesheetHour,
+        typeA?: Time,
+        typeB?: Time,
     },
     hardshipLocation: {
         cola: boolean,

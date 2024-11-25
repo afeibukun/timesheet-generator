@@ -1,13 +1,11 @@
-import { PlainTimesheetRecord, PlainTimesheetDate, TimesheetRecordOption, TimesheetEntryError } from "@/lib/types/timesheet";
+import { PlainTimesheetRecord, TimesheetRecordOption, TimesheetEntryError } from "@/lib/types/timesheet";
 import { TimesheetDate } from "./timesheetDate";
 import { TimesheetEntry } from "./timesheetEntry";
-import { TimesheetHour } from "./timesheetHour";
-import { ErrorMessage, LocationType, OptionLabel, TimesheetEntryType, } from "@/lib/constants/constant";
+import { ErrorMessage, LocationType, OptionLabel, } from "@/lib/constants/constant";
 import { TimesheetEntryPeriod } from "./timesheetEntryPeriod";
 import { generateUniqueID } from "@/lib/helpers";
-import { Customer } from "../meta/customer";
-import { Site } from "../meta/site";
-import { Project } from "../meta/project";
+import { Time } from "@/lib/types/generalType";
+import { TimesheetTime } from "./timesheetTime";
 
 /**
  * Refers to a daily record of timesheet entries, it holds entries within the same day together
@@ -34,25 +32,16 @@ export class TimesheetRecord implements PlainTimesheetRecord {
      * @description computes Total Recorded hours for a day 
      * @returns TimesheetHour
      */
-    get totalHours(): TimesheetHour {
+    get totalHours(): Time {
         let hours = this.entries.reduce((accumulator, timesheetEntry) => {
-            accumulator = TimesheetHour.sumTimesheetHours(timesheetEntry.totalHours, accumulator)
+            accumulator = TimesheetTime.sumTime(timesheetEntry.totalHours, accumulator)
             return accumulator
-        }, new TimesheetHour("00:00"));
+        }, "00:00" as Time);
         return hours;
     }
 
-    /**
-     * @property totalHoursInString
-     * @description computes Total Recorded hours for a day 
-     * @returns string
-     */
-    get totalHoursInString(): string {
-        return this.totalHours.time
-    }
-
     get hasHours() {
-        return !(this.totalHours.hour === 0 && this.totalHours.minute === 0)
+        return !(TimesheetTime.getHour(this.totalHours) === 0 && TimesheetTime.getMinute(this.totalHours) === 0)
     }
 
     get dayLabel(): string {
@@ -125,7 +114,7 @@ export class TimesheetRecord implements PlainTimesheetRecord {
         return _plainRecord;
     }
 
-    static createTimesheetRecordId(date?: TimesheetDate, index?: number) {
+    static createTimesheetRecordKey(date?: TimesheetDate, index?: number) {
         const dayInMonth = date ? date.dayInMonth : 0
         let _index = index ?? 0
         const randomCode = 167 + dayInMonth + _index

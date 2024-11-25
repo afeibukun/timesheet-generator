@@ -1,8 +1,8 @@
 
 import { CannotParsePrimitiveDataToDefaultTimesheetInformationError } from "./timesheetErrors";
 import { Timesheet } from "./timesheet";
-import { PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import { StorageLabel } from "@/lib/constants/storage";
+import { PlainDefaultTimesheetData } from "@/lib/types/timesheet";
 
 export class TimesheetLocalStorage {
     static setDefaultInformationInLocalStorage(timesheetDefaultInformation: PlainDefaultTimesheetData) {

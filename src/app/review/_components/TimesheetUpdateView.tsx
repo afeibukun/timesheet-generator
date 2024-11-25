@@ -157,7 +157,7 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                     else return _record
                 })
             } else {
-                _updatedRecord = new TimesheetRecord({ id: TimesheetRecord.createTimesheetRecordId(_timesheetDate), date: _timesheetDate, entries: referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createTimesheetEntryId(), date: _timesheetDate })), comment: referenceRecord.comment })
+                _updatedRecord = new TimesheetRecord({ key: TimesheetRecord.createTimesheetRecordKey(_timesheetDate), date: _timesheetDate, entries: referenceRecord.entries.map((_entry) => new TimesheetEntry({ ..._entry, id: TimesheetEntry.createTimesheetEntryId(), date: _timesheetDate })), comment: referenceRecord.comment })
                 _records = [..._records, _updatedRecord]
             }
         })
@@ -203,7 +203,7 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                         </div>
                         <div>
                             <div className="total-hours">
-                                <h4><span className="px-1.5 py-1 rounded bg-slate-200 text-xs">Total Hours:</span> <span className="text-xs font-bold">{localTimesheet.totalHourString}</span></h4>
+                                <h4><span className="px-1.5 py-1 rounded bg-slate-200 text-xs">Total Hours:</span> <span className="text-xs font-bold">{localTimesheet.totalHours}</span></h4>
                             </div>
                         </div>
                     </div>
@@ -211,33 +211,35 @@ export default function TimesheetUpdateView({ timesheet, handleSaveTimesheet }: 
                     <div className="preview-header-group group-3 flex gap-x-4 justify-between">
                         <div className="flex gap-x-3">
                             <div className="customer-and-site-info flex gap-x-2">
-                                <> {/* Customer */}
-                                    {timesheet.customer ?
+                                <> {/* Customer und site*/} {timesheet.customer ?
+                                    <>
+                                        {/* just customer */}
                                         <div className="customer-info-group mb-4">
                                             <p>
                                                 <InfoLabel><span className="text-xs">Customer</span></InfoLabel>
                                                 <span className="info-value text-xs">{timesheet.customer.name}</span>
                                             </p>
-                                        </div> : ''
-                                    }
+                                        </div>
+                                        <> {/* Site */} {timesheet.customer.activeSite ?
+                                            <div className="site-info-group mb-4 ">
+                                                <p>
+                                                    <span className="site-info">
+                                                        <InfoLabel><span className="text-xs">Site Name</span></InfoLabel>
+                                                        <span className="info-value text-xs">{timesheet.customer.activeSite.name}</span>
+                                                    </span>
+                                                    <span className="country-info">
+                                                        <span className="mr-4">,</span>
+                                                        <InfoLabel><span className="text-xs">Country</span></InfoLabel>
+                                                        <span className="info-value text-xs">{timesheet.customer.activeSite.country}</span>
+                                                    </span>
+                                                </p>
+                                            </div> : ''
+                                        }
+                                        </>
+                                    </> : ''
+                                }
                                 </>
-                                <> {/* Site */}
-                                    {timesheet.site ?
-                                        <div className="site-info-group mb-4 ">
-                                            <p>
-                                                <span className="site-info">
-                                                    <InfoLabel><span className="text-xs">Site Name</span></InfoLabel>
-                                                    <span className="info-value text-xs">{timesheet.site.name}</span>
-                                                </span>
-                                                <span className="country-info">
-                                                    <span className="mr-4">,</span>
-                                                    <InfoLabel><span className="text-xs">Country</span></InfoLabel>
-                                                    <span className="info-value text-xs">{timesheet.site.country}</span>
-                                                </span>
-                                            </p>
-                                        </div> : ''
-                                    }
-                                </>
+
                             </div>
                             <> {/* Project */}
                                 {timesheet.project ?

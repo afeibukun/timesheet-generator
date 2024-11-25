@@ -1,8 +1,7 @@
 import { ErrorMessage } from "@/lib/constants/constant";
-import { PlainSite } from "@/lib/types/meta";
+import { PlainCustomer, PlainSite } from "@/lib/types/meta";
 import { Customer } from "./customer";
 import { slugify } from "@/lib/helpers";
-import { CustomerSchema } from "@/lib/types/schema";
 import { getFromIndexInStore, updateDataInStore } from "../indexedDB/indexedDBService";
 import { IndexName, StoreName } from "@/lib/constants/storage";
 
@@ -48,11 +47,11 @@ export class Site implements PlainSite {
         let _site: PlainSite = { id: Date.now(), slug: siteSlug, name: siteName, country: siteCountry };
         if (siteDescription) _site = { ..._site, description: siteDescription };
 
-        const _customerSchema: CustomerSchema = await getFromIndexInStore(StoreName.customer, IndexName.slugIndex, customer.slug);
-        if (_customerSchema && _customerSchema.id) {
-            _customerSchema.sites = [..._customerSchema.sites, _site];
-            await updateDataInStore(_customerSchema, _customerSchema.id, StoreName.customer);
-            return _customerSchema;
+        const _plainCustomer: PlainCustomer = await getFromIndexInStore(StoreName.customer, IndexName.slugIndex, customer.slug);
+        if (_plainCustomer && _plainCustomer.id && _plainCustomer.sites) {
+            _plainCustomer.sites = [..._plainCustomer.sites, _site];
+            await updateDataInStore(_plainCustomer, _plainCustomer.id, StoreName.customer);
+            return _plainCustomer;
         } else throw Error("Invalid Customer Information")
     }
 }
