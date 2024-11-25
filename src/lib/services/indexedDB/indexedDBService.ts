@@ -16,13 +16,6 @@ export const initalizeDatabase = (db: IDBDatabase | IDBPDatabase) => {
         _personnelObjectStore.createIndex(IndexName.nameIndex, FieldName.name, { unique: true })
     }
 
-    if (!db.objectStoreNames.contains(StoreName.timesheetRecord)) {
-        const _recordObjectStore = db.createObjectStore(StoreName.timesheetRecord, { keyPath: FieldName.id, autoIncrement: true });
-        _recordObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
-        _recordObjectStore.createIndex(IndexName.personnelSlugIndex, FieldName.personnelSlug, { unique: false })
-        _recordObjectStore.createIndex(IndexName.dateIndex, FieldName.date, { unique: false })
-    }
-
     if (!db.objectStoreNames.contains(StoreName.timesheet)) {
         const _timesheetObjectStore = db.createObjectStore(StoreName.timesheet, { keyPath: FieldName.id, autoIncrement: true });
         _timesheetObjectStore.createIndex(IndexName.keyIndex, FieldName.key, { unique: true })
@@ -350,7 +343,7 @@ export const getTimesheetRecordsInMonth = async (month: number, year: number) =>
         const _timesheetSchema: PlainTimesheet = cursor.value;
         const _timesheetRecordInRange = !!_timesheetSchema.records ? _timesheetSchema.records.filter((_record) => {
             const _date = new TimesheetDate(_record.date);
-            const isRecordDateInMonth = _date.monthNumber == month && _date.yearNumber === year
+            const isRecordDateInMonth = _date.month == month && _date.year === year
             return isRecordDateInMonth
         }) : []
         result = [...result, ..._timesheetRecordInRange]
@@ -366,7 +359,7 @@ export const getTimesheetRecordsInYear = async (year: number) => {
         const _timesheetSchema: PlainTimesheet = cursor.value;
         const _timesheetRecordInDateRange = !!_timesheetSchema.records ? _timesheetSchema.records.filter((_record) => {
             const _date = new TimesheetDate(_record.date);
-            const isRecordDateInYear = _date.yearNumber === year
+            const isRecordDateInYear = _date.year === year
             return isRecordDateInYear
         }) : []
         result = [...result, ..._timesheetRecordInDateRange]

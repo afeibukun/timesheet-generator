@@ -1,4 +1,4 @@
-
+'use client'
 import DefaultFormGroup from "@/app/_components/DefaultFormGroup";
 import DefaultFormGroupTitle from "@/app/_components/DefaultFormGroupTitle";
 import DefaultFormItem from "@/app/_components/DefaultFormItem"
@@ -13,6 +13,10 @@ import { useEffect, useState } from "react";
 import { Customer } from "@/lib/services/meta/customer";
 import { Project } from "@/lib/services/meta/project";
 import { TimesheetDate } from "@/lib/services/timesheet/timesheetDate";
+import DatePicker, { registerLocale } from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+
+import { enGB } from 'date-fns/locale/en-GB';
 
 type CreateTimesheetFormProp = {
     personnels: Personnel[],
@@ -23,28 +27,32 @@ type CreateTimesheetFormProp = {
 export default function CreateTimesheetForm({ personnels, customers, projects }: CreateTimesheetFormProp) {
     const router = useRouter();
 
+    registerLocale('en-GB', enGB)
+
     const [timesheetForm, setTimesheetForm] = useState({
         personnelSlug: '',
         customerSlug: '',
         siteSlug: '',
         projectPurchaseOrderNumber: '',
-        selectedWeek: '',
-        selectedMonth: -1,
+        selectedWeek: undefined as number | undefined,
+        selectedMonth: undefined as number | undefined,
+        selectedYear: undefined as number | undefined,
         possibleMonths: [] as number[],
         daysInSelectedWeek: [] as TimesheetDate[],
         autoPopulateEntry: false,
         mobilizationDate: '',
         demobilizationDate: '',
     });
+    const [currentDate, setCurrentDate] = useState(undefined as Date | undefined);
 
     useEffect(() => {
         const initializer = async () => {
             try {
                 await TimesheetDate.initializeWeekStartDay();
-                const _initialSelectedWeek = TimesheetDate.getCurrentWeekYearForWeekForm();
-                const _initialWeekYearData = TimesheetDate.extractWeekDataFromPrimitiveWeek(_initialSelectedWeek);
-                const _initialMonths = TimesheetDate.getMonthsInAWeek(_initialWeekYearData.week, _initialWeekYearData.year);
-                const _initialDaysInWeek = TimesheetDate.getWeekDays(_initialWeekYearData.week)
+                const _initialWeek = TimesheetDate.getCurrentWeekNumber()
+                const _initialYear = TimesheetDate.getCurrentYearNumber()
+                const _initialMonths = TimesheetDate.getMonthsInAWeek(_initialWeek, _initialYear);
+                const _initialDaysInWeek = TimesheetDate.getWeekDays(_initialWeek)
 
                 setTimesheetForm({
                     ...timesheetForm,
@@ -52,11 +60,14 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                     customerSlug: customers && customers.length > 0 ? customers[0].slug : '',
                     siteSlug: customers && customers.length > 0 && customers[0].sites ? customers[0].sites[0]?.slug : '',
                     projectPurchaseOrderNumber: projects && projects.length > 0 ? projects[0].purchaseOrderNumber : '',
-                    selectedWeek: _initialSelectedWeek,
+                    selectedWeek: _initialWeek,
                     selectedMonth: _initialMonths[0],
+                    selectedYear: _initialYear,
                     possibleMonths: _initialMonths,
                     daysInSelectedWeek: _initialDaysInWeek
                 });
+
+                setCurrentDate(new Date())
             } catch (e) { }
         }
         initializer();
@@ -72,6 +83,16 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         const months = TimesheetDate.getMonthsInAWeek(week, year);
         const _daysInWeek = TimesheetDate.getWeekDays(week)
         setTimesheetForm({ ...timesheetForm, selectedWeek: e.target.value, selectedMonth: months[0], possibleMonths: months, daysInSelectedWeek: _daysInWeek })
+    }
+
+    const weekChangeEventHandler = (date: Date | null, e: any) => {
+        if (date) {
+            const _selectedTimesheetDate = new TimesheetDate(date)
+            setCurrentDate(date)
+            const months = TimesheetDate.getMonthsInAWeek(_selectedTimesheetDate.week, _selectedTimesheetDate.year);
+            const _daysInWeek = TimesheetDate.getWeekDays(_selectedTimesheetDate.week)
+            setTimesheetForm({ ...timesheetForm, selectedWeek: _selectedTimesheetDate.week, selectedMonth: months[0], possibleMonths: months, daysInSelectedWeek: _daysInWeek })
+        }
     }
 
     async function handleCreateTimesheet(e: any) {
@@ -91,8 +112,7 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
         ];
 
         if (!_site) throw new Error("Site Not Found");
-        const { year, week } = TimesheetDate.extractWeekDataFromPrimitiveWeek(timesheetForm.selectedWeek);
-        const _timesheet = await Timesheet.createTimesheet(_personnel, _customer, _site, _project, timesheetForm.autoPopulateEntry, _options, week, year, timesheetForm.selectedMonth);
+        const _timesheet = await Timesheet.createTimesheet(_personnel, _customer, _site, _project, timesheetForm.autoPopulateEntry, _options, timesheetForm.selectedWeek, timesheetForm.selectedYear, timesheetForm.selectedMonth);
 
         router.push(`/review?${SearchParamsLabel.component}=${ComponentType.timesheet}&${SearchParamsLabel.key}=${_timesheet.key}`);
 
@@ -126,15 +146,26 @@ export default function CreateTimesheetForm({ personnels, customers, projects }:
                         <div className="timesheet-week-container">
                             <div className="select-timesheet-week mb-1 flex gap-x-3">
                                 <label htmlFor="weekPicker">Week Picker</label>
-                                <input type="week" title="Select Week" id="weekPicker" value={timesheetForm.selectedWeek} onChange={(e) => handleWeekChange(e)} />
+                                {/* <input type="week" title="Select Week" id="weekPicker" value={timesheetForm.selectedWeek} onChange={(e) => handleWeekChange(e)} /> */}
+                                <div>
+                                    {currentDate ?
+                                        <div>
+                                            <DatePicker selected={currentDate} className="bg-gray-300 px-2 rounded border border-black"
+                                                onChange={(date, e) => weekChangeEventHandler(date, e)}
+                                                dateFormat="I/R" locale="en-GB" showWeekNumbers showWeekPicker />
+                                        </div>
+                                        : ''
+                                    }
+                                </div>
                             </div>
                             <div className="flex gap-x-3 items-center">
                                 <div className="w-24">
-                                    <p className="capitalize text-sm">{TimesheetDate.monthsInYear[timesheetForm.selectedMonth]}</p>
+                                    {timesheetForm.selectedMonth ?
+                                        <p className="capitalize text-sm">{TimesheetDate.monthsInYear[timesheetForm.selectedMonth]}</p> : ''}
                                 </div>
                                 <div className="flex gap-x-1">
                                     {timesheetForm.daysInSelectedWeek.map((_date) =>
-                                        <div key={_date.date} className={`h-4 w-4 relative ${_date.monthNumber === timesheetForm.selectedMonth ? 'bg-orange-600 text-white' : 'bg-orange-200 text-black'}`}><span className="text-[8px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{_date.dayInMonth}</span></div>
+                                        <div key={_date.date} className={`h-4 w-4 relative ${_date.month === timesheetForm.selectedMonth ? 'bg-orange-600 text-white' : 'bg-orange-200 text-black'}`}><span className="text-[8px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">{_date.dayInMonth}</span></div>
                                     )}
                                 </div>
                             </div>

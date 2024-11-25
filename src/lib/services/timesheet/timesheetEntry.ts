@@ -78,16 +78,16 @@ export class TimesheetEntry implements PlainTimesheetEntry {
     }
 
     get weekNumber(): number {
-        const timesheetEntryWeek = this.date.weekNumber;
+        const timesheetEntryWeek = this.date.week;
         return timesheetEntryWeek;
     }
 
     get monthNumber(): number {
-        return this.date.monthNumber;
+        return this.date.month;
     }
 
     get month(): string {
-        return this.date.month;
+        return this.date.monthString;
     }
 
     get isNullEntry(): boolean {

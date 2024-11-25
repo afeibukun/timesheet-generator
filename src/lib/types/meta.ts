@@ -31,8 +31,8 @@ export interface PlainCustomer {
     id?: number,
     slug: string,
     name: string,
-    activeSite?: PlainSite,
-    sites?: PlainSite[]
+    activeSite?: PlainSite, //not to be saved in db
+    sites?: PlainSite[] // for use in db and when creating sites / customers
 }
 
 // PROJECT

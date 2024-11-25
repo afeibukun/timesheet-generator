@@ -1,18 +1,19 @@
 import moment from "moment";
 import { InvalidTimesheetDateError } from "./timesheetErrors";
-import { PlainTimesheetDate } from "@/lib/types/timesheet";
+import { PlainDefaultTimesheetData, PlainTimesheetDate } from "@/lib/types/timesheet";
 import { TimesheetEntry } from "./timesheetEntry";
 import { ErrorMessage } from "@/lib/constants/constant";
-import { PlainDefaultTimesheetData } from "@/lib/types/primitive";
 import { defaultTimesheetEntryData } from "@/lib/constants/default";
 
 export class TimesheetDate implements PlainTimesheetDate {
     date: string;
     _isValidTimesheetDate?: boolean;
 
-    constructor(dateObject: PlainTimesheetDate | String | string) {
+    constructor(dateObject: PlainTimesheetDate | Date | String | string) {
         if (typeof dateObject == 'string' || dateObject instanceof String) {
             this.date = dateObject as string;
+        } else if (dateObject instanceof Date) {
+            this.date = moment(dateObject).format();
         } else {
             this.date = dateObject.date;
         }
@@ -70,19 +71,23 @@ export class TimesheetDate implements PlainTimesheetDate {
         // output sample - 08-2024
     }
 
-    get weekNumber(): number {
+    get week(): number {
         return moment(this.date).week();
     }
 
-    get monthNumber(): number {
+    get month(): number {
         return moment(this.date).month();
     }
 
-    get month(): string {
+    get monthLocale(): number {
+        return moment(this.date).month() + 1;
+    }
+
+    get monthString(): string {
         return moment(this.date).format("MMMM").toLowerCase();
     }
 
-    get yearNumber(): number {
+    get year(): number {
         return moment(this.date).year();
     }
 
@@ -373,7 +378,7 @@ export class TimesheetDate implements PlainTimesheetDate {
 
     static monthForSelectedDay(date: string) {
         const _date = new TimesheetDate(date);
-        return _date.monthNumber
+        return _date.month
     }
 
     static daysInMonth(referenceDate: TimesheetDate) {

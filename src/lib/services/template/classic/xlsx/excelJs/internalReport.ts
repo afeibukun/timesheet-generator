@@ -523,7 +523,7 @@ const timeEntrySectionStyles = (worksheet: any, internalReportTimesheet: Interna
             // cell.numFmt = '#';
         })
 
-        if (_records[counter].date.monthNumber != internalReportTimesheet.month) {
+        if (_records[counter].date.month != internalReportTimesheet.month) {
             // not same month
             singleRow.eachCell({ includeEmpty: true }, (cell: any) => {
                 cell.fill = {

@@ -17,21 +17,14 @@ export class TimesheetRecord implements PlainTimesheetRecord {
     key: number | string;
     date: TimesheetDate;
     entries: TimesheetEntry[];
-    customer: Customer;
-    project: Project;
     comment: string;
     options?: TimesheetRecordOption[]
 
     constructor(plainRecord: PlainTimesheetRecord) {
-
-        if (!plainRecord.customer.activeSite) throw new Error("Invalid Timesheet Record", { cause: "Active site not set for the customer" })
-
         this.id = plainRecord.id;
-        this.key = plainRecord.key;
+        this.key = plainRecord.key
         this.date = new TimesheetDate(plainRecord.date);
         this.entries = plainRecord.entries.map((entry) => new TimesheetEntry(entry));
-        this.customer = new Customer(plainRecord.customer) // should have an active site
-        this.project = new Project(plainRecord.project)
         this.comment = plainRecord.comment ? plainRecord.comment : '';
         this.options = plainRecord.options
     }
@@ -73,20 +66,20 @@ export class TimesheetRecord implements PlainTimesheetRecord {
     }
 
     get weekNumber(): number {
-        const _timesheetRecordWeek = this.date.weekNumber;
+        const _timesheetRecordWeek = this.date.week;
         return _timesheetRecordWeek;
     }
 
     get monthNumber(): number {
-        return this.date.monthNumber;
+        return this.date.month;
     }
 
     get yearNumber(): number {
-        return this.date.yearNumber;
+        return this.date.year;
     }
 
     get month(): string {
-        return this.date.month;
+        return this.date.monthString;
     }
 
     get isNull(): boolean {
@@ -128,7 +121,7 @@ export class TimesheetRecord implements PlainTimesheetRecord {
             const _plainTimesheetEntry = entry.convertToPlain();
             return _plainTimesheetEntry
         });
-        const _plainRecord: PlainTimesheetRecord = { id: this.id, key: this.key, date: this.date.convertToPlain(), entries: _plainEntries, customer: this.customer.convertToPlain(), project: this.project.convertToPlain() }
+        const _plainRecord: PlainTimesheetRecord = { id: this.id, key: this.key, date: this.date.convertToPlain(), entries: _plainEntries }
         return _plainRecord;
     }
 

@@ -20,6 +20,7 @@
     "next": "14.2.5",
     "pdf-lib": "^1.17.1",
     "react": "^18",
+    "react-datepicker": "^7.5.0",
     "react-dom": "^18",
     "sql.js": "^1.10.3",
     "write-excel-file": "^2.0.5"

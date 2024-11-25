@@ -22,34 +22,29 @@ import { createInternalPdfReportWithJsPdfAutoTable } from "../template/classic/p
 
 /**
  * class: Timesheet
- * An object of class Timesheet refers to a week of recorded work informatiomn
+ * A collection of timesheet records across a week, obeying some simple policy
+ * The collection have shared information like personnel, project, customer, comment and other options
  */
 export class Timesheet implements PlainTimesheet {
     id?: number;
-    key: number;
+    key: number | string;
     personnel: Personnel;
-    /**
-     * Assigned month for the timesheet
-     * Since a single Timesheet cannot have entries that span different months
-     */
-    month: number;
-    weekEndingDate: TimesheetDate;
+    weekEndingDate: TimesheetDate; // from this we can know the week number
     customer: Customer;
-    site: Site;
     project: Project;
     options: TimesheetOption[];
     records: TimesheetRecord[];
     comment: string;
 
     constructor(plainTimesheet: PlainTimesheet) {
+        if (!plainTimesheet.customer.activeSite) throw new Error("Invalid Timesheet Record", { cause: "Active site not set for the customer" })
+
         this.id = plainTimesheet.id;
         this.key = plainTimesheet.key
         this.personnel = new Personnel(plainTimesheet.personnel);
         this.customer = new Customer(plainTimesheet.customer);
-        this.site = new Site(plainTimesheet.site);
         this.project = new Project(plainTimesheet.project);
         this.weekEndingDate = new TimesheetDate(plainTimesheet.weekEndingDate);
-        this.month = plainTimesheet.month;
         this.options = plainTimesheet.options;
         this.records = plainTimesheet.records.map((_plainRecord) => new TimesheetRecord(_plainRecord));
         this.comment = plainTimesheet.comment;
@@ -74,7 +69,7 @@ export class Timesheet implements PlainTimesheet {
     }
 
     get weekNumber(): number {
-        return this.weekEndingDate.weekNumber;
+        return this.weekEndingDate.week;
     }
 
     get monthNumber(): number {
@@ -119,7 +114,7 @@ export class Timesheet implements PlainTimesheet {
     }
 
     convertToPlain() {
-        let _plainTimesheet: PlainTimesheet = { id: this.id, key: this.key, personnel: this.personnel.convertToPlain(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), site: this.site.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.convertToPlain(), month: this.month, comment: this.comment }
+        let _plainTimesheet: PlainTimesheet = { id: this.id, key: this.key, personnel: this.personnel.convertToPlain(), personnelSlug: this.personnel.slug, project: this.project.convertToPlain(), customer: this.customer.convertToPlain(), records: this.records.map((_record) => _record.convertToPlain()), options: this.options, weekEndingDate: this.weekEndingDate.convertToPlain(), comment: this.comment }
         return _plainTimesheet;
     }
 
@@ -195,7 +190,7 @@ export class Timesheet implements PlainTimesheet {
         if (shouldPopulateEntry) {
             const _weekDays = TimesheetDate.getWeekDays(_lastDayOfTheSelectedWeek)
             _records = _weekDays.reduce((_recordsAccumulator, _date, index) => {
-                if (_date.monthNumber === _month) {
+                if (_date.month === _month) {
                     const _newEntry = new TimesheetEntry({
                         id: TimesheetEntry.createTimesheetEntryId(), date: _date, entryType: getDefaultEntryType(), entryPeriod: getDefaultEntryPeriod(), locationType: defaultData.locationType, comment: defaultData.comment
                     });
@@ -203,7 +198,7 @@ export class Timesheet implements PlainTimesheet {
                     while (_recordsAccumulator.some((_record) => _record.key === _timesheetRecordKey) || _timesheetRecordKey == '') {
                         _timesheetRecordKey = TimesheetRecord.createTimesheetRecordId(_date, index);
                     }
-                    const _newRecord = new TimesheetRecord({ key: _timesheetRecordKey, date: _date, entries: [_newEntry], customer: customer, project: project });
+                    const _newRecord = new TimesheetRecord({ key: _timesheetRecordKey, date: _date, entries: [_newEntry] });
                     return [..._recordsAccumulator, _newRecord]
                 } else {
                     return _recordsAccumulator
@@ -211,7 +206,7 @@ export class Timesheet implements PlainTimesheet {
             }, _records);
         }
         let _key = await Timesheet.createTimesheetId()
-        const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, month: _month, customer: customer, site: site, project: project, options: timesheetOptions, records: _records, comment: '' });
+        const _newTimesheet: Timesheet = new Timesheet({ key: _key, personnel: personnel, weekEndingDate: _lastDayOfTheSelectedWeek, customer: customer, project: project, options: timesheetOptions, records: _records, comment: '' });
         let _plainTimesheet: PlainTimesheet = _newTimesheet.convertToPlain();
 
         const _stringifiedTimesheet = JSON.stringify(_plainTimesheet)
@@ -243,8 +238,8 @@ export class Timesheet implements PlainTimesheet {
         let _monthCount = 0;
 
         const isDateSameOrBeforeAnotherDate = (firstDate: TimesheetDate, secondDate: TimesheetDate) => firstDate.isDateSameOrBefore(secondDate);
-        const isDateWithinWeek = (date: TimesheetDate, weekNumber: number) => date.weekNumber == weekNumber;
-        const isDateWithinMonth = (date: TimesheetDate, monthNumber: number) => date.monthNumber == monthNumber;
+        const isDateWithinWeek = (date: TimesheetDate, weekNumber: number) => date.week == weekNumber;
+        const isDateWithinMonth = (date: TimesheetDate, monthNumber: number) => date.month == monthNumber;
         const getEntryTypeSlug = (currentDate: TimesheetDate) => {
             let res = "working-time"
             if (currentDate.isDateSame(_preMobTravelDate)) res = "travel-mobilization"
@@ -261,9 +256,9 @@ export class Timesheet implements PlainTimesheet {
 
         let _timesheetCount = 0;
         let _recordCount = 0;
-        let _cursorWeekNumber = _cursorDate.weekNumber;
+        let _cursorWeekNumber = _cursorDate.week;
         let _cursorWeekEndingDate = _cursorDate.getLastDayOfTheWeek;
-        let _cursorMonthNumber = _cursorDate.monthNumber;
+        let _cursorMonthNumber = _cursorDate.month;
         let _cursorTimesheet;
         let _startNewTimesheet = true;
 
@@ -272,7 +267,8 @@ export class Timesheet implements PlainTimesheet {
             // if (!timesheetCollection[_monthCount][_timesheetCount]) {
             if (_startNewTimesheet) {
                 let _timesheetKey = await Timesheet.createTimesheetId();
-                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, month: _cursorMonthNumber, customer: customer, site: site, project: project, options: [{ key: OptionLabel.mobilizationDate, value: _mobDate }, { key: OptionLabel.demobilizationDate, value: _demobDate }, { key: OptionLabel.timesheetCollectionKey, value: _timesheetCollectionKey }], records: [], comment: '' });
+                const _timesheetOptions: TimesheetOption[] = [{ key: OptionLabel.mobilizationDate, value: _mobDate }, { key: OptionLabel.demobilizationDate, value: _demobDate }, { key: OptionLabel.timesheetCollectionKey, value: _timesheetCollectionKey }];
+                _cursorTimesheet = new Timesheet({ key: _timesheetKey, personnel: personnel, weekEndingDate: _cursorWeekEndingDate, customer: customer, project: project, options: _timesheetOptions, records: [], comment: '' });
                 timesheetCollectionByMonth[_monthCount] = [...timesheetCollectionByMonth[_monthCount], _cursorTimesheet];
                 _startNewTimesheet = false;
             } else {
@@ -286,7 +282,7 @@ export class Timesheet implements PlainTimesheet {
             while (_cursorTimesheet.records.some((_record) => _record.key === _timesheetRecordKey) || _timesheetRecordKey == '') {
                 _timesheetRecordKey = TimesheetRecord.createTimesheetRecordId(_cursorDate, _recordCount);
             }
-            const _entryRecordForCurrentDate = new TimesheetRecord({ key: _timesheetRecordKey, date: _cursorDate, entries: [_entryForCurrentDate], customer: customer, project: project });
+            const _entryRecordForCurrentDate = new TimesheetRecord({ key: _timesheetRecordKey, date: _cursorDate, entries: [_entryForCurrentDate] });
             _cursorTimesheet.records = [..._cursorTimesheet.records, _entryRecordForCurrentDate]
             timesheetCollectionByMonth[_monthCount][_timesheetCount].records = _cursorTimesheet.records;
 
@@ -313,15 +309,15 @@ export class Timesheet implements PlainTimesheet {
                 let _timesheetKey = getUniqueIDBasedOnTime();
                 while (!await Timesheet.isKeyUnique(_timesheetKey)) _timesheetKey = getUniqueIDBasedOnTime();
 
-                let _plainTimesheet: PlainTimesheet = { key: _timesheetKey, customer: customer, personnel: personnel.convertToPlain(), personnelSlug: personnel.slug, project: project, site: site, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.convertToPlain(), month: _cursorMonthNumber, comment: _cursorTimesheet.comment }
+                let _plainTimesheet: PlainTimesheet = { key: _timesheetKey, customer: customer, personnel: personnel.convertToPlain(), personnelSlug: personnel.slug, project: project, records: _cursorTimesheet.records, options: _cursorTimesheet.options, weekEndingDate: _cursorTimesheet.weekEndingDate.convertToPlain(), comment: _cursorTimesheet.comment }
 
                 const stringifiedTimesheet = JSON.stringify(_plainTimesheet)
                 const timesheet = await createTimesheet(JSON.parse(stringifiedTimesheet));
                 timesheetCollection.timesheets = [...timesheetCollection.timesheets, timesheet];
             }
 
-            _cursorWeekNumber = _cursorDate.weekNumber;
-            _cursorMonthNumber = _cursorDate.monthNumber;
+            _cursorWeekNumber = _cursorDate.week;
+            _cursorMonthNumber = _cursorDate.month;
             _cursorWeekEndingDate = _cursorDate.getLastDayOfTheWeek;
         }
 

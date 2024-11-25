@@ -340,7 +340,7 @@ const generateEntryRows = (internalReportTimesheet: InternalReportTimesheetColle
     // Excel Row 9 - 22
     const _entryRows: PdfTemplateRowItem[][] = internalReportTimesheet.records.map((_record) => {
         let generalFillColor = Color.white
-        if (_record.date.monthNumber != internalReportTimesheet.month) {
+        if (_record.date.month != internalReportTimesheet.month) {
             generalFillColor = Color.lightGray
         }
         let dateFillColor: Color = generalFillColor

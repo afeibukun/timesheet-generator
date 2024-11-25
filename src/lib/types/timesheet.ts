@@ -1,4 +1,4 @@
-import { DateDisplayExportOption, EntryTypeExportOption, LocationType } from "../constants/constant"
+import { DateDisplayExportOption, EntryTypeExportOption, LocationType, OptionLabel } from "../constants/constant"
 import { Timesheet } from "../services/timesheet/timesheet";
 import { PlainCustomer, PlainPersonnel, PlainProject, PlainSite } from "./meta";
 
@@ -16,29 +16,27 @@ export interface TimesheetCollectionByMonth {
 // TIMESHEET OPTIONS examples (mobilization date, demob date)
 export interface TimesheetOption {
     id?: number,
-    key: any,
+    key: TimesheetOptionKey,
     value: any,
 }
+export type TimesheetOptionKey = OptionLabel.timesheetWeek | OptionLabel.mobilizationDate | OptionLabel.demobilizationDate | OptionLabel.timesheetCollectionKey
 
 export type MobilizationDateInformation = {
     mobilizationDate: string,
     demobilizationDate: string
 }
 
-export interface TimesheetRecordOption {
-    key: any,
-    value: any,
-}
-
 export interface TimesheetEntryOption {
-    key: any,
+    key: TimesheetEntryOptionKey,
     value: any,
 }
+export type TimesheetEntryOptionKey = OptionLabel.excludeEntryFromReport
 
-export interface TimesheetCollectionOptions {
-    key: string,
+export interface TimesheetCollectionOption {
+    key: TimesheetCollectionOptionKey,
     value: any
 }
+export type TimesheetCollectionOptionKey = ''
 
 export type ExportOptions = {
     dateDisplay: DateDisplayExportOption,
@@ -51,15 +49,13 @@ export type ExportOptions = {
 // A timesheet refers to a week group of timesheet entries. it cannot overlap months though
 export interface PlainTimesheet {
     id?: number,
-    key: number,
+    key: number | string,
     personnel: PlainPersonnel;
     personnelSlug?: string;
     weekEndingDate: PlainTimesheetDate;
-    month: number;
-    customer: PlainCustomer;
-    site: PlainSite;
+    customer: PlainCustomer; // plain customer should have active site selected
     project: PlainProject;
-    options: PlainTimesheetOption[];
+    options: TimesheetOption[];
     records: PlainTimesheetRecord[];
     comment: string;
 }
@@ -74,13 +70,6 @@ export interface PlainTimesheetCollection {
 export interface PlainTimesheetCollectionByMonth {
     id?: number,
     collection: PlainTimesheet[][];
-}
-
-// TIMESHEET OPTIONS examples (mobilization date, demob date)
-export interface PlainTimesheetOption {
-    id?: number,
-    key: any,
-    value: any,
 }
 
 // DATE
@@ -111,16 +100,15 @@ export interface PlainTimesheetRecord {
     key: number | string,
     date: PlainTimesheetDate,
     entries: PlainTimesheetEntry[],
-    customer: PlainCustomer, // plain customer should have active site selected
-    project: PlainProject,
     comment?: string,
-    options?: PlainTimesheetRecordOption[]
+    options?: TimesheetRecordOption[]
 }
 
-export interface PlainTimesheetRecordOption {
-    key: any,
+export interface TimesheetRecordOption {
+    key: TimesheetRecordOptionKey,
     value: any,
 }
+export type TimesheetRecordOptionKey = OptionLabel.isPublicHoliday | 'randomkey' | 'anotherrandomkey'
 
 export interface PlainTimesheetEntry {
     id?: number | string,
@@ -130,23 +118,13 @@ export interface PlainTimesheetEntry {
     locationType?: LocationType,
     hasPremium?: boolean
     comment?: string,
-    options?: PlainTimesheetEntryOption[]
-}
-
-export interface PlainTimesheetEntryOption {
-    key: any,
-    value: any,
+    options?: TimesheetEntryOption[]
 }
 
 export interface PlainTimesheetEntryType {
     id?: number
     slug: string
     name: string
-}
-
-export interface PlainTimesheetCollectionOptions {
-    key: string,
-    value: any
 }
 
 export interface PlainDefaultTimesheetData {
